@@ -21,7 +21,6 @@ import           FastString   ( FastString (fs_bs)
                               , fsLit
                               )
 import           GhcMonad     ( Ghc
-                              , reifyGhc
                               , getSessionDynFlags
                               )
 import           HsBinds      ( HsBindLR (..)
@@ -81,9 +80,9 @@ parseGhcModule dynFlags stringBuffer realLocSrc =
 -- compile time
 --
 parseModuleGhc :: FilePath
+               -> StringBuffer
                -> Ghc (ParseResult (Located (HsModule GhcPs)))
-parseModuleGhc modulePath = do
-    stringBuffer <- reifyGhc $ \_ -> StringBuffer.hGetStringBuffer modulePath
+parseModuleGhc modulePath stringBuffer = do
     dynFlags <- getSessionDynFlags
     let realSrcLoc = mkRealSrcLoc (fsLit modulePath)
                                   (StringBuffer.cur stringBuffer)
