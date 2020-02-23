@@ -127,7 +127,7 @@ mkGhcTag (L tagSrcSpan rdrName) =
 generateTagsForModule :: Located (HsModule GhcPs)
                       -> GhcTags
 generateTagsForModule (L _ HsModule { hsmodDecls }) = 
-    foldl' go [] hsmodDecls
+    reverse $ foldl' go [] hsmodDecls
   where
     go :: GhcTags -> LHsDecl GhcPs -> GhcTags
     go tags (L _ hsDecl) = case hsDecl of
