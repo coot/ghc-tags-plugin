@@ -21,8 +21,7 @@ library
   -- other-extensions:
   build-depends:       base       ^>=4.12.0.0,
                        bytestring,
-                       ghc        >=8.4 && <8.9,
-                       ghc-paths  ^>=0.1.0.12
+                       ghc        >=8.4 && <8.9
   hs-source-dirs:      lib
   default-language:    Haskell2010
   ghc-options:         -Wall
@@ -34,6 +33,8 @@ executable ghctags
   build-depends:       base ^>=4.12.0.0,
                        bytestring,
                        ghc,
+                       ghc-paths  ^>=0.1.0.12,
                        ghctags
   hs-source-dirs:      app
   default-language:    Haskell2010
+  ghc-options:         -Wall

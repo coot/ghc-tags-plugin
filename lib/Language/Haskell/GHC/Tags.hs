@@ -1,7 +1,14 @@
 {-# LANGUAGE BangPatterns   #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
-module Language.Haskell.GHC.Tags where
+module Language.Haskell.GHC.Tags
+  ( parseGhcModule
+  , parseModuleGhc
+  , GhcTag (..)
+  , GhcTags
+  , generateTagsForModule
+  , formatGhcTagVim
+  ) where
 
 import           Data.Foldable ( foldl' )
 import           Data.Maybe    ( mapMaybe )
@@ -10,11 +17,11 @@ import           Data.ByteString.Builder
 
 -- Ghc imports
 import           DynFlags     ( DynFlags )
-import           GHC          ( runGhc )
 import           FastString   ( FastString (fs_bs)
                               , fsLit
                               )
-import           GhcMonad     ( reifyGhc
+import           GhcMonad     ( Ghc
+                              , reifyGhc
                               , getSessionDynFlags
                               )
 import           HsBinds      ( HsBindLR (..)
@@ -52,8 +59,6 @@ import           SrcLoc       ( Located
 import           StringBuffer ( StringBuffer )
 import qualified StringBuffer
 
-import qualified GHC.Paths
-
 -- Ghc a ~ Session -> IO a
 --
 -- runGhc
@@ -75,16 +80,15 @@ parseGhcModule dynFlags stringBuffer realLocSrc =
 -- TODO: 'GHC.Paths.libdir' should be dynamically configurable, not given at
 -- compile time
 --
-parseGhcModuleIO :: FilePath
-                 -> IO (ParseResult (Located (HsModule GhcPs)))
-parseGhcModuleIO modulePath =
-    runGhc (Just GHC.Paths.libdir) $ do
-      stringBuffer <- reifyGhc $ \_ -> StringBuffer.hGetStringBuffer modulePath
-      dynFlags <- getSessionDynFlags
-      let realSrcLoc = mkRealSrcLoc (fsLit modulePath)
-                                    (StringBuffer.cur stringBuffer)
-                                    (StringBuffer.len stringBuffer)
-      return $ parseGhcModule dynFlags stringBuffer realSrcLoc
+parseModuleGhc :: FilePath
+               -> Ghc (ParseResult (Located (HsModule GhcPs)))
+parseModuleGhc modulePath = do
+    stringBuffer <- reifyGhc $ \_ -> StringBuffer.hGetStringBuffer modulePath
+    dynFlags <- getSessionDynFlags
+    let realSrcLoc = mkRealSrcLoc (fsLit modulePath)
+                                  (StringBuffer.cur stringBuffer)
+                                  (StringBuffer.len stringBuffer)
+    return $ parseGhcModule dynFlags stringBuffer realSrcLoc
 
 
 -- | We can read names from using fields of type 'GHC.Hs.Extensions.IdP' (a tpye
