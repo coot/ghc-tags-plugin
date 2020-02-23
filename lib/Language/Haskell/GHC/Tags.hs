@@ -262,5 +262,5 @@ formatGhcTagVim GhcTag { tagSrcSpan, tagTag } =
         <> charUtf8 '\t'
         <> byteString (fs_bs . srcSpanFile $ realSrcSpan)
         <> charUtf8 '\t'
-        <> intDec (srcSpanStartLine realSrcSpan)
+        <> intDec (succ $ srcSpanStartLine realSrcSpan)
         <> charUtf8 '\n'
