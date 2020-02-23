@@ -164,7 +164,8 @@ generateTagsForModule (L _ HsModule { hsmodDecls }) =
 
           XTyClDecl {} -> tags
 
-      -- instance declaration
+      -- TODO: instance declaration (type class & type family instances)
+      -- here we can also scan for data & type family instances
       InstD {} -> tags
 
       -- deriveving declaration
@@ -174,7 +175,7 @@ generateTagsForModule (L _ HsModule { hsmodDecls }) =
       ValD _ hsBind  -> mkHsBindLRTags hsBind ++ tags
 
       -- signature declaration
-      SigD {} -> tags
+      SigD _ sig -> mkSigTags sig ++ tags
 
       -- default declaration
       DefD {} -> tags
