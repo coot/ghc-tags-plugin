@@ -4,6 +4,7 @@
 
 module Plugin.GhcTags ( plugin ) where
 
+import           Control.Exception
 import qualified Data.ByteString         as BS
 import qualified Data.ByteString.Builder as BS
 import           Data.IORef
@@ -63,7 +64,8 @@ ghcTagPlugin options modSummary hsParsedModule@HsParsedModule {hpm_module} =
         case mTagsMap of
 
           Nothing -> do
-            res <- BS.readFile tagsFile >>= parseVimTagFile
+            res <- (BS.readFile tagsFile >>= parseVimTagFile)
+                     `catch` \(e :: IOError) -> return (Left $ show e)
             case res of
               Left err -> do
                 putStrLn $ "GhcTags: error parsing \"" ++ tagsFile ++ "\": " ++ err
