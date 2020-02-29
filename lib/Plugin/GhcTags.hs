@@ -89,7 +89,7 @@ ghcTagPlugin options _modSummary hsParsedModule@HsParsedModule {hpm_module} =
       writeIORef tagsIORef (updatedTagsMap `seq` Just updatedTagsMap)
 
       -- update tags file
-      withFile tagsFile AppendMode $ \fhandle ->
+      withFile tagsFile WriteMode $ \fhandle ->
         BS.hPutBuilder fhandle
           $ foldMap formatVimTag
           $ sortOn tag
