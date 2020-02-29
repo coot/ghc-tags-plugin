@@ -1,14 +1,19 @@
 {-# LANGUAGE BangPatterns   #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
-module GHCTags
-  ( parseGhcModule
-  , parseModuleGhc
-  , GhcTag (..)
-  , GhcTags
-  , generateTagsForModule
-  , formatGhcTagVim
-  ) where
+module Plugin.GhcTags ( plugin ) where
+
+import qualified Data.ByteString.Builder as BS
+import           System.IO
+
+import           GhcPlugins ( CommandLineOption
+                            , Hsc
+                            , HsParsedModule (..)
+                            , ModSummary
+                            , Plugin (..)
+                            , liftIO
+                            )
+import           GhcPlugins hiding (occName, (<>))
 
 import           Data.Foldable ( foldl' )
 import           Data.Maybe    ( mapMaybe )
@@ -16,13 +21,6 @@ import           Data.Maybe    ( mapMaybe )
 import           Data.ByteString.Builder
 
 -- Ghc imports
-import           DynFlags     ( DynFlags )
-import           FastString   ( FastString (fs_bs)
-                              , fsLit
-                              )
-import           GhcMonad     ( Ghc
-                              , getSessionDynFlags
-                              )
 import           HsBinds      ( HsBindLR (..)
                               , PatSynBind (..)
                               , Sig (..)
@@ -38,25 +36,24 @@ import           HsDecls      ( ConDecl (..)
 import           HsSyn        ( GhcPs
                               , HsModule (..)
                               )
-import           Lexer        ( P (unP)
-                              , ParseResult (..)
-                              , mkPState
-                              )
-import           Name         ( nameOccName )
-import           OccName      ( OccName (..) )
-import           Parser       ( parseModule )
-import           RdrName      ( RdrName (..) )
-import           SrcLoc       ( Located
-                              , GenLocated (..)
-                              , SrcSpan (..)
-                              , RealSrcLoc
-                              , RealSrcSpan (..)
-                              , mkRealSrcLoc
-                              , unLoc
-                              , srcSpanStartLine
-                              )
-import           StringBuffer ( StringBuffer )
-import qualified StringBuffer
+
+
+plugin :: Plugin
+plugin = GhcPlugins.defaultPlugin { parsedResultAction = ghcTagPlugin }
+
+ghcTagPlugin :: [CommandLineOption] -> ModSummary -> HsParsedModule -> Hsc HsParsedModule
+ghcTagPlugin options modSummary hsParsedModule@HsParsedModule {hpm_module} =
+    liftIO $ do
+      putStrLn $ "GHCTags plugins: " ++ show options ++ " " ++ show (ms_location modSummary)
+      let tags = generateTagsForModule hpm_module
+      withFile tagsFile AppendMode $ \fhandle ->
+        BS.hPutBuilder fhandle (foldMap formatGhcTagVim tags)
+      pure $ hsParsedModule
+  where
+    tagsFile :: FilePath
+    tagsFile = case options of
+      []    -> "tags"
+      a : _ -> a
 
 -- Ghc a ~ Session -> IO a
 --
@@ -64,6 +61,7 @@ import qualified StringBuffer
 
 -- | Parse a module.
 --
+{-
 parseGhcModule :: DynFlags
                -> StringBuffer
                -> RealSrcLoc
@@ -88,6 +86,7 @@ parseModuleGhc modulePath stringBuffer = do
                                   (StringBuffer.cur stringBuffer)
                                   (StringBuffer.len stringBuffer)
     return $ parseGhcModule dynFlags stringBuffer realSrcLoc
+-}
 
 
 -- | We can read names from using fields of type 'GHC.Hs.Extensions.IdP' (a tpye
