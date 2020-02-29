@@ -57,7 +57,7 @@ plugin :: Plugin
 plugin = GhcPlugins.defaultPlugin { parsedResultAction = ghcTagPlugin }
 
 ghcTagPlugin :: [CommandLineOption] -> ModSummary -> HsParsedModule -> Hsc HsParsedModule
-ghcTagPlugin options modSummary hsParsedModule@HsParsedModule {hpm_module} =
+ghcTagPlugin options _modSummary hsParsedModule@HsParsedModule {hpm_module} =
     liftIO $ do
       mTagsMap <- readIORef tagsIORef
       (tagsMap :: TagsMap) <-
@@ -75,7 +75,6 @@ ghcTagPlugin options modSummary hsParsedModule@HsParsedModule {hpm_module} =
 
           Just tagsMap -> return tagsMap
 
-      putStrLn $ "GHCTags plugins: " ++ show options ++ " " ++ show (ms_location modSummary)
       let tagsMap', updatedTagsMap :: TagsMap
           tagsMap' =
               mkTagsMap
