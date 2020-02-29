@@ -275,7 +275,7 @@ ghcTagToTag GhcTag { tagSrcSpan, tagTag } =
       RealSrcSpan realSrcSpan ->
         Just $ Tag { tag     = TagName (fs_bs tagTag)
                    , tagFile = fs_bs (srcSpanFile realSrcSpan)
-                   , tagLine = succ $ srcSpanStartLine realSrcSpan
+                   , tagLine = srcSpanStartLine realSrcSpan
                    }
 
 formatVimTag :: Tag -> Builder
