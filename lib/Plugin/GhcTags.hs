@@ -8,6 +8,7 @@ import           Control.Exception
 import qualified Data.ByteString         as BS
 import qualified Data.ByteString.Builder as BS
 import           Data.IORef
+import           Data.List ( sortOn )
 import           Data.Map ( Map )
 import qualified Data.Map as Map
 import           System.IO
@@ -82,7 +83,7 @@ ghcTagPlugin options _modSummary hsParsedModule@HsParsedModule {hpm_module} =
             $ generateTagsForModule
             $ hpm_module
 
-          updatedTagsMap = Map.union tagsMap' tagsMap
+          updatedTagsMap = tagsMap' `Map.union` tagsMap
 
       -- update 'tagsIORef', make sure that `updateTagsMap` is evaluated.
       writeIORef tagsIORef (updatedTagsMap `seq` Just updatedTagsMap)
@@ -91,6 +92,7 @@ ghcTagPlugin options _modSummary hsParsedModule@HsParsedModule {hpm_module} =
       withFile tagsFile AppendMode $ \fhandle ->
         BS.hPutBuilder fhandle
           $ foldMap formatVimTag
+          $ sortOn tag
           $ concat
           $ Map.elems updatedTagsMap
       pure $ hsParsedModule

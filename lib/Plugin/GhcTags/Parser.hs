@@ -17,7 +17,8 @@ import qualified Data.Attoparsec.ByteString       as Atto
 import qualified Data.Attoparsec.ByteString.Char8 as Atto ( decimal
                                                           , endOfLine
                                                           )
-import           Data.Map ( Map )
+import           Data.List ( sortOn )
+import           Data.Map  ( Map )
 import qualified Data.Map as Map
 
 data Tag = Tag
@@ -53,4 +54,7 @@ type TagsMap = Map TagName [Tag]
 -- We will just need to merge dictionaries.
 --
 mkTagsMap :: [Tag] -> Map TagName [Tag]
-mkTagsMap = Map.fromListWith (<>) . map (\t -> (tag t, [t]))
+mkTagsMap =
+      fmap (sortOn (\t -> (tagFile t, tagLine t)))
+    . Map.fromListWith (<>)
+    . map (\t -> (tag t, [t]))
