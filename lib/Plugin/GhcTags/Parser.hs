@@ -1,5 +1,9 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DerivingStrategies         #-}
+
 module Plugin.GhcTags.Parser
-  ( Tag (..)
+  ( TagName (..)
+  , Tag (..)
   , parseVimTagFile
   ) where
 
@@ -12,15 +16,18 @@ import qualified Data.Attoparsec.ByteString.Char8 as Atto ( decimal
                                                           )
 
 data Tag = Tag
-  { tag     :: ByteString
+  { tag     :: TagName
   , tagFile :: ByteString
   , tagLine :: Int
   }
   deriving Show
 
+newtype TagName = TagName { getTagName :: ByteString }
+  deriving newtype (Eq, Ord, Show)
+
 vimTagLineParser:: Parser Tag
 vimTagLineParser =
-    Tag <$> (Atto.takeWhile (/= tab) <* Atto.skipWhile (== tab))
+    Tag <$> (TagName <$> Atto.takeWhile (/= tab) <* Atto.skipWhile (== tab))
         <*> (Atto.takeWhile (/= tab) <* Atto.skipWhile (== tab))
         <*> Atto.decimal
   where
