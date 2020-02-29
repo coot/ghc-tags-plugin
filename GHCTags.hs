@@ -1,7 +1,7 @@
 {-# LANGUAGE BangPatterns   #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
-module Language.Haskell.GHC.Tags
+module GHCTags
   ( parseGhcModule
   , parseModuleGhc
   , GhcTag (..)
