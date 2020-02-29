@@ -32,6 +32,9 @@ executable ghctags
   -- other-extensions:
   build-depends:       base         ^>=4.12.0.0,
                        bytestring,
+                       Cabal,
+                       directory    ^>=1.3,
+                       filepath     ^>=1.4,
                        ghc,
                        ghc-paths    ^>=0.1.0.12,
                        ghctags
