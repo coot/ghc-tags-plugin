@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns               #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE DerivingStrategies         #-}
 
@@ -5,6 +6,7 @@ module Plugin.GhcTags.Parser
   ( TagName (..)
   , Tag (..)
   , parseVimTagFile
+  , TagsMap
   , mkTagsMap
   ) where
 
@@ -19,9 +21,9 @@ import           Data.Map ( Map )
 import qualified Data.Map as Map
 
 data Tag = Tag
-  { tag     :: TagName
-  , tagFile :: ByteString
-  , tagLine :: Int
+  { tag     :: !TagName
+  , tagFile :: !ByteString
+  , tagLine :: !Int
   }
   deriving Show
 
@@ -45,6 +47,7 @@ parseVimTagFile =
       fmap Atto.eitherResult
     . Atto.parseWith (pure mempty) vimTagFileParser
 
+type TagsMap = Map TagName [Tag]
 
 -- | Map from TagName to list of tags.  This will be useful when updating tags.
 -- We will just need to merge dictionaries.

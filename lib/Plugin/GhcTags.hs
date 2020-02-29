@@ -1,10 +1,16 @@
-{-# LANGUAGE BangPatterns   #-}
-{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Plugin.GhcTags ( plugin ) where
 
+import qualified Data.ByteString         as BS
 import qualified Data.ByteString.Builder as BS
+import           Data.IORef
+import           Data.Map ( Map )
+import qualified Data.Map as Map
 import           System.IO
+import           System.IO.Unsafe (unsafePerformIO)
 
 import           GhcPlugins ( CommandLineOption
                             , Hsc
@@ -37,6 +43,14 @@ import           HsSyn        ( GhcPs
                               , HsModule (..)
                               )
 
+import           Plugin.GhcTags.Parser
+
+
+-- | IORef which is shared across various compilations
+--
+tagsIORef :: IORef (Maybe (Map TagName [Tag]))
+tagsIORef = unsafePerformIO $ newIORef Nothing
+
 
 plugin :: Plugin
 plugin = GhcPlugins.defaultPlugin { parsedResultAction = ghcTagPlugin }
@@ -44,10 +58,40 @@ plugin = GhcPlugins.defaultPlugin { parsedResultAction = ghcTagPlugin }
 ghcTagPlugin :: [CommandLineOption] -> ModSummary -> HsParsedModule -> Hsc HsParsedModule
 ghcTagPlugin options modSummary hsParsedModule@HsParsedModule {hpm_module} =
     liftIO $ do
+      mTagsMap <- readIORef tagsIORef
+      (tagsMap :: TagsMap) <-
+        case mTagsMap of
+
+          Nothing -> do
+            res <- BS.readFile tagsFile >>= parseVimTagFile
+            case res of
+              Left err -> do
+                putStrLn $ "GhcTags: error parsing \"" ++ tagsFile ++ "\": " ++ err
+                return $ Map.empty
+              Right tagList -> do
+                return $ mkTagsMap tagList
+
+          Just tagsMap -> return tagsMap
+
       putStrLn $ "GHCTags plugins: " ++ show options ++ " " ++ show (ms_location modSummary)
-      let tags = generateTagsForModule hpm_module
+      let tagsMap', updatedTagsMap :: TagsMap
+          tagsMap' =
+              mkTagsMap
+            $ mapMaybe ghcTagToTag
+            $ generateTagsForModule
+            $ hpm_module
+
+          updatedTagsMap = Map.union tagsMap' tagsMap
+
+      -- update 'tagsIORef', make sure that `updateTagsMap` is evaluated.
+      writeIORef tagsIORef (updatedTagsMap `seq` Just updatedTagsMap)
+
+      -- update tags file
       withFile tagsFile AppendMode $ \fhandle ->
-        BS.hPutBuilder fhandle (foldMap formatGhcTagVim tags)
+        BS.hPutBuilder fhandle
+          $ foldMap formatVimTag
+          $ concat
+          $ Map.elems updatedTagsMap
       pure $ hsParsedModule
   where
     tagsFile :: FilePath
@@ -222,14 +266,21 @@ generateTagsForModule (L _ HsModule { hsmodDecls }) =
     mkFamilyDeclTags XFamilyDecl {}         = Nothing
 
 
-formatGhcTagVim :: GhcTag -> Builder
-formatGhcTagVim GhcTag { tagSrcSpan, tagTag } =
+ghcTagToTag :: GhcTag -> Maybe Tag
+ghcTagToTag GhcTag { tagSrcSpan, tagTag } =
     case tagSrcSpan of
-      UnhelpfulSpan {}        -> mempty
-      RealSrcSpan realSrcSpan -> 
-            byteString (fs_bs tagTag)
-        <> charUtf8 '\t'
-        <> byteString (fs_bs . srcSpanFile $ realSrcSpan)
-        <> charUtf8 '\t'
-        <> intDec (succ $ srcSpanStartLine realSrcSpan)
-        <> charUtf8 '\n'
+      UnhelpfulSpan {} -> Nothing
+      RealSrcSpan realSrcSpan ->
+        Just $ Tag { tag     = TagName (fs_bs tagTag)
+                   , tagFile = fs_bs (srcSpanFile realSrcSpan)
+                   , tagLine = succ $ srcSpanStartLine realSrcSpan
+                   }
+
+formatVimTag :: Tag -> Builder
+formatVimTag Tag { tag, tagFile, tagLine } =
+        byteString (getTagName tag)
+    <> charUtf8 '\t'
+    <> byteString tagFile
+    <> charUtf8 '\t'
+    <> intDec tagLine
+    <> charUtf8 '\n'
