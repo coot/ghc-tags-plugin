@@ -5,6 +5,7 @@ module Plugin.GhcTags.Parser
   ( TagName (..)
   , Tag (..)
   , parseVimTagFile
+  , mkTagsMap
   ) where
 
 import           Data.ByteString (ByteString)
@@ -14,6 +15,8 @@ import qualified Data.Attoparsec.ByteString       as Atto
 import qualified Data.Attoparsec.ByteString.Char8 as Atto ( decimal
                                                           , endOfLine
                                                           )
+import           Data.Map ( Map )
+import qualified Data.Map as Map
 
 data Tag = Tag
   { tag     :: TagName
@@ -41,3 +44,10 @@ parseVimTagFile :: ByteString
 parseVimTagFile =
       fmap Atto.eitherResult
     . Atto.parseWith (pure mempty) vimTagFileParser
+
+
+-- | Map from TagName to list of tags.  This will be useful when updating tags.
+-- We will just need to merge dictionaries.
+--
+mkTagsMap :: [Tag] -> Map TagName [Tag]
+mkTagsMap = Map.fromListWith (<>) . map (\t -> (tag t, [t]))
