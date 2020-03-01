@@ -86,6 +86,9 @@ ghcTagPlugin options _modSummary hsParsedModule@HsParsedModule {hpm_module} =
           updatedTagsMap = tagsMap' `Map.union` tagsMap
 
       -- update 'tagsIORef', make sure that `updateTagsMap` is evaluated.
+      -- TODO: this is not attomic, which will break when compiling multiple
+      -- modules at the same time.  I think we need to use 'MVar' and
+      -- 'takeMVar'.
       writeIORef tagsIORef (updatedTagsMap `seq` Just updatedTagsMap)
 
       -- update tags file
