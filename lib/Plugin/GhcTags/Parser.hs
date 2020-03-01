@@ -4,6 +4,7 @@
 
 module Plugin.GhcTags.Parser
   ( TagName (..)
+  , TagFile (..)
   , Tag (..)
   , parseVimTagFile
   , TagsMap
@@ -21,20 +22,23 @@ import           Data.List ( sortOn )
 import           Data.Map  ( Map )
 import qualified Data.Map as Map
 
+newtype TagName = TagName { getTagName :: ByteString }
+  deriving newtype (Eq, Ord, Show)
+
+newtype TagFile = TagFile { getTagFile :: ByteString }
+  deriving newtype (Eq, Ord, Show)
+
 data Tag = Tag
-  { tag     :: !TagName
-  , tagFile :: !ByteString
+  { tagName :: !TagName
+  , tagFile :: !TagFile
   , tagLine :: !Int
   }
   deriving Show
 
-newtype TagName = TagName { getTagName :: ByteString }
-  deriving newtype (Eq, Ord, Show)
-
 vimTagLineParser:: Parser Tag
 vimTagLineParser =
     Tag <$> (TagName <$> Atto.takeWhile (/= tab) <* Atto.skipWhile (== tab))
-        <*> (Atto.takeWhile (/= tab) <* Atto.skipWhile (== tab))
+        <*> (TagFile <$> Atto.takeWhile (/= tab) <* Atto.skipWhile (== tab))
         <*> Atto.decimal
   where
     tab = c2w '\t'
@@ -48,13 +52,13 @@ parseVimTagFile =
       fmap Atto.eitherResult
     . Atto.parseWith (pure mempty) vimTagFileParser
 
-type TagsMap = Map TagName [Tag]
+type TagsMap = Map TagFile [Tag]
 
 -- | Map from TagName to list of tags.  This will be useful when updating tags.
 -- We will just need to merge dictionaries.
 --
-mkTagsMap :: [Tag] -> Map TagName [Tag]
+mkTagsMap :: [Tag] -> TagsMap
 mkTagsMap =
       fmap (sortOn (\t -> (tagFile t, tagLine t)))
     . Map.fromListWith (<>)
-    . map (\t -> (tag t, [t]))
+    . map (\t -> (tagFile t, [t]))

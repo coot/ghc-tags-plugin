@@ -7,9 +7,9 @@ module Plugin.GhcTags ( plugin ) where
 import qualified Data.ByteString         as BS
 import qualified Data.ByteString.Builder as BS
 import           Data.IORef
-import           Data.List ( sortOn )
-import           Data.Map ( Map )
+import           Data.List (sortOn)
 import qualified Data.Map as Map
+-- import           Data.Foldable (traverse_)
 import           System.IO
 import           System.IO.Error  (tryIOError)
 import           System.IO.Unsafe (unsafePerformIO)
@@ -51,7 +51,7 @@ import           Plugin.GhcTags.Parser
 
 -- | IORef which is shared across various compilations
 --
-tagsIORef :: IORef (Maybe (Map TagName [Tag]))
+tagsIORef :: IORef (Maybe TagsMap)
 tagsIORef = unsafePerformIO $ newIORef Nothing
 
 
@@ -96,6 +96,14 @@ ghcTagPlugin options _modSummary hsParsedModule@HsParsedModule {hpm_module} =
 
           updatedTagsMap = tagsMap' `Map.union` tagsMap
 
+      {-
+      putStrLn $ "tags found"
+      traverse_ print
+        $ sortOn tagName
+        $ concat
+        $ Map.elems tagsMap'
+      -}
+
       -- update 'tagsIORef', make sure that `updateTagsMap` is evaluated.
       -- TODO: this is not attomic, which will break when compiling multiple
       -- modules at the same time.  I think we need to use 'MVar' and
@@ -106,7 +114,7 @@ ghcTagPlugin options _modSummary hsParsedModule@HsParsedModule {hpm_module} =
       withFile tagsFile WriteMode $ \fhandle ->
         BS.hPutBuilder fhandle
           $ foldMap formatVimTag
-          $ sortOn tag
+          $ sortOn tagName
           $ concat
           $ Map.elems updatedTagsMap
       pure $ hsParsedModule
@@ -289,16 +297,16 @@ ghcTagToTag GhcTag { tagSrcSpan, tagTag } =
     case tagSrcSpan of
       UnhelpfulSpan {} -> Nothing
       RealSrcSpan realSrcSpan ->
-        Just $ Tag { tag     = TagName (fs_bs tagTag)
-                   , tagFile = fs_bs (srcSpanFile realSrcSpan)
+        Just $ Tag { tagName = TagName (fs_bs tagTag)
+                   , tagFile = TagFile (fs_bs (srcSpanFile realSrcSpan))
                    , tagLine = srcSpanStartLine realSrcSpan
                    }
 
 formatVimTag :: Tag -> Builder
-formatVimTag Tag { tag, tagFile, tagLine } =
-        byteString (getTagName tag)
+formatVimTag Tag { tagName, tagFile, tagLine } =
+        byteString (getTagName tagName)
     <> charUtf8 '\t'
-    <> byteString tagFile
+    <> byteString (getTagFile tagFile)
     <> charUtf8 '\t'
     <> intDec tagLine
     <> charUtf8 '\n'
