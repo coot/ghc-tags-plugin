@@ -4,7 +4,6 @@
 
 module Plugin.GhcTags ( plugin ) where
 
-import           Control.Exception
 import qualified Data.ByteString         as BS
 import qualified Data.ByteString.Builder as BS
 import           Data.IORef
@@ -12,7 +11,9 @@ import           Data.List ( sortOn )
 import           Data.Map ( Map )
 import qualified Data.Map as Map
 import           System.IO
+import           System.IO.Error  (tryIOError)
 import           System.IO.Unsafe (unsafePerformIO)
+import           System.Directory
 
 import           GhcPlugins ( CommandLineOption
                             , Hsc
@@ -65,11 +66,21 @@ ghcTagPlugin options _modSummary hsParsedModule@HsParsedModule {hpm_module} =
         case mTagsMap of
 
           Nothing -> do
-            res <- (BS.readFile tagsFile >>= parseVimTagFile)
-                     `catch` \(e :: IOError) -> return (Left $ show e)
+            a <- doesFileExist tagsFile
+            res <-
+              if a
+                then do
+                  mbytes <- tryIOError (BS.readFile tagsFile)
+                  case mbytes of
+                    Left err    -> do
+                      putStrLn $ "GhcTags: error reading \"" ++ tagsFile ++ "\": " ++ (show err)
+                      return $ Right []
+                    Right bytes ->
+                      parseVimTagFile bytes
+                else return $ Right []
             case res of
               Left err -> do
-                putStrLn $ "GhcTags: error parsing \"" ++ tagsFile ++ "\": " ++ err
+                putStrLn $ "GhcTags: error reading or parsing \"" ++ tagsFile ++ "\": " ++ err
                 return $ Map.empty
               Right tagList -> do
                 return $ mkTagsMap tagList
@@ -168,6 +179,7 @@ generateTagsForModule (L _ HsModule { hsmodDecls }) =
               XHsDataDefn {} ->
                 tags
 
+          -- TODO: add 'tcdATDefs'
           ClassDecl { tcdLName, tcdSigs, tcdMeths, tcdATs } ->
             -- class name
             mkGhcTag tcdLName
