@@ -24,6 +24,7 @@ import           GhcPlugins ( CommandLineOption
                             , ModSummary
                             , Plugin (..)
                             , liftIO
+                            , purePlugin
                             )
 import           GhcPlugins hiding (occName, (<>))
 import           HsExtension (GhcPs)
@@ -64,7 +65,10 @@ tagsIORef = unsafePerformIO $ newIORef Nothing
 --  * data type family instances constructors /(standalone and associated)/
 --
 plugin :: Plugin
-plugin = GhcPlugins.defaultPlugin { parsedResultAction = ghcTagPlugin }
+plugin = GhcPlugins.defaultPlugin {
+      parsedResultAction = ghcTagPlugin,
+      pluginRecompile    = purePlugin
+   }
 
 
 -- | The plugin does not change the 'HsParedModule', it only runs side effects.
