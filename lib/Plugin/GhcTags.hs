@@ -231,14 +231,12 @@ generateTagsForModule (L _ HsModule { hsmodDecls }) =
                         Nothing  -> tyFamTags ++ dataFamTags ++ tags
                         Just tag -> tag : tyFamTags ++ dataFamTags ++ tags
                 where
-                  dataFamTags = (mkDataFamInstDeclTag . unLoc) `mapMaybe` cid_datafam_insts
-                  tyFamTags   = (mkTyFamInstDeclTag   . unLoc) `mapMaybe` cid_tyfam_insts
+                  dataFamTags = (mkDataFamInstDeclTag . unLoc) `concatMap` cid_datafam_insts
+                  tyFamTags   = (mkTyFamInstDeclTag   . unLoc) `mapMaybe`  cid_tyfam_insts
 
 
           DataFamInstD { dfid_inst } ->
-            case mkDataFamInstDeclTag  dfid_inst of
-              Nothing  -> tags
-              Just tag -> tag : tags
+            mkDataFamInstDeclTag  dfid_inst ++ tags
 
           TyFamInstD { tfid_inst } ->
             case mkTyFamInstDeclTag tfid_inst of
@@ -348,15 +346,18 @@ generateTagsForModule (L _ HsModule { hsmodDecls }) =
 
         _                     -> Nothing
 
-    mkDataFamInstDeclTag :: DataFamInstDecl GhcPs -> Maybe GhcTag
+    -- todo: type constructors
+    mkDataFamInstDeclTag :: DataFamInstDecl GhcPs -> GhcTags
     mkDataFamInstDeclTag DataFamInstDecl { dfid_eqn } =
       case dfid_eqn of
-        XHsImplicitBndrs {} -> Nothing
+        XHsImplicitBndrs {} -> []
 
-        -- TODO: should we check @feqn_rhs :: HsDataDefn GhcPs@ as well?
-        HsIB { hsib_body = FamEqn { feqn_tycon } } -> Just (mkGhcTag feqn_tycon)
+        HsIB { hsib_body = FamEqn { feqn_tycon, feqn_rhs } } ->
+          case feqn_rhs of
+            HsDataDefn { dd_cons } ->
+              mkGhcTag feqn_tycon : (mkConsTags . unLoc) `concatMap` dd_cons
 
-        HsIB { hsib_body = XFamEqn {} } -> Nothing
+        HsIB { hsib_body = XFamEqn {} } -> []
 
     mkTyFamInstDeclTag :: TyFamInstDecl GhcPs -> Maybe GhcTag
     mkTyFamInstDeclTag TyFamInstDecl { tfid_eqn } =
