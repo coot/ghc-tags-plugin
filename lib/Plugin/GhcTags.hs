@@ -4,10 +4,11 @@
 
 module Plugin.GhcTags ( plugin ) where
 
+import           Control.Concurrent
+import           Control.Exception
 import qualified Data.ByteString         as BS
 import           Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as BS
-import           Data.IORef
 import           Data.Functor ((<$))
 import           Data.List (sort)
 import qualified Data.Map as Map
@@ -34,11 +35,11 @@ import           Plugin.GhcTags.Generate
 import           Plugin.GhcTags.Parser
 
 
--- | IORef which is shared across various compilations - a nasty hack which is
--- only used for optimzation.
+-- |  Global shared state which persists across compilation of different
+-- modules - a nasty hack which is only used for optimzation.
 --
-tagsIORef :: IORef (Maybe TagsMap)
-tagsIORef = unsafePerformIO $ newIORef Nothing
+tagsMVar :: MVar (Maybe TagsMap)
+tagsMVar = unsafePerformIO $ newMVar Nothing
 
 -- | The GhcTags plugin.  It will run for every compiled module and have access
 -- to parsed syntax tree.  It will inpect it and:
@@ -83,8 +84,8 @@ ghcTagPlugin options _modSummary hsParsedModule@HsParsedModule {hpm_module} =
       a : _ -> a
 
 
--- | Extract tags from a module and update tags file as well as the 'tagsIORef'
--- Using 'tagsIORef' we can save on parsing the tags file: we do it only when
+-- | Extract tags from a module and update tags file as well as the 'tagsMVar'
+-- Using 'tagsMVar' we can save on parsing the tags file: we do it only when
 -- the first module is compiled.  We need to write the results at every
 -- compilation step since we don't know if the currently compiled module is the
 -- last one or not.
@@ -92,63 +93,82 @@ ghcTagPlugin options _modSummary hsParsedModule@HsParsedModule {hpm_module} =
 updateTags :: FilePath
            -> Located (HsModule GhcPs)
            -> IO ()
-updateTags tagsFile lmodule = do
-  mTagsMap <- readIORef tagsIORef
-  (tagsMap :: TagsMap) <-
-    case mTagsMap of
+updateTags tagsFile lmodule =
+    -- Take exclusive lock.  This assures that only one thread will have access to
+    -- the tags file.  Parsing and the rest of the compilation pipeline can
+    -- happen concurrently.
+    mvarLock tagsMVar $ \mTagsMap -> do
+      (tagsMap :: TagsMap) <-
+        case mTagsMap of
 
-      Nothing -> do
-        a <- doesFileExist tagsFile
-        res <-
-          if a
-            then do
-              mbytes <- tryIOError (BS.readFile tagsFile)
-              case mbytes of
-                Left err    -> do
-                  putStrLn $ "GhcTags: error reading \"" ++ tagsFile ++ "\": " ++ (show err)
-                  return $ Right []
-                Right bytes ->
-                  parseVimTagFile bytes
-            else return $ Right []
-        case res of
-          Left err -> do
-            putStrLn $ "GhcTags: error reading or parsing \"" ++ tagsFile ++ "\": " ++ err
-            return $ Map.empty
-          Right tagList -> do
-            return $ mkTagsMap tagList
+          Nothing -> do
+            a <- doesFileExist tagsFile
+            res <-
+              if a
+                then do
+                  mbytes <- tryIOError (BS.readFile tagsFile)
+                  case mbytes of
+                    Left err    -> do
+                      putStrLn $ "GhcTags: error reading \"" ++ tagsFile ++ "\": " ++ (show err)
+                      return $ Right []
+                    Right bytes ->
+                      parseVimTagFile bytes
+                else return $ Right []
+            case res of
+              Left err -> do
+                putStrLn $ "GhcTags: error reading or parsing \"" ++ tagsFile ++ "\": " ++ err
+                return $ Map.empty
+              Right tagList -> do
+                return $ mkTagsMap tagList
 
-      Just tagsMap -> return tagsMap
+          Just tagsMap -> return tagsMap
 
-  let tagsMap', updatedTagsMap :: TagsMap
-      tagsMap' =
-          mkTagsMap
-        $ mapMaybe ghcTagToTag
-        $ generateTagsForModule
-        $ lmodule
+      let tagsMap', updatedTagsMap :: TagsMap
+          tagsMap' =
+              mkTagsMap
+            $ mapMaybe ghcTagToTag
+            $ generateTagsForModule
+            $ lmodule
 
-      updatedTagsMap = tagsMap' `Map.union` tagsMap
+          updatedTagsMap = tagsMap' `Map.union` tagsMap
 
-  {-
-  putStrLn $ "tags found"
-  traverse_ print
-    $ sortOn tagName
-    $ concat
-    $ Map.elems tagsMap'
-  -}
+      {-
+      putStrLn $ "tags found"
+      traverse_ print
+        $ sortOn tagName
+        $ concat
+        $ Map.elems tagsMap'
+      -}
 
-  -- update 'tagsIORef', make sure that `updateTagsMap` is evaluated.
-  -- TODO: this is not attomic, which will break when compiling multiple
-  -- modules at the same time.  I think we need to use 'MVar' and
-  -- 'takeMVar'.
-  writeIORef tagsIORef (updatedTagsMap `seq` Just updatedTagsMap)
+      -- update 'tagsIORef', make sure that `updateTagsMap` is evaluated.
+      -- TODO: this is not attomic, which will break when compiling multiple
+      -- modules at the same time.  I think we need to use 'MVar' and
+      -- 'takeMVar'.
 
-  -- update tags file
-  withFile tagsFile WriteMode $ \fhandle ->
-    BS.hPutBuilder fhandle
-      $ foldMap formatVimTag
-      $ sort
-      $ concat
-      $ Map.elems updatedTagsMap
+      -- update tags file
+      withFile tagsFile WriteMode $ \fhandle ->
+        BS.hPutBuilder fhandle
+          $ foldMap formatVimTag
+          $ sort
+          $ concat
+          $ Map.elems updatedTagsMap
+
+      return $ updatedTagsMap `seq` Just updatedTagsMap
+
+
+-- | The 'MVar' is used as an exlusive lock.  Also similar to 'bracket' but
+-- updates the 'MVar' with returned value, or put the original value if an
+-- exception is thrown by the continuation (or an async exception).
+--
+mvarLock :: MVar a
+         -> (a -> IO a)
+         -> IO ()
+mvarLock v k = mask $ \unmask -> do
+    a <- takeMVar v
+    a' <- unmask (k a)
+          `onException`
+          putMVar v a
+    putMVar v $! a'
 
 
 ghcTagToTag :: GhcTag -> Maybe Tag
