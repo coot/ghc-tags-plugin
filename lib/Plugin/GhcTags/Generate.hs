@@ -2,6 +2,8 @@
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+-- | Interface for generatating tags for a parsed module.
+--
 module Plugin.GhcTags.Generate
   ( GhcTag (..)
   , GhcTags
@@ -89,7 +91,18 @@ mkGhcTag (L tagSrcSpan rdrName) =
 
 
 
--- | generate tags for a module
+-- | Generate tags for a module - simple walk over the syntax tree.
+--
+-- Supported identifiers:
+--  * top level terms
+--  * type classes
+--  * type class members
+--  * type class instances
+--  * type families
+--  * type family instances
+--  * data type families
+--  * data type families instances
+--  * data type family instances constructors
 --
 generateTagsForModule :: Located (HsModule GhcPs)
                       -> GhcTags
@@ -132,8 +145,6 @@ generateTagsForModule (L _ HsModule { hsmodDecls }) =
 
           XTyClDecl {} -> tags
 
-      -- TODO: instance declaration (type class & type family instances)
-      -- here we can also scan for data & type family instances
       InstD _ instDecl ->
         case instDecl of
           ClsInstD { cid_inst } ->
