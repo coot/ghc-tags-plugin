@@ -9,7 +9,7 @@ license:             MPL-2.0
 license-file:        LICENSE
 author:              Marcin Szamotulski
 maintainer:          profunctor@pm.me
-copyright:           2020, Marcin Szamotulski
+copyright:           (c) 2020, Marcin Szamotulski
 category:            Development
 extra-source-files:  CHANGELOG.md
                      README.md
