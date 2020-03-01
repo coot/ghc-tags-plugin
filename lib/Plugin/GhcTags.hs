@@ -34,16 +34,25 @@ import           HsBinds      ( HsBindLR (..)
                               , PatSynBind (..)
                               , Sig (..)
                               )
-import           HsDecls      ( ConDecl (..)
+import           HsDecls      ( ClsInstDecl (..)
+                              , ConDecl (..)
+                              , DataFamInstDecl (..)
+                              , FamEqn (..)
                               , FamilyDecl (..)
                               , ForeignDecl (..)
                               , LHsDecl
                               , HsDecl (..)
                               , HsDataDefn (..)
+                              , InstDecl (..)
                               , TyClDecl (..)
+                              , TyFamInstDecl (..)
                               )
 import           HsSyn        ( GhcPs
                               , HsModule (..)
+                              )
+import           HsTypes      ( HsImplicitBndrs (..)
+                              , HsType (..)
+                              , LHsType
                               )
 
 import           Plugin.GhcTags.Parser
@@ -131,6 +140,7 @@ data GhcTag = GhcTag {
     tagSrcSpan  :: !SrcSpan
   , tagTag      :: !FastString
   }
+  deriving Show
 
 type GhcTags = [GhcTag]
 
@@ -204,7 +214,41 @@ generateTagsForModule (L _ HsModule { hsmodDecls }) =
 
       -- TODO: instance declaration (type class & type family instances)
       -- here we can also scan for data & type family instances
-      InstD {} -> tags
+      InstD _ instDecl ->
+        case instDecl of
+          ClsInstD { cid_inst } ->
+            case cid_inst of
+              XClsInstDecl {} -> tags
+
+              ClsInstDecl { cid_poly_ty } ->
+                case cid_poly_ty of
+                  XHsImplicitBndrs {} -> tags
+
+                  -- TODO: @hsbib_body :: LHsType GhcPs@
+                  HsIB { hsib_body } ->
+                    case traceShowId $ mkLHsTypeTag hsib_body of
+                      Nothing  -> tags
+                      Just tag -> tag : tags
+
+          DataFamInstD { dfid_inst = DataFamInstDecl { dfid_eqn } } ->
+            case dfid_eqn of
+              XHsImplicitBndrs {} -> tags
+
+              -- TODO: should we check @feqn_rhs :: HsDataDefn GhcPs@ as well?
+              HsIB { hsib_body = FamEqn { feqn_tycon } } -> mkGhcTag feqn_tycon : tags
+
+              HsIB { hsib_body = XFamEqn {} } -> tags
+
+          TyFamInstD { tfid_inst = TyFamInstDecl { tfid_eqn } } ->
+            case tfid_eqn of
+              XHsImplicitBndrs {} -> tags
+
+              -- TODO: should we check @feqn_rhs :: LHsType GhcPs@ as well?
+              HsIB { hsib_body = FamEqn { feqn_tycon } } -> mkGhcTag feqn_tycon : tags
+
+              HsIB { hsib_body = XFamEqn {} } -> tags
+
+          XInstDecl {} -> tags
 
       -- deriveving declaration
       DerivD {} -> tags
@@ -290,6 +334,23 @@ generateTagsForModule (L _ HsModule { hsmodDecls }) =
     mkFamilyDeclTags :: FamilyDecl GhcPs -> Maybe GhcTag
     mkFamilyDeclTags FamilyDecl { fdLName } = Just $ mkGhcTag fdLName
     mkFamilyDeclTags XFamilyDecl {}         = Nothing
+
+    mkLHsTypeTag :: LHsType GhcPs -> Maybe GhcTag
+    mkLHsTypeTag (L _ hsType) =
+      case hsType of
+        HsForAllTy {hst_body} -> mkLHsTypeTag hst_body
+        
+        HsQualTy {hst_body}   -> mkLHsTypeTag hst_body
+
+        HsTyVar _ _ a -> Just $ mkGhcTag a
+
+        HsAppTy _ a _         -> mkLHsTypeTag a
+        HsOpTy _ _ a _        -> Just $ mkGhcTag a
+        HsKindSig _ a _       -> mkLHsTypeTag a
+
+        _                     -> Nothing
+
+
 
 
 ghcTagToTag :: GhcTag -> Maybe Tag
