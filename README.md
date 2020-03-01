@@ -1,7 +1,7 @@
 # Ghc Tags Compiler Plugin
 A [Ghc Compiler Plugin](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/extending_ghc.html#compiler-plugins)
 which generates tags for each compiled module or component.  The source tree is
-[left unmodified](https://github.com/coot/ghc-tags-plugin/blob/master/lib/Plugin/GhcTags.hs#L53).
+[left unmodified](https://github.com/coot/ghc-tags-plugin/blob/master/lib/Plugin/GhcTags.hs#L79).
 
 # Usage
 ```
