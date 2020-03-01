@@ -39,14 +39,35 @@ import           Plugin.GhcTags.Parser
 tagsIORef :: IORef (Maybe TagsMap)
 tagsIORef = unsafePerformIO $ newIORef Nothing
 
--- | The GhcTags plugin.
+-- | The GhcTags plugin.  It will run for every compiled module and have access
+-- to parsed syntax tree.  It will inpect it and:
+--
+-- * update a global mutable state variable, which stores a tag map.
+--   It is shared accross modules compiled in the same `ghc` run.
+-- * update 'tags' file.  
+--
+-- The global mutable variable save us from parsing the tags file for every
+-- compiled module.
+--
+-- __The syntax tree is left unchanged.__
+-- 
+-- The tags file will contain location information about:
+--
+--  * top level terms
+--  * type classes
+--  * type class members
+--  * type class instances
+--  * type families                           /(standalone and associated)/
+--  * type family instances                   /(standalone and associated)/
+--  * data type families                      /(standalone and associated)/
+--  * data type families instances            /(standalone and associated)/
+--  * data type family instances constructors /(standalone and associated)/
 --
 plugin :: Plugin
 plugin = GhcPlugins.defaultPlugin { parsedResultAction = ghcTagPlugin }
 
 
--- the GhcTags plugin does not change the 'HsParedModule', it only runs side
--- effects.
+-- | The plugin does not change the 'HsParedModule', it only runs side effects.
 --
 ghcTagPlugin :: [CommandLineOption] -> ModSummary -> HsParsedModule -> Hsc HsParsedModule
 ghcTagPlugin options _modSummary hsParsedModule@HsParsedModule {hpm_module} =

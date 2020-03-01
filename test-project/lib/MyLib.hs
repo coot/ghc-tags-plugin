@@ -20,3 +20,9 @@ class GetHeader blk where
 instance GetHeader Int where
     data Header Int = HeaderInt Int
     getHeader = HeaderInt
+
+data family X (a :: *) :: *
+
+data instance X Int
+  = XInt Int
+  | XString String
