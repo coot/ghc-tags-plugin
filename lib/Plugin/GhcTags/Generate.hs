@@ -276,6 +276,8 @@ generateTagsForModule (L _ HsModule { hsmodDecls }) =
           case feqn_rhs of
             HsDataDefn { dd_cons } ->
               mkGhcTag feqn_tycon : (mkConsTags . unLoc) `concatMap` dd_cons
+            XHsDataDefn {}         ->
+              mkGhcTag feqn_tycon : []
 
         HsIB { hsib_body = XFamEqn {} } -> []
 
