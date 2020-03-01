@@ -7,7 +7,7 @@ module Plugin.GhcTags ( plugin ) where
 import qualified Data.ByteString         as BS
 import qualified Data.ByteString.Builder as BS
 import           Data.IORef
-import           Data.List (sortOn)
+import           Data.List (sort)
 import qualified Data.Map as Map
 -- import           Data.Foldable (traverse_)
 import           System.IO
@@ -123,7 +123,7 @@ ghcTagPlugin options _modSummary hsParsedModule@HsParsedModule {hpm_module} =
       withFile tagsFile WriteMode $ \fhandle ->
         BS.hPutBuilder fhandle
           $ foldMap formatVimTag
-          $ sortOn tagName
+          $ sort
           $ concat
           $ Map.elems updatedTagsMap
       pure $ hsParsedModule
