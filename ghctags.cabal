@@ -17,6 +17,7 @@ extra-source-files:  CHANGELOG.md
 
 library
   exposed-modules:     Plugin.GhcTags
+                       Plugin.GhcTags.Generate
                        Plugin.GhcTags.Parser
   -- other-modules:
   -- other-extensions:
