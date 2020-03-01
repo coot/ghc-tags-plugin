@@ -220,33 +220,30 @@ generateTagsForModule (L _ HsModule { hsmodDecls }) =
             case cid_inst of
               XClsInstDecl {} -> tags
 
-              ClsInstDecl { cid_poly_ty } ->
-                case cid_poly_ty of
-                  XHsImplicitBndrs {} -> tags
+              ClsInstDecl { cid_poly_ty, cid_tyfam_insts, cid_datafam_insts } ->
+                  case cid_poly_ty of
+                    XHsImplicitBndrs {} ->
+                      tyFamTags ++ dataFamTags ++ tags
 
-                  -- TODO: @hsbib_body :: LHsType GhcPs@
-                  HsIB { hsib_body } ->
-                    case traceShowId $ mkLHsTypeTag hsib_body of
-                      Nothing  -> tags
-                      Just tag -> tag : tags
+                    -- TODO: @hsbib_body :: LHsType GhcPs@
+                    HsIB { hsib_body } ->
+                      case mkLHsTypeTag hsib_body of
+                        Nothing  -> tyFamTags ++ dataFamTags ++ tags
+                        Just tag -> tag : tyFamTags ++ dataFamTags ++ tags
+                where
+                  dataFamTags = (mkDataFamInstDeclTag . unLoc) `mapMaybe` cid_datafam_insts
+                  tyFamTags   = (mkTyFamInstDeclTag   . unLoc) `mapMaybe` cid_tyfam_insts
 
-          DataFamInstD { dfid_inst = DataFamInstDecl { dfid_eqn } } ->
-            case dfid_eqn of
-              XHsImplicitBndrs {} -> tags
 
-              -- TODO: should we check @feqn_rhs :: HsDataDefn GhcPs@ as well?
-              HsIB { hsib_body = FamEqn { feqn_tycon } } -> mkGhcTag feqn_tycon : tags
+          DataFamInstD { dfid_inst } ->
+            case mkDataFamInstDeclTag  dfid_inst of
+              Nothing  -> tags
+              Just tag -> tag : tags
 
-              HsIB { hsib_body = XFamEqn {} } -> tags
-
-          TyFamInstD { tfid_inst = TyFamInstDecl { tfid_eqn } } ->
-            case tfid_eqn of
-              XHsImplicitBndrs {} -> tags
-
-              -- TODO: should we check @feqn_rhs :: LHsType GhcPs@ as well?
-              HsIB { hsib_body = FamEqn { feqn_tycon } } -> mkGhcTag feqn_tycon : tags
-
-              HsIB { hsib_body = XFamEqn {} } -> tags
+          TyFamInstD { tfid_inst } ->
+            case mkTyFamInstDeclTag tfid_inst of
+              Nothing  -> tags
+              Just tag -> tag : tags
 
           XInstDecl {} -> tags
 
@@ -335,6 +332,7 @@ generateTagsForModule (L _ HsModule { hsmodDecls }) =
     mkFamilyDeclTags FamilyDecl { fdLName } = Just $ mkGhcTag fdLName
     mkFamilyDeclTags XFamilyDecl {}         = Nothing
 
+    -- used to generate tag of an instance declaration
     mkLHsTypeTag :: LHsType GhcPs -> Maybe GhcTag
     mkLHsTypeTag (L _ hsType) =
       case hsType of
@@ -350,7 +348,25 @@ generateTagsForModule (L _ HsModule { hsmodDecls }) =
 
         _                     -> Nothing
 
+    mkDataFamInstDeclTag :: DataFamInstDecl GhcPs -> Maybe GhcTag
+    mkDataFamInstDeclTag DataFamInstDecl { dfid_eqn } =
+      case dfid_eqn of
+        XHsImplicitBndrs {} -> Nothing
 
+        -- TODO: should we check @feqn_rhs :: HsDataDefn GhcPs@ as well?
+        HsIB { hsib_body = FamEqn { feqn_tycon } } -> Just (mkGhcTag feqn_tycon)
+
+        HsIB { hsib_body = XFamEqn {} } -> Nothing
+
+    mkTyFamInstDeclTag :: TyFamInstDecl GhcPs -> Maybe GhcTag
+    mkTyFamInstDeclTag TyFamInstDecl { tfid_eqn } =
+      case tfid_eqn of
+        XHsImplicitBndrs {} -> Nothing
+
+        -- TODO: should we check @feqn_rhs :: LHsType GhcPs@ as well?
+        HsIB { hsib_body = FamEqn { feqn_tycon } } -> Just $ mkGhcTag feqn_tycon
+
+        HsIB { hsib_body = XFamEqn {} } -> Nothing
 
 
 ghcTagToTag :: GhcTag -> Maybe Tag
