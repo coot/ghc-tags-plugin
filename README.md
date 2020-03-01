@@ -1,10 +1,11 @@
-# GhcTags
-A Ghc Plugin which generates tags for each compiled module.  The source tree is
-[left unmodified](https://github.com/coot/ghctags/blob/master/lib/Plugin/GhcTags.hs#L53).
+# Ghc Tags Compiler Plugin
+A [Ghc Compiler Plugin](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/extending_ghc.html#compiler-plugins)
+which generates tags for each compiled module or component.  The source tree is
+[left unmodified](https://github.com/coot/ghc-tags-plugin/blob/master/lib/Plugin/GhcTags.hs#L53).
 
 # Usage
 ```
-ghc -plugin-package=ghctags -fplugin=Plugin.GhcTags
+ghc -plugin-package=ghc-tags-plugin -fplugin=Plugin.GhcTags
 ```
 
 If you're using `cabal`, at this point you will need to add `ghctags` to every
@@ -20,7 +21,7 @@ project someproject
 
 source-repository-package
   type: git
-  location: /home/coot/repos/haskell/ghctags
+  location: /home/coot/repos/haskell/ghc-tags-plugin
   tag: CURRENT_GIT_TAG
   subdir: .
 

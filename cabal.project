@@ -1,8 +1,2 @@
-packages: ./ghctags.cabal
+packages: ./ghc-tags-plugin.cabal
           ./test-project/test-project.cabal
-
-source-repository-package
-  type: git
-  location: git@github.com:haskell/cabal
-  tag: b744cde70820841f4cfd0626bf99292f5e7edba0
-  subdir: Cabal
