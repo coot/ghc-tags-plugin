@@ -18,7 +18,7 @@ import qualified Data.Attoparsec.ByteString       as Atto
 import qualified Data.Attoparsec.ByteString.Char8 as Atto ( decimal
                                                           , endOfLine
                                                           )
-import           Data.List ( sortOn )
+import           Data.List ( sort )
 import           Data.Map  ( Map )
 import qualified Data.Map as Map
 
@@ -33,7 +33,7 @@ data Tag = Tag
   , tagFile :: !TagFile
   , tagLine :: !Int
   }
-  deriving Show
+  deriving (Ord, Eq, Show)
 
 vimTagLineParser:: Parser Tag
 vimTagLineParser =
@@ -59,6 +59,6 @@ type TagsMap = Map TagFile [Tag]
 --
 mkTagsMap :: [Tag] -> TagsMap
 mkTagsMap =
-      fmap (sortOn (\t -> (tagFile t, tagLine t)))
+      fmap sort
     . Map.fromListWith (<>)
     . map (\t -> (tagFile t, [t]))
