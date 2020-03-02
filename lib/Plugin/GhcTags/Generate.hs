@@ -27,17 +27,23 @@ import           HsDecls      ( ClsInstDecl (..)
                               , FamilyDecl (..)
                               , ForeignDecl (..)
                               , LHsDecl
+                              , HsConDeclDetails
                               , HsDecl (..)
                               , HsDataDefn (..)
                               , InstDecl (..)
                               , TyClDecl (..)
                               , TyFamInstDecl (..)
                               )
-import           HsSyn        ( GhcPs
+import           HsSyn        ( FieldOcc (..)
+                              , GhcPs
                               , HsModule (..)
+                              , LFieldOcc
                               )
-import           HsTypes      ( HsImplicitBndrs (..)
+import           HsTypes      ( ConDeclField (..)
+                              , HsConDetails (..)
+                              , HsImplicitBndrs (..)
                               , HsType (..)
+                              , LConDeclField
                               , LHsType
                               )
 import           SrcLoc       ( GenLocated (..)
@@ -125,7 +131,8 @@ generateTagsForModule (L _ HsModule { hsmodDecls }) =
           DataDecl { tcdLName, tcdDataDefn } -> 
             case tcdDataDefn of
               HsDataDefn { dd_cons } ->
-                mkGhcTag tcdLName : ((mkConsTags . unLoc) `concatMap` dd_cons) ++ tags
+                mkGhcTag tcdLName : ((mkConsTags . unLoc) `concatMap` dd_cons)
+                ++ tags
 
               XHsDataDefn {} ->
                 tags
@@ -212,9 +219,26 @@ generateTagsForModule (L _ HsModule { hsmodDecls }) =
 
     -- tags of all constructors of a type
     mkConsTags :: ConDecl GhcPs -> GhcTags
-    mkConsTags ConDeclGADT { con_names } = mkGhcTag `map` con_names
-    mkConsTags ConDeclH98  { con_name  } = [mkGhcTag con_name]
+    mkConsTags ConDeclGADT { con_names, con_args } =
+         mkGhcTag `map` con_names
+      ++ mkHsConDeclDetails con_args
+    mkConsTags ConDeclH98  { con_name, con_args } =
+        mkGhcTag con_name
+      : mkHsConDeclDetails con_args
     mkConsTags XConDecl    {}            = []
+
+    mkHsConDeclDetails :: HsConDeclDetails GhcPs -> GhcTags
+    mkHsConDeclDetails (RecCon (L _ fields)) = foldl' f [] fields
+      where
+        f :: GhcTags -> LConDeclField GhcPs -> GhcTags
+        f ts (L _ ConDeclField { cd_fld_names }) = foldl' g ts cd_fld_names
+        f ts _ = ts
+
+        g :: GhcTags -> LFieldOcc GhcPs -> GhcTags
+        g ts (L _ FieldOcc { rdrNameFieldOcc }) = mkGhcTag rdrNameFieldOcc : ts
+        g ts _ = ts
+
+    mkHsConDeclDetails _  = []
 
     mkHsBindLRTags :: HsBindLR GhcPs GhcPs -> GhcTags
     mkHsBindLRTags hsBind =

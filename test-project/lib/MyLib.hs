@@ -26,3 +26,9 @@ data family X (a :: *) :: *
 data instance X Int
   = XInt Int
   | XString String
+
+
+data Record a = Record {
+    recordId    :: Int,
+    recordField :: a
+  }
