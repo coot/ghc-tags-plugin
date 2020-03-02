@@ -101,6 +101,9 @@ mkGhcTag (L tagSrcSpan rdrName) =
 --
 -- Supported identifiers:
 --  * top level terms
+--  * data types
+--  * record fields
+--  * type synonyms
 --  * type classes
 --  * type class members
 --  * type class instances

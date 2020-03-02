@@ -56,6 +56,9 @@ tagsMVar = unsafePerformIO $ newMVar Nothing
 -- The tags file will contain location information about:
 --
 --  * top level terms
+--  * data types
+--  * record fields
+--  * type synonyms
 --  * type classes
 --  * type class members
 --  * type class instances
