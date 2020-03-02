@@ -15,10 +15,12 @@ instance MyLength String where
 
 class GetHeader blk where
   data family Header blk :: *
-  getHeader :: blk -> Header blk
+  type family Argument blk :: *
+  getHeader :: Argument blk -> Header blk
 
 instance GetHeader Int where
     data Header Int = HeaderInt Int
+    type Argument Int = Int
     getHeader = HeaderInt
 
 data family X (a :: *) :: *

@@ -150,11 +150,14 @@ updateTags tagsFile lmodule =
 
       -- update tags file
       withFile tagsFile WriteMode $ \fhandle ->
-        BS.hPutBuilder fhandle
-          $ foldMap formatVimTag
-          $ sort
-          $ concat
-          $ Map.elems updatedTagsMap
+        BS.hPutBuilder fhandle $
+             BS.stringUtf8 "!_TAG_FILE_SORTED\t1\t\n"
+          <> BS.stringUtf8 "!_TAG_FILE_ENCODING\tutf-8\t\n"
+          <> BS.stringUtf8 "!_TAG_PROGRAM_AUTHOR\tMarcin Szamotulski\t/coot@coot.me/\n"
+          <> BS.stringUtf8 "!_TAG_PROGRAM_NAME\tghc-tags-plugin\t\n"
+          <> BS.stringUtf8 "!_TAG_PROGRAM_URL\thttps://hackage.haskell.org/package/ghc-tags-plugin\t\n"
+          <> foldMap formatVimTag
+              (sort $ concat $ Map.elems updatedTagsMap)
 
       return $ updatedTagsMap `seq` Just updatedTagsMap
 
@@ -175,21 +178,27 @@ mvarLock v k = mask $ \unmask -> do
 
 
 ghcTagToTag :: GhcTag -> Maybe Tag
-ghcTagToTag GhcTag { tagSrcSpan, tagTag } =
-    case tagSrcSpan of
+ghcTagToTag GhcTag { gtSrcSpan, gtTag, gtKind } =
+    case gtSrcSpan of
       UnhelpfulSpan {} -> Nothing
       RealSrcSpan realSrcSpan ->
-        Just $ Tag { tagName = TagName (fs_bs tagTag)
+        Just $ Tag { tagName = TagName (fs_bs gtTag)
                    , tagFile = TagFile (fs_bs (srcSpanFile realSrcSpan))
                    , tagLine = srcSpanStartLine realSrcSpan
+                   , tagKind = Just gtKind
                    }
 
 
 formatVimTag :: Tag -> Builder
-formatVimTag Tag { tagName, tagFile, tagLine } =
+formatVimTag Tag { tagName, tagFile, tagLine, tagKind } =
        BS.byteString (getTagName tagName)
     <> BS.charUtf8 '\t'
     <> BS.byteString (getTagFile tagFile)
     <> BS.charUtf8 '\t'
     <> BS.intDec tagLine
+    <> case tagKind of
+        Just k ->
+             BS.stringUtf8 ";\"\t"
+          <> BS.charUtf8 (tagKindToChar k)
+        Nothing -> mempty
     <> BS.charUtf8 '\n'

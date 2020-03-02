@@ -9,3 +9,6 @@ import MyLib
 data BlockOrHeader blk b where
   Block  :: BlockOrHeader blk blk
   Header :: BlockOrHeader blk (Header blk)
+
+function :: Int -> Int
+function = undefined
