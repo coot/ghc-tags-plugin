@@ -1,1 +1,1 @@
---restart ghctags.cabal --command "cabal repl lib:"ghctags
+--restart ghc-tags-plugin.cabal --command "cabal repl lib:ghc-tags-plugin"
