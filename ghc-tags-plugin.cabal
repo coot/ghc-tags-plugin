@@ -36,7 +36,6 @@ library
   ghc-options:         -Wall
 
 library ghc-tags-library
-  hidden:              true
   hs-source-dirs:      lib
   exposed-modules:     Plugin.GhcTags.Generate
                        Plugin.GhcTags.Parser
