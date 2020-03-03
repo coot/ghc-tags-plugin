@@ -2,3 +2,4 @@
 * additional information about a tag
 * move to `ghc-lib` instead of `ghc` which is bound to a concrete `ghc`
   version
+* add instance members (?)

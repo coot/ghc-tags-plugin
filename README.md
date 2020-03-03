@@ -39,10 +39,12 @@ cabal install ghc-tags-plugin
 In `cabal.project.local` file add `package` stanza for every local package :
 ```
 project some-project
-    ghc-options: -package-db=PACKAGE_DB -plugin-package=ghc-tags-plugin -fplugin=Plugin.GhcTags
+    ghc-options: -package-db=PACKAGE_DB
+                 -plugin-package=ghc-tags-plugin
+                 -fplugin=Plugin.GhcTags
 ```
 
-`PACKAGE_DB` is likely something to be something like (for `ghc-8.6.5`)
+`PACKAGE_DB` is likely to be something like (for `ghc-8.6.5`)
 '${HOME}/.cabal/store/ghc-8.6.5/package.db' (all environment variables must be
 expanded).
 
@@ -57,7 +59,9 @@ stack install ghc-tags-plugin
 In `stack.yaml` file add:
 ```
 ghc-options:
-    some-project: -package-db=PACKAGE_DB -plugin-package=ghc-tags-plugin -fplugin=Plugin.GhcTags
+    some-project: -package-db=PACKAGE_DB
+                  -plugin-package=ghc-tags-plugin
+                  -fplugin=Plugin.GhcTags
 ```
 
 where `PACKAGE_DB` is the package db where `ghc-tags-plugin` was installed by
@@ -66,7 +70,7 @@ where `PACKAGE_DB` is the package db where `ghc-tags-plugin` was installed by
 ## modifying `cabal` files
 
 You can always add `ghc-tags-plugin` as a build dependency in a cabal file (for
-each component).  You can hide it behind a flag and then use `cabal` or `stack`
+each component).  You should hide it behind a flag and then use `cabal` or `stack`
 to enable it (or `cabal.project.local` or `stack.yaml` files for that purpose).
 
 # Security implications of compiler plugins
