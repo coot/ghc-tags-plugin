@@ -109,7 +109,8 @@ tagLineParser =
 
 vimTagHeaderLine :: Parser ()
 vimTagHeaderLine = AC.choice
-    [ AC.string (BSC.pack "!_TAG_FILE_SORTED")    *> params
+    [ AC.string (BSC.pack "!_TAG_FILE_FORMAT")    *> params
+    , AC.string (BSC.pack "!_TAG_FILE_SORTED")    *> params
     , AC.string (BSC.pack "!_TAG_FILE_ENCODING")  *> params
     , AC.string (BSC.pack "!_TAG_PROGRAM_AUTHOR") *> params
     , AC.string (BSC.pack "!_TAG_PROGRAM_NAME")   *> params

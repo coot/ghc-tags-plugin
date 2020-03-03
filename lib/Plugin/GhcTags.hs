@@ -160,12 +160,16 @@ updateTags tagsFile lmodule =
       -- update tags file
       withFile tagsFile WriteMode $ \fhandle ->
         BS.hPutBuilder fhandle $
-             BS.stringUtf8 (formatHeader "TAG_FILE_SORTED"    "1")
+             -- format 1 does not append ';"' to lines
+             BS.stringUtf8 (formatHeader "TAG_FILE_FORMAT"    "2")
+             -- allows for  binary search
+          <> BS.stringUtf8 (formatHeader "TAG_FILE_SORTED"    "1")
           <> BS.stringUtf8 (formatHeader "TAG_FILE_ENCODING"  "utf-8")
           <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_AUTHOR" "Marcin Szamotulski")
           <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_NAME"   "ghc-tags-pluginn")
           <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_URL"
-                                          "https://hackage.haskell.org/package/ghc-tags-plugin")
+                                         "https://hackage.haskell.org/package/ghc-tags-plugin")
+             -- version number with git revision
           <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_VERSION"
                                           (showVersion version ++ " (" ++ gitExtra ++ ")"))
           <> foldMap formatVimTag
