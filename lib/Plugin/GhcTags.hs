@@ -1,11 +1,14 @@
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+-- only to get hash of the current commit
+{-# LANGUAGE TemplateHaskell     #-}
 
 module Plugin.GhcTags ( plugin ) where
 
 import           Control.Concurrent
 import           Control.Exception
+import           Data.Bool (bool)
 import qualified Data.ByteString         as BS
 import           Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as BS
@@ -13,11 +16,15 @@ import           Data.Functor ((<$))
 import           Data.List (sort)
 import qualified Data.Map as Map
 import           Data.Maybe (mapMaybe)
+import           Data.Version (showVersion)
 -- import           Data.Foldable (traverse_)
 import           System.IO
 import           System.IO.Error  (tryIOError)
 import           System.IO.Unsafe (unsafePerformIO)
 import           System.Directory
+import           Text.Printf (printf)
+
+import qualified Development.GitRev as GitRev
 
 import           GhcPlugins ( CommandLineOption
                             , Hsc
@@ -34,6 +41,8 @@ import           HsSyn (HsModule)
 import           Plugin.GhcTags.Generate
 import           Plugin.GhcTags.Parser
 
+import           Paths_ghc_tags_plugin (version)
+
 
 -- |  Global shared state which persists across compilation of different
 -- modules - a nasty hack which is only used for optimzation.
@@ -46,7 +55,7 @@ tagsMVar = unsafePerformIO $ newMVar Nothing
 --
 -- * update a global mutable state variable, which stores a tag map.
 --   It is shared accross modules compiled in the same `ghc` run.
--- * update 'tags' file.  
+-- * update 'tags' file.
 --
 -- The global mutable variable save us from parsing the tags file for every
 -- compiled module.
@@ -151,15 +160,24 @@ updateTags tagsFile lmodule =
       -- update tags file
       withFile tagsFile WriteMode $ \fhandle ->
         BS.hPutBuilder fhandle $
-             BS.stringUtf8 "!_TAG_FILE_SORTED\t1\t\n"
-          <> BS.stringUtf8 "!_TAG_FILE_ENCODING\tutf-8\t\n"
-          <> BS.stringUtf8 "!_TAG_PROGRAM_AUTHOR\tMarcin Szamotulski\t/coot@coot.me/\n"
-          <> BS.stringUtf8 "!_TAG_PROGRAM_NAME\tghc-tags-plugin\t\n"
-          <> BS.stringUtf8 "!_TAG_PROGRAM_URL\thttps://hackage.haskell.org/package/ghc-tags-plugin\t\n"
+             BS.stringUtf8 (formatHeader "TAG_FILE_SORTED"    "1")
+          <> BS.stringUtf8 (formatHeader "TAG_FILE_ENCODING"  "utf-8")
+          <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_AUTHOR" "Marcin Szamotulski")
+          <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_NAME"   "ghc-tags-pluginn")
+          <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_URL"
+                                          "https://hackage.haskell.org/package/ghc-tags-plugin")
+          <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_VERSION"
+                                          (showVersion version ++ " (" ++ gitExtra ++ ")"))
           <> foldMap formatVimTag
               (sort $ concat $ Map.elems updatedTagsMap)
 
       return $ updatedTagsMap `seq` Just updatedTagsMap
+  where
+    formatHeader :: String -> String -> String
+    formatHeader header arg = printf ("!_" ++ header ++ "\t%s\t\n")  arg
+
+    gitExtra :: String
+    gitExtra = $(GitRev.gitHash) ++ bool "" " DIRTY" $(GitRev.gitDirty)
 
 
 -- | The 'MVar' is used as an exlusive lock.  Also similar to 'bracket' but
