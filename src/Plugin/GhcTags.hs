@@ -1,30 +1,21 @@
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
--- only to get hash of the current commit
-{-# LANGUAGE TemplateHaskell     #-}
 
 module Plugin.GhcTags ( plugin ) where
 
 import           Control.Concurrent
 import           Control.Exception
-import           Data.Bool (bool)
 import qualified Data.ByteString         as BS
-import           Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as BS
 import           Data.Functor ((<$))
 import           Data.List (sort)
 import qualified Data.Map as Map
 import           Data.Maybe (mapMaybe)
-import           Data.Version (showVersion)
--- import           Data.Foldable (traverse_)
 import           System.IO
 import           System.IO.Error  (tryIOError)
 import           System.IO.Unsafe (unsafePerformIO)
 import           System.Directory
-import           Text.Printf (printf)
-
-import qualified Development.GitRev as GitRev
 
 import           GhcPlugins ( CommandLineOption
                             , Hsc
@@ -40,8 +31,7 @@ import           HsSyn (HsModule)
 
 import           Plugin.GhcTags.Generate
 import           Plugin.GhcTags.Parser
-
-import           Paths_ghc_tags_plugin (version)
+import           Plugin.GhcTags.Vim
 
 
 -- |  Global shared state which persists across compilation of different
@@ -144,44 +134,17 @@ updateTags tagsFile lmodule =
 
           updatedTagsMap = tagsMap' `Map.union` tagsMap
 
-      {-
-      putStrLn $ "tags found"
-      traverse_ print
-        $ sortOn tagName
-        $ concat
-        $ Map.elems tagsMap'
-      -}
-
-      -- update 'tagsIORef', make sure that `updateTagsMap` is evaluated.
-      -- TODO: this is not attomic, which will break when compiling multiple
-      -- modules at the same time.  I think we need to use 'MVar' and
-      -- 'takeMVar'.
-
       -- update tags file
-      withFile tagsFile WriteMode $ \fhandle ->
-        BS.hPutBuilder fhandle $
-             -- format 1 does not append ';"' to lines
-             BS.stringUtf8 (formatHeader "TAG_FILE_FORMAT"    "2")
-             -- allows for  binary search
-          <> BS.stringUtf8 (formatHeader "TAG_FILE_SORTED"    "1")
-          <> BS.stringUtf8 (formatHeader "TAG_FILE_ENCODING"  "utf-8")
-          <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_AUTHOR" "Marcin Szamotulski")
-          <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_NAME"   "ghc-tags-pluginn")
-          <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_URL"
-                                         "https://hackage.haskell.org/package/ghc-tags-plugin")
-             -- version number with git revision
-          <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_VERSION"
-                                          (showVersion version ++ " (" ++ gitExtra ++ ")"))
-          <> foldMap formatVimTag
-              (sort $ concat $ Map.elems updatedTagsMap)
+      withFile tagsFile WriteMode
+        $ flip BS.hPutBuilder
+            ( formatVimTagFile
+            . sort
+            . concat
+            . Map.elems
+            $ updatedTagsMap
+            )
 
       return $ updatedTagsMap `seq` Just updatedTagsMap
-  where
-    formatHeader :: String -> String -> String
-    formatHeader header arg = printf ("!_" ++ header ++ "\t%s\t\n")  arg
-
-    gitExtra :: String
-    gitExtra = $(GitRev.gitHash) ++ bool "" " DIRTY" $(GitRev.gitDirty)
 
 
 -- | The 'MVar' is used as an exlusive lock.  Also similar to 'bracket' but
@@ -197,30 +160,3 @@ mvarLock v k = mask $ \unmask -> do
           `onException`
           putMVar v a
     putMVar v $! a'
-
-
-ghcTagToTag :: GhcTag -> Maybe Tag
-ghcTagToTag GhcTag { gtSrcSpan, gtTag, gtKind } =
-    case gtSrcSpan of
-      UnhelpfulSpan {} -> Nothing
-      RealSrcSpan realSrcSpan ->
-        Just $ Tag { tagName = TagName (fs_bs gtTag)
-                   , tagFile = TagFile (fs_bs (srcSpanFile realSrcSpan))
-                   , tagLine = srcSpanStartLine realSrcSpan
-                   , tagKind = Just gtKind
-                   }
-
-
-formatVimTag :: Tag -> Builder
-formatVimTag Tag { tagName, tagFile, tagLine, tagKind } =
-       BS.byteString (getTagName tagName)
-    <> BS.charUtf8 '\t'
-    <> BS.byteString (getTagFile tagFile)
-    <> BS.charUtf8 '\t'
-    <> BS.intDec tagLine
-    <> case tagKind of
-        Just k ->
-             BS.stringUtf8 ";\"\t"
-          <> BS.charUtf8 (tagKindToChar k)
-        Nothing -> mempty
-    <> BS.charUtf8 '\n'

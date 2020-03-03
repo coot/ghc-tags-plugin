@@ -8,9 +8,10 @@ module Plugin.GhcTags.Parser
     TagName (..)
   , TagFile (..)
   , Tag (..)
+  , ghcTagToTag
     -- * Parsing
   , parseVimTagFile
-    -- * TagsMap
+    -- * TagsMap'
   , TagsMap
   , mkTagsMap
   ) where
@@ -28,9 +29,18 @@ import           Data.Functor (void)
 import           Data.Map  (Map)
 import qualified Data.Map as Map
 
-import           Plugin.GhcTags.Generate ( TagKind
-                                         , charToTagKind
-                                         )
+-- GHC imports
+import           Plugin.GhcTags.Generate
+                              ( GhcTag (..)
+                              , TagKind
+                              , charToTagKind
+                              )
+import           FastString   ( FastString (..)
+                              )
+import           SrcLoc       ( SrcSpan (..)
+                              , srcSpanFile
+                              , srcSpanStartLine
+                              )
 
 
 --
@@ -64,6 +74,17 @@ data Tag = Tag
   deriving (Ord, Eq, Show)
 
 
+ghcTagToTag :: GhcTag -> Maybe Tag
+ghcTagToTag GhcTag { gtSrcSpan, gtTag, gtKind } =
+    case gtSrcSpan of
+      UnhelpfulSpan {} -> Nothing
+      RealSrcSpan realSrcSpan ->
+        Just $ Tag { tagName = TagName (fs_bs gtTag)
+                   , tagFile = TagFile (fs_bs (srcSpanFile realSrcSpan))
+                   , tagLine = srcSpanStartLine realSrcSpan
+                   , tagKind = Just gtKind
+                   }
+
 
 --
 -- Parsing
@@ -96,10 +117,12 @@ vimTagParser = do
     AC.endOfLine
     pure $ Tag {tagName, tagFile, tagLine, tagKind}
 
+
 -- | A vim-style tag file parser.
 --
 vimTagFileParser :: Parser [Tag]
 vimTagFileParser = rights <$> many tagLineParser
+
 
 tagLineParser :: Parser (Either () Tag)
 tagLineParser =
@@ -107,17 +130,19 @@ tagLineParser =
       (vimTagHeaderLine <?> "failed parsing tag")
       (vimTagParser     <?> "failed parsing header")
 
+
 vimTagHeaderLine :: Parser ()
 vimTagHeaderLine = AC.choice
-    [ AC.string (BSC.pack "!_TAG_FILE_FORMAT")    *> params
-    , AC.string (BSC.pack "!_TAG_FILE_SORTED")    *> params
-    , AC.string (BSC.pack "!_TAG_FILE_ENCODING")  *> params
-    , AC.string (BSC.pack "!_TAG_PROGRAM_AUTHOR") *> params
-    , AC.string (BSC.pack "!_TAG_PROGRAM_NAME")   *> params
-    , AC.string (BSC.pack "!_TAG_PROGRAM_URL")    *> params
-    , AC.string (BSC.pack "!_TAG_PROGRAM_VERSION")    *> params
+    [ AC.string (BSC.pack "!_TAG_FILE_FORMAT")     *> params
+    , AC.string (BSC.pack "!_TAG_FILE_SORTED")     *> params
+    , AC.string (BSC.pack "!_TAG_FILE_ENCODING")   *> params
+    , AC.string (BSC.pack "!_TAG_PROGRAM_AUTHOR")  *> params
+    , AC.string (BSC.pack "!_TAG_PROGRAM_NAME")    *> params
+    , AC.string (BSC.pack "!_TAG_PROGRAM_URL")     *> params
+    , AC.string (BSC.pack "!_TAG_PROGRAM_VERSION") *> params
     ]
   where
+
     params = void $ AC.char '\t' *> AC.skipWhile (/= '\n') *> AC.char '\n'
 
 -- | Parse a vim-style tag file.
