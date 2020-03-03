@@ -1,6 +1,4 @@
 {-# LANGUAGE NamedFieldPuns  #-}
--- only to get hash of the current commit
-{-# LANGUAGE TemplateHaskell #-}
 
 module Plugin.GhcTags.Vim
   ( formatVimTag
@@ -9,11 +7,8 @@ module Plugin.GhcTags.Vim
 
 import           Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as BS
-import           Data.Bool (bool)
 import           Data.Version (showVersion)
 import           Text.Printf (printf)
-
-import qualified Development.GitRev as GitRev
 
 import           Paths_ghc_tags_plugin (version)
 
@@ -37,6 +32,7 @@ formatVimTag Tag { tagName, tagFile, tagLine, tagKind } =
         Nothing -> mempty
     <> BS.charUtf8 '\n'
 
+
 -- | 'ByteString' 'Builder' for vim 'Tag' file.
 --
 formatVimTagFile :: [Tag] -> Builder
@@ -51,12 +47,8 @@ formatVimTagFile tags =
     <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_URL"
                                    "https://hackage.haskell.org/package/ghc-tags-plugin")
        -- version number with git revision
-    <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_VERSION"
-                                    (showVersion version ++ " (" ++ gitExtra ++ ")"))
+    <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_VERSION" (showVersion version))
     <> foldMap formatVimTag tags
   where
     formatHeader :: String -> String -> String
-    formatHeader header arg = printf ("!_" ++ header ++ "\t%s\t\n")  arg
-
-    gitExtra :: String
-    gitExtra = $(GitRev.gitHash) ++ bool "" " DIRTY" $(GitRev.gitDirty)
+    formatHeader header arg = printf ("!_" ++ header ++ "\t%s\t\n") arg

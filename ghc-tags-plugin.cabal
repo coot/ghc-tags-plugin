@@ -30,7 +30,7 @@ library
                        ghc           >=8.4 && <8.9,
                        gitrev       ^>=1.3,
 
-                       ghc-tags-plugin-library
+                       ghc-tags-library
 
   default-language:    Haskell2010
   ghc-options:         -Wall
