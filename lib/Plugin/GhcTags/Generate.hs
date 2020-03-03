@@ -10,7 +10,7 @@ module Plugin.GhcTags.Generate
   , TagKind (..)
   , tagKindToChar
   , charToTagKind
-  , generateTagsForModule
+  , getGhcTags
   ) where
 
 import           Data.Maybe    (mapMaybe)
@@ -191,9 +191,9 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind =
 --  * data type families instances
 --  * data type family instances constructors
 --
-generateTagsForModule :: Located (HsModule GhcPs)
+getGhcTags :: Located (HsModule GhcPs)
                       -> GhcTags
-generateTagsForModule (L _ HsModule { hsmodDecls }) = 
+getGhcTags (L _ HsModule { hsmodDecls }) = 
     reverse $ foldl' go [] hsmodDecls
   where
     go :: GhcTags -> LHsDecl GhcPs -> GhcTags

@@ -103,6 +103,10 @@ updateTags tagsFile lmodule =
       (tagsMap :: TagsMap) <-
         case mTagsMap of
 
+          Just tagsMap -> return tagsMap
+
+          -- the 'tagsMVar' is empty, which means we are compiling the first
+          -- module.  In this case read the tags from disk.
           Nothing -> do
             a <- doesFileExist tagsFile
             res <-
@@ -112,10 +116,10 @@ updateTags tagsFile lmodule =
                   case mbytes of
                     Left err    -> do
                       putStrLn $ "GhcTags: error reading \"" ++ tagsFile ++ "\": " ++ (show err)
-                      return $ Right []
+                      pure $ Right []
                     Right bytes ->
                       parseVimTagFile bytes
-                else return $ Right []
+                else pure $ Right []
             case res of
               Left err -> do
                 putStrLn $ "GhcTags: error reading or parsing \"" ++ tagsFile ++ "\": " ++ err
@@ -123,28 +127,27 @@ updateTags tagsFile lmodule =
               Right tagList -> do
                 return $ mkTagsMap tagList
 
-          Just tagsMap -> return tagsMap
-
-      let tagsMap', updatedTagsMap :: TagsMap
+      let tagsMap' :: TagsMap
           tagsMap' =
-              mkTagsMap
-            $ mapMaybe ghcTagToTag
-            $ generateTagsForModule
-            $ lmodule
+              (mkTagsMap               -- created 'TagsMap'
+                . mapMaybe ghcTagToTag -- tranalte 'GhcTag' to 'Tag'
+                . getGhcTags           -- generate 'GhcTag's
+                $ lmodule)
+            `Map.union`
+              tagsMap
 
-          updatedTagsMap = tagsMap' `Map.union` tagsMap
-
-      -- update tags file
+      -- update tags file, this will force evaluation `tagsMap'`, so when we
+      -- write it to `tagsMVar' it will not contain any thunks.
       withFile tagsFile WriteMode
         $ flip BS.hPutBuilder
             ( formatVimTagFile
             . sort
             . concat
             . Map.elems
-            $ updatedTagsMap
+            $ tagsMap'
             )
 
-      return $ updatedTagsMap `seq` Just updatedTagsMap
+      pure (Just tagsMap')
 
 
 -- | The 'MVar' is used as an exlusive lock.  Also similar to 'bracket' but
