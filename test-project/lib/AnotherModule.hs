@@ -12,3 +12,5 @@ data BlockOrHeader blk b where
 
 function :: Int -> Int
 function = undefined
+
+type MyInt = Int

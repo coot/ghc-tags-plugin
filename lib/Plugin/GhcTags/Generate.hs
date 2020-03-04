@@ -92,13 +92,13 @@ data TagKind = TkTerm
 
 tagKindToChar :: TagKind -> Char
 tagKindToChar tagKind = case tagKind of
-    TkTerm                    -> 'x'
+    TkTerm                    -> '`'
     TkFunction                -> 'λ'
-    TkTypeConstructor         -> 't'
+    TkTypeConstructor         -> 'Λ'
     TkDataConstructor         -> 'c'
     TkGADTConstructor         -> 'g'
     TkRecordField             -> 'r'
-    TkTypeSynonym             -> 'S'
+    TkTypeSynonym             -> '≡'
     TkTypeSignature           -> 's'
     TkPatternSynonym          -> 'p'
     TkTypeClass               -> 'C'
@@ -114,14 +114,14 @@ tagKindToChar tagKind = case tagKind of
 
 charToTagKind :: Char -> Maybe TagKind
 charToTagKind c = case c of
-     'x' -> Just TkTerm
+     '`' -> Just TkTerm
      'λ' -> Just TkFunction
-     't' -> Just TkTypeConstructor
+     'Λ' -> Just TkTypeConstructor
      'c' -> Just TkDataConstructor
      'g' -> Just TkGADTConstructor
      'r' -> Just TkRecordField
-     'S' -> Just TkTypeSynonym
-     's' -> Just TkTypeSignature
+     '≡' -> Just TkTypeSynonym
+     '⊢' -> Just TkTypeSignature
      'p' -> Just TkPatternSynonym
      'C' -> Just TkTypeClass
      'm' -> Just TkTypeClassMember
