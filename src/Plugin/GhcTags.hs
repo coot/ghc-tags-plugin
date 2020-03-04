@@ -16,6 +16,7 @@ import           System.IO
 import           System.IO.Error  (tryIOError)
 import           System.IO.Unsafe (unsafePerformIO)
 import           System.Directory
+import qualified Data.Text.Encoding as Text
 
 import           GhcPlugins ( CommandLineOption
                             , Hsc
@@ -112,13 +113,13 @@ updateTags tagsFile lmodule =
             res <-
               if a
                 then do
-                  mbytes <- tryIOError (BS.readFile tagsFile)
-                  case mbytes of
+                  mtext <- tryIOError (Text.decodeUtf8 <$> BS.readFile tagsFile)
+                  case mtext of
                     Left err    -> do
                       putStrLn $ "GhcTags: error reading \"" ++ tagsFile ++ "\": " ++ (show err)
                       pure $ Right []
-                    Right bytes ->
-                      parseVimTagFile bytes
+                    Right txt ->
+                      parseVimTagFile txt
                 else pure $ Right []
             case res of
               Left err -> do

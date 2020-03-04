@@ -21,18 +21,16 @@ module Plugin.GhcTags.Parser
   ) where
 
 import           Control.Applicative (many)
-import           Data.ByteString (ByteString)
-import qualified Data.ByteString as BS
-import qualified Data.ByteString.Char8 as BSC
-import           Data.Attoparsec.ByteString               (Parser)
-import qualified Data.Attoparsec.ByteString       as A
-import           Data.Attoparsec.ByteString.Char8      ( (<?>) )
-import qualified Data.Attoparsec.ByteString.Char8 as AC
+import           Data.Attoparsec.Text  (Parser, (<?>))
+import qualified Data.Attoparsec.Text  as AT
 import           Data.Either (rights)
 import           Data.List (sort)
 import           Data.Functor (void)
 import           Data.Map  (Map)
 import qualified Data.Map as Map
+import           Data.Text          (Text)
+import qualified Data.Text          as Text
+import qualified Data.Text.Encoding as Text
 
 -- GHC imports
 import           Plugin.GhcTags.Generate
@@ -54,13 +52,13 @@ import           SrcLoc       ( SrcSpan (..)
 
 -- | 'ByteString' which encodes a tag name.
 --
-newtype TagName = TagName { getTagName :: ByteString }
+newtype TagName = TagName { getTagName :: Text }
   deriving newtype (Eq, Ord, Show)
 
 
 -- | 'ByteString' which encodes a tag file.
 --
-newtype TagFile = TagFile { getTagFile :: ByteString }
+newtype TagFile = TagFile { getTagFile :: Text }
   deriving newtype (Eq, Ord, Show)
 
 
@@ -72,7 +70,7 @@ newtype TagFile = TagFile { getTagFile :: ByteString }
 data Tag = Tag
   { tagName   :: !TagName
   , tagFile   :: !TagFile
-  , tagAddr   :: !(Either Int ByteString)
+  , tagAddr   :: !(Either Int Text)
   , tagKind   :: !(Maybe TagKind)
   , tagFields :: ![TagField]
   }
@@ -84,8 +82,8 @@ ghcTagToTag GhcTag { gtSrcSpan, gtTag, gtKind, gtExported } =
     case gtSrcSpan of
       UnhelpfulSpan {} -> Nothing
       RealSrcSpan realSrcSpan ->
-        Just $ Tag { tagName   = TagName (fs_bs gtTag)
-                   , tagFile   = TagFile (fs_bs (srcSpanFile realSrcSpan))
+        Just $ Tag { tagName   = TagName (Text.decodeUtf8 $ fs_bs gtTag)
+                   , tagFile   = TagFile (Text.decodeUtf8 $ fs_bs (srcSpanFile realSrcSpan))
                    , tagAddr   = Left (srcSpanStartLine realSrcSpan)
                    , tagKind   = Just gtKind
                    , tagFields = if gtExported then [] else [fileField]
@@ -108,27 +106,30 @@ vimTagParser =
     <*> parseTagFile
     <*  separator
 
-    <*> AC.eitherP parseAddr parseExCommand
+    <*> AT.eitherP parseAddr parseExCommand
     <* separator
 
-    <*> (charToTagKind <$> AC.anyChar)
+    <*> (either kindFromField id
+          <$> AT.eitherP
+                parseField
+                (charToTagKind <$> AT.anyChar))
     <*> many (separator *> parseField)
 
-    <*  AC.endOfLine
+    <*  AT.endOfLine
   where
-    separator = AC.char '\t'
+    separator = AT.char '\t'
 
     parseTagName :: Parser TagName
-    parseTagName = TagName <$> AC.takeWhile (/= '\t')
+    parseTagName = TagName <$> AT.takeWhile (/= '\t')
                            <?> "parsing tag name failed"
 
     parseTagFile :: Parser TagFile
-    parseTagFile = TagFile <$> AC.takeWhile (/= '\t')
+    parseTagFile = TagFile <$> AT.takeWhile (/= '\t')
 
-    parseExCommand :: Parser ByteString
-    parseExCommand = (\x -> BS.take (BS.length x - 1) x) <$>
-                     AC.scan "" go
-                  <* AC.anyChar
+    parseExCommand :: Parser Text
+    parseExCommand = (\x -> Text.take (Text.length x - 1) x) <$>
+                     AT.scan "" go
+                  <* AT.anyChar
       where
         -- go until either '`n' or ';"' sequence is found.
         go :: String -> Char -> Maybe String
@@ -139,15 +140,22 @@ vimTagParser =
             l = take 2 (c : s)
 
     parseAddr :: Parser Int
-    parseAddr = AC.decimal
-             <* AC.eitherP
-                  AC.endOfLine
-                  (AC.char ';' *> AC.char '"')
+    parseAddr = AT.decimal
+             <* AT.eitherP
+                  AT.endOfLine
+                  (AT.char ';' *> AT.char '"')
+
+    kindFromField :: TagField -> Maybe TagKind
+    kindFromField TagField { fieldName = "kind", fieldValue = Just t } =
+        if Text.null t
+          then Nothing
+          else charToTagKind (Text.head t)
+    kindFromField _ = Nothing
 
 
 data TagField = TagField {
-      fieldName  :: ByteString,
-      fieldValue :: Maybe ByteString
+      fieldName  :: Text,
+      fieldValue :: Maybe Text
     }
   deriving (Eq, Ord, Show)
 
@@ -157,11 +165,11 @@ fileField = TagField { fieldName = "file", fieldValue = Nothing }
 parseField :: Parser TagField
 parseField =
          TagField
-     <$> AC.takeWhile (\x -> x /= ':'  && x /= '\n')
-     <*  AC.char ':'
-     <*> (toValue <$> AC.takeWhile (\x -> x /= '\t' && x /= '\n'))
+     <$> AT.takeWhile (\x -> x /= ':'  && x /= '\n')
+     <*  AT.char ':'
+     <*> (toValue <$> AT.takeWhile (\x -> x /= '\t' && x /= '\n'))
   where
-    toValue :: ByteString -> Maybe ByteString
+    toValue :: Text -> Maybe Text
     toValue "" = Nothing
     toValue bs = Just bs
 
@@ -175,32 +183,32 @@ vimTagFileParser = rights <$> many tagLineParser
 
 tagLineParser :: Parser (Either () Tag)
 tagLineParser =
-    AC.eitherP
+    AT.eitherP
       (vimTagHeaderLine <?> "failed parsing tag")
       (vimTagParser     <?> "failed parsing header")
 
 
 vimTagHeaderLine :: Parser ()
-vimTagHeaderLine = AC.choice
-    [ AC.string (BSC.pack "!_TAG_FILE_FORMAT")     *> params
-    , AC.string (BSC.pack "!_TAG_FILE_SORTED")     *> params
-    , AC.string (BSC.pack "!_TAG_FILE_ENCODING")   *> params
-    , AC.string (BSC.pack "!_TAG_PROGRAM_AUTHOR")  *> params
-    , AC.string (BSC.pack "!_TAG_PROGRAM_NAME")    *> params
-    , AC.string (BSC.pack "!_TAG_PROGRAM_URL")     *> params
-    , AC.string (BSC.pack "!_TAG_PROGRAM_VERSION") *> params
+vimTagHeaderLine = AT.choice
+    [ AT.string (Text.pack "!_TAG_FILE_FORMAT")     *> params
+    , AT.string (Text.pack "!_TAG_FILE_SORTED")     *> params
+    , AT.string (Text.pack "!_TAG_FILE_ENCODING")   *> params
+    , AT.string (Text.pack "!_TAG_PROGRAM_AUTHOR")  *> params
+    , AT.string (Text.pack "!_TAG_PROGRAM_NAME")    *> params
+    , AT.string (Text.pack "!_TAG_PROGRAM_URL")     *> params
+    , AT.string (Text.pack "!_TAG_PROGRAM_VERSION") *> params
     ]
   where
 
-    params = void $ AC.char '\t' *> AC.skipWhile (/= '\n') *> AC.char '\n'
+    params = void $ AT.char '\t' *> AT.skipWhile (/= '\n') *> AT.char '\n'
 
 -- | Parse a vim-style tag file.
 --
-parseVimTagFile :: ByteString
+parseVimTagFile :: Text
                 -> IO (Either String [Tag])
 parseVimTagFile =
-      fmap A.eitherResult
-    . A.parseWith (pure mempty) vimTagFileParser
+      fmap AT.eitherResult
+    . AT.parseWith (pure mempty) vimTagFileParser
 
 
 --

@@ -93,7 +93,7 @@ data TagKind = TkTerm
 tagKindToChar :: TagKind -> Char
 tagKindToChar tagKind = case tagKind of
     TkTerm                    -> 'x'
-    TkFunction                -> 'l' -- we should use 'λ' but vim is not showing them in a right way
+    TkFunction                -> 'λ'
     TkTypeConstructor         -> 't'
     TkDataConstructor         -> 'c'
     TkGADTConstructor         -> 'g'
@@ -115,7 +115,7 @@ tagKindToChar tagKind = case tagKind of
 charToTagKind :: Char -> Maybe TagKind
 charToTagKind c = case c of
      'x' -> Just TkTerm
-     'l' -> Just TkFunction
+     'λ' -> Just TkFunction
      't' -> Just TkTypeConstructor
      'c' -> Just TkDataConstructor
      'g' -> Just TkGADTConstructor

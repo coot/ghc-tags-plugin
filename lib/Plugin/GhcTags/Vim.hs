@@ -8,6 +8,7 @@ module Plugin.GhcTags.Vim
 import           Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as BS
 import           Data.Version (showVersion)
+import qualified Data.Text.Encoding as Text
 import           Text.Printf (printf)
 
 import           Paths_ghc_tags_plugin (version)
@@ -20,15 +21,16 @@ import           Plugin.GhcTags.Parser
 --
 formatVimTag :: Tag -> Builder
 formatVimTag Tag { tagName, tagFile, tagAddr, tagKind, tagFields} =
-       BS.byteString (getTagName tagName)
+       (BS.byteString . Text.encodeUtf8 . getTagName $ tagName)
     <> BS.charUtf8 '\t'
-    <> BS.byteString (getTagFile tagFile)
+    <> (BS.byteString . Text.encodeUtf8 . getTagFile $ tagFile)
     <> BS.charUtf8 '\t'
-    <> either BS.intDec BS.byteString tagAddr
+    <> either BS.intDec (BS.byteString . Text.encodeUtf8) tagAddr
     -- we are using extended format: '_TAG_FILE_FROMAT	2'
     <> BS.stringUtf8 ";\""
-    -- tag kind
-    <> foldMap ((BS.charUtf8 '\t' <>) . BS.charUtf8 . tagKindToChar) tagKind
+    -- tag kind: we are encoding them using field syntax: this is because vim
+    -- is using them in the right way: https://github.com/vim/vim/issues/5724
+    <> foldMap ((BS.stringUtf8 "\tkind:" <>) . BS.charUtf8 . tagKindToChar) tagKind
     -- tag fields
     <> foldMap ((BS.charUtf8 '\t' <>) . formatTagField) tagFields 
     <> BS.charUtf8 '\n'
@@ -36,9 +38,9 @@ formatVimTag Tag { tagName, tagFile, tagAddr, tagKind, tagFields} =
 
 formatTagField :: TagField -> Builder
 formatTagField TagField { fieldName, fieldValue } =
-      BS.byteString fieldName
+      BS.byteString (Text.encodeUtf8 fieldName)
    <> BS.charUtf8 ':'
-   <> foldMap BS.byteString fieldValue
+   <> foldMap (BS.byteString . Text.encodeUtf8) fieldValue
 
 
 -- | 'ByteString' 'Builder' for vim 'Tag' file.
