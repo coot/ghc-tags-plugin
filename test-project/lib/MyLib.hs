@@ -2,7 +2,12 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module MyLib where
+module MyLib 
+  ( someFunc
+  , MyLength (..)
+  , GetHeader (..)
+  , X (..)
+  ) where
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"
@@ -24,6 +29,8 @@ instance GetHeader Int where
     getHeader = HeaderInt
 
 data family X (a :: *) :: *
+
+type family Y a :: *
 
 data instance X Int
   = XInt Int

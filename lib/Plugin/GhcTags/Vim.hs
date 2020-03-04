@@ -19,18 +19,26 @@ import           Plugin.GhcTags.Parser
 -- | 'ByteString' 'Builder' for a single line.
 --
 formatVimTag :: Tag -> Builder
-formatVimTag Tag { tagName, tagFile, tagLine, tagKind } =
+formatVimTag Tag { tagName, tagFile, tagAddr, tagKind, tagFields} =
        BS.byteString (getTagName tagName)
     <> BS.charUtf8 '\t'
     <> BS.byteString (getTagFile tagFile)
     <> BS.charUtf8 '\t'
-    <> BS.intDec tagLine
-    <> case tagKind of
-        Just k ->
-             BS.stringUtf8 ";\"\t"
-          <> BS.charUtf8 (tagKindToChar k)
-        Nothing -> mempty
+    <> either BS.intDec BS.byteString tagAddr
+    -- we are using extended format: '_TAG_FILE_FROMAT	2'
+    <> BS.stringUtf8 ";\""
+    -- tag kind
+    <> foldMap ((BS.charUtf8 '\t' <>) . BS.charUtf8 . tagKindToChar) tagKind
+    -- tag fields
+    <> foldMap ((BS.charUtf8 '\t' <>) . formatTagField) tagFields 
     <> BS.charUtf8 '\n'
+
+
+formatTagField :: TagField -> Builder
+formatTagField TagField { fieldName, fieldValue } =
+      BS.byteString fieldName
+   <> BS.charUtf8 ':'
+   <> foldMap BS.byteString fieldValue
 
 
 -- | 'ByteString' 'Builder' for vim 'Tag' file.

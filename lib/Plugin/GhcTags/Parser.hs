@@ -1,13 +1,17 @@
 {-# LANGUAGE BangPatterns               #-}
+{-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE NamedFieldPuns             #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
 
 module Plugin.GhcTags.Parser
   ( -- * Tag
-    TagName (..)
+    Tag (..)
+  , TagName (..)
   , TagFile (..)
-  , Tag (..)
+  , TagField (..)
   , ghcTagToTag
     -- * Parsing
   , parseVimTagFile
@@ -18,6 +22,7 @@ module Plugin.GhcTags.Parser
 
 import           Control.Applicative (many)
 import           Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
 import           Data.Attoparsec.ByteString               (Parser)
 import qualified Data.Attoparsec.ByteString       as A
@@ -42,7 +47,6 @@ import           SrcLoc       ( SrcSpan (..)
                               , srcSpanStartLine
                               )
 
-
 --
 -- Tag
 --
@@ -66,23 +70,25 @@ newtype TagFile = TagFile { getTagFile :: ByteString }
 -- TODO: expand to support column numbers and extra information.
 --
 data Tag = Tag
-  { tagName :: !TagName
-  , tagFile :: !TagFile
-  , tagLine :: !Int
-  , tagKind :: !(Maybe TagKind)
+  { tagName   :: !TagName
+  , tagFile   :: !TagFile
+  , tagAddr   :: !(Either Int ByteString)
+  , tagKind   :: !(Maybe TagKind)
+  , tagFields :: ![TagField]
   }
   deriving (Ord, Eq, Show)
 
 
 ghcTagToTag :: GhcTag -> Maybe Tag
-ghcTagToTag GhcTag { gtSrcSpan, gtTag, gtKind } =
+ghcTagToTag GhcTag { gtSrcSpan, gtTag, gtKind, gtExported } =
     case gtSrcSpan of
       UnhelpfulSpan {} -> Nothing
       RealSrcSpan realSrcSpan ->
-        Just $ Tag { tagName = TagName (fs_bs gtTag)
-                   , tagFile = TagFile (fs_bs (srcSpanFile realSrcSpan))
-                   , tagLine = srcSpanStartLine realSrcSpan
-                   , tagKind = Just gtKind
+        Just $ Tag { tagName   = TagName (fs_bs gtTag)
+                   , tagFile   = TagFile (fs_bs (srcSpanFile realSrcSpan))
+                   , tagAddr   = Left (srcSpanStartLine realSrcSpan)
+                   , tagKind   = Just gtKind
+                   , tagFields = if gtExported then [] else [fileField]
                    }
 
 
@@ -93,29 +99,72 @@ ghcTagToTag GhcTag { gtSrcSpan, gtTag, gtKind } =
 
 -- | Parser for a single line of a vim-style tag file.
 --
-vimTagParser:: Parser Tag
-vimTagParser = do
-    -- use monadic form to provide compatibility with previous version where
-    -- `;"` and tag kinds where not present.
-    tagName <-
-      TagName <$> AC.takeWhile (/= '\t') <* AC.skipWhile (== '\t')
-              <?> "parsing tag name failed"
-    tagFile <-
-      TagFile <$> AC.takeWhile (/= '\t') <* AC.skipWhile (== '\t')
-              <?> "parsing tag file name failed"
-    tagLine <-    AC.decimal
-              <?> "parsing line number failed"
-      
-    mc <- AC.peekChar
-    tagKind <-
-      case mc of
-        Just ';' ->
-                charToTagKind
-            <$> (AC.anyChar *> AC.char '"' *> AC.char '\t' *> AC.anyChar)
-            <?> "parsing tag kind failed"
-        _  -> pure Nothing
-    AC.endOfLine
-    pure $ Tag {tagName, tagFile, tagLine, tagKind}
+vimTagParser :: Parser Tag
+vimTagParser =
+        Tag
+    <$> parseTagName
+    <*  separator
+
+    <*> parseTagFile
+    <*  separator
+
+    <*> AC.eitherP parseAddr parseExCommand
+    <* separator
+
+    <*> (charToTagKind <$> AC.anyChar)
+    <*> many (separator *> parseField)
+
+    <*  AC.endOfLine
+  where
+    separator = AC.char '\t'
+
+    parseTagName :: Parser TagName
+    parseTagName = TagName <$> AC.takeWhile (/= '\t')
+                           <?> "parsing tag name failed"
+
+    parseTagFile :: Parser TagFile
+    parseTagFile = TagFile <$> AC.takeWhile (/= '\t')
+
+    parseExCommand :: Parser ByteString
+    parseExCommand = (\x -> BS.take (BS.length x - 1) x) <$>
+                     AC.scan "" go
+                  <* AC.anyChar
+      where
+        -- go until either '`n' or ';"' sequence is found.
+        go :: String -> Char -> Maybe String
+        go _ '\n'             = Nothing
+        go !s c  | l == "\";" = Nothing
+                 | otherwise  = Just l
+          where
+            l = take 2 (c : s)
+
+    parseAddr :: Parser Int
+    parseAddr = AC.decimal
+             <* AC.eitherP
+                  AC.endOfLine
+                  (AC.char ';' *> AC.char '"')
+
+
+data TagField = TagField {
+      fieldName  :: ByteString,
+      fieldValue :: Maybe ByteString
+    }
+  deriving (Eq, Ord, Show)
+
+fileField :: TagField
+fileField = TagField { fieldName = "file", fieldValue = Nothing }
+
+parseField :: Parser TagField
+parseField =
+         TagField
+     <$> AC.takeWhile (\x -> x /= ':'  && x /= '\n')
+     <*  AC.char ':'
+     <*> (toValue <$> AC.takeWhile (\x -> x /= '\t' && x /= '\n'))
+  where
+    toValue :: ByteString -> Maybe ByteString
+    toValue "" = Nothing
+    toValue bs = Just bs
+
 
 
 -- | A vim-style tag file parser.

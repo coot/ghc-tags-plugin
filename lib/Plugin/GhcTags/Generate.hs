@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -13,7 +14,8 @@ module Plugin.GhcTags.Generate
   , getGhcTags
   ) where
 
-import           Data.Maybe    (mapMaybe)
+import           Data.List     (find)
+import           Data.Maybe    (isJust, mapMaybe)
 import           Data.Foldable (foldl')
 
 -- Ghc imports
@@ -37,6 +39,9 @@ import           HsDecls      ( ClsInstDecl (..)
                               , InstDecl (..)
                               , TyClDecl (..)
                               , TyFamInstDecl (..)
+                              )
+import           HsImpExp     ( IE (..)
+                              , ieName
                               )
 import           HsSyn        ( FieldOcc (..)
                               , GhcPs
@@ -137,27 +142,37 @@ data GhcTag = GhcTag {
     gtSrcSpan  :: !SrcSpan
   , gtTag      :: !FastString
   , gtKind     :: !TagKind
+  , gtExported :: !Bool
   }
   deriving Show
 
 type GhcTags = [GhcTag]
 
+isRdrNameExported :: Maybe [IE GhcPs] -> Located RdrName -> Bool
+isRdrNameExported Nothing   _name = True
+isRdrNameExported (Just ies) name = isJust $ find (\a -> ieName a == unLoc name) ies
 
-mkGhcTag :: Located RdrName -- Located (IdP GhcPs)
+mkGhcTag :: Bool
+         -- ^ is exported
+         -> Located RdrName
+         -- ^ @RdrName ~ IdP GhcPs@ it *must* be a name of a top level identifier.
          -> TagKind
+         -- ^ tag's kind
          -> GhcTag
-mkGhcTag (L gtSrcSpan rdrName) gtKind =
+mkGhcTag gtExported (L gtSrcSpan rdrName) gtKind =
     case rdrName of
       Unqual occName ->
         GhcTag { gtTag = occNameFS occName
                , gtSrcSpan
                , gtKind
+               , gtExported
                }
 
       Qual _ occName ->
         GhcTag { gtTag = occNameFS occName
                , gtSrcSpan
                , gtKind
+               , gtExported
                }
 
       -- Orig is the only one we are interested in
@@ -165,14 +180,15 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind =
         GhcTag { gtTag = occNameFS occName
                , gtSrcSpan
                , gtKind
+               , gtExported
                }
 
-      Exact name                   -> 
-        GhcTag { gtTag = occNameFS $ nameOccName name
+      Exact eName -> 
+        GhcTag { gtTag = occNameFS $ nameOccName eName
                , gtSrcSpan
                , gtKind
+               , gtExported
                }
-
 
 
 -- | Generate tags for a module - simple walk over the syntax tree.
@@ -193,9 +209,20 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind =
 --
 getGhcTags :: Located (HsModule GhcPs)
                       -> GhcTags
-getGhcTags (L _ HsModule { hsmodDecls }) = 
+getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) = 
     reverse $ foldl' go [] hsmodDecls
   where
+    mies :: Maybe [IE GhcPs]
+    mies = map unLoc . unLoc <$> hsmodExports
+
+    -- like 'mkGhcTag' but checks if the identifier is exported
+    mkGhcTag' :: Located RdrName
+              -- ^ @RdrName ~ IdP GhcPs@ it *must* be a name of a top level identifier.
+              -> TagKind
+              -- ^ tag's kind
+              -> GhcTag
+    mkGhcTag' a = mkGhcTag (isRdrNameExported mies a) a
+
     go :: GhcTags -> LHsDecl GhcPs -> GhcTags
     go tags (L _ hsDecl) = case hsDecl of
       -- type or class declaration
@@ -207,12 +234,12 @@ getGhcTags (L _ HsModule { hsmodDecls }) =
               Nothing  ->       tags
 
           SynDecl { tcdLName } ->
-            mkGhcTag tcdLName TkTypeSynonym : tags
+            mkGhcTag' tcdLName TkTypeSynonym : tags
 
           DataDecl { tcdLName, tcdDataDefn } -> 
             case tcdDataDefn of
               HsDataDefn { dd_cons } ->
-                  mkGhcTag tcdLName TkTypeConstructor
+                     mkGhcTag' tcdLName TkTypeConstructor
                    : (mkConsTags . unLoc) `concatMap` dd_cons
                   ++ tags
 
@@ -220,11 +247,11 @@ getGhcTags (L _ HsModule { hsmodDecls }) =
 
           -- TODO: add 'tcdATDefs'
           ClassDecl { tcdLName, tcdSigs, tcdMeths, tcdATs } ->
-            -- class name
-            mkGhcTag tcdLName TkTypeClass
-            -- class methods
-            : (mkSigTags . unLoc) `concatMap` tcdSigs
-            -- default methods
+              -- class name
+              mkGhcTag' tcdLName TkTypeClass
+               -- class methods
+             : (mkSigTags . unLoc) `concatMap` tcdSigs
+               -- default methods
             ++ foldl' (\tags' hsBind -> mkHsBindLRTags (unLoc hsBind) ++ tags')
                      tags
                      tcdMeths
@@ -279,9 +306,13 @@ getGhcTags (L _ HsModule { hsmodDecls }) =
       -- foreign declaration
       ForD _ foreignDecl ->
         case foreignDecl of
-          ForeignImport { fd_name } -> mkGhcTag fd_name TkForeignImport : tags
+          ForeignImport { fd_name } ->
+              mkGhcTag' fd_name TkForeignImport
+            : tags
 
-          ForeignExport { fd_name } -> mkGhcTag fd_name TkForeignExport : tags
+          ForeignExport { fd_name } ->
+              mkGhcTag' fd_name TkForeignExport
+            : tags
 
           XForeignDecl {} -> tags
 
@@ -301,10 +332,10 @@ getGhcTags (L _ HsModule { hsmodDecls }) =
     -- tags of all constructors of a type
     mkConsTags :: ConDecl GhcPs -> GhcTags
     mkConsTags ConDeclGADT { con_names, con_args } =
-         flip mkGhcTag TkGADTConstructor `map` con_names
+         flip mkGhcTag' TkGADTConstructor `map` con_names
       ++ mkHsConDeclDetails con_args
     mkConsTags ConDeclH98  { con_name, con_args } =
-        mkGhcTag con_name TkDataConstructor
+        mkGhcTag' con_name TkDataConstructor
       : mkHsConDeclDetails con_args
     mkConsTags XConDecl {} = []
 
@@ -316,7 +347,9 @@ getGhcTags (L _ HsModule { hsmodDecls }) =
         f ts _ = ts
 
         g :: GhcTags -> LFieldOcc GhcPs -> GhcTags
-        g ts (L _ FieldOcc { rdrNameFieldOcc }) = mkGhcTag rdrNameFieldOcc TkRecordField : ts
+        g ts (L _ FieldOcc { rdrNameFieldOcc }) =
+            mkGhcTag' rdrNameFieldOcc TkRecordField
+          : ts
         g ts _ = ts
 
     mkHsConDeclDetails _  = []
@@ -324,7 +357,7 @@ getGhcTags (L _ HsModule { hsmodDecls }) =
     mkHsBindLRTags :: HsBindLR GhcPs GhcPs -> GhcTags
     mkHsBindLRTags hsBind =
       case hsBind of
-        FunBind { fun_id } -> [mkGhcTag fun_id TkFunction]
+        FunBind { fun_id } -> [mkGhcTag' fun_id TkFunction]
 
         -- TODO
         -- This is useful fo generating tags for
@@ -333,20 +366,20 @@ getGhcTags (L _ HsModule { hsmodDecls }) =
         -- ```
         PatBind {} -> []
 
-        VarBind { var_id, var_rhs = L srcSpan _ } -> [mkGhcTag (L srcSpan var_id) TkTerm]
+        VarBind { var_id, var_rhs = L srcSpan _ } -> [mkGhcTag' (L srcSpan var_id) TkTerm]
 
         -- abstraction binding are only used after translaction
         AbsBinds {} -> []
 
-        PatSynBind _ PSB { psb_id } -> [mkGhcTag psb_id TkPatternSynonym]
+        PatSynBind _ PSB { psb_id } -> [mkGhcTag' psb_id TkPatternSynonym]
         PatSynBind _ XPatSynBind {} -> []
 
         XHsBindsLR {} -> []
 
     mkSigTags :: Sig GhcPs -> GhcTags
-    mkSigTags (TypeSig   _ lhs _)    = flip mkGhcTag TkTypeSignature `map` lhs
-    mkSigTags (PatSynSig _ lhs _)    = flip mkGhcTag TkPatternSynonym `map` lhs
-    mkSigTags (ClassOpSig _ _ lhs _) = flip mkGhcTag TkTypeClassMember `map` lhs
+    mkSigTags (TypeSig   _ lhs _)    = flip mkGhcTag' TkTypeSignature   `map` lhs
+    mkSigTags (PatSynSig _ lhs _)    = flip mkGhcTag' TkPatternSynonym  `map` lhs
+    mkSigTags (ClassOpSig _ _ lhs _) = flip mkGhcTag' TkTypeClassMember `map` lhs
     mkSigTags IdSig {}               = []
     -- TODO: generate theses with additional info (fixity)
     mkSigTags FixSig {}              = []
@@ -364,7 +397,7 @@ getGhcTags (L _ HsModule { hsmodDecls }) =
 
     mkFamilyDeclTags :: FamilyDecl GhcPs
                      -> Maybe GhcTag
-    mkFamilyDeclTags FamilyDecl { fdLName, fdInfo } = Just $ mkGhcTag fdLName tk
+    mkFamilyDeclTags FamilyDecl { fdLName, fdInfo } = Just $ mkGhcTag' fdLName tk
       where
         tk = case fdInfo of
               DataFamily           -> TkDataTypeFamily
@@ -380,10 +413,10 @@ getGhcTags (L _ HsModule { hsmodDecls }) =
         
         HsQualTy {hst_body}   -> mkLHsTypeTag hst_body
 
-        HsTyVar _ _ a -> Just $ mkGhcTag a TkTypeClassInstance
+        HsTyVar _ _ a         -> Just $ mkGhcTag True a TkTypeClassInstance
 
         HsAppTy _ a _         -> mkLHsTypeTag a
-        HsOpTy _ _ a _        -> Just $ mkGhcTag a TkTypeClassInstance
+        HsOpTy _ _ a _        -> Just $ mkGhcTag True a TkTypeClassInstance
         HsKindSig _ a _       -> mkLHsTypeTag a
 
         _                     -> Nothing
@@ -397,9 +430,9 @@ getGhcTags (L _ HsModule { hsmodDecls }) =
         HsIB { hsib_body = FamEqn { feqn_tycon, feqn_rhs } } ->
           case feqn_rhs of
             HsDataDefn { dd_cons } ->
-              mkGhcTag feqn_tycon TkDataTypeFamilyInstance : (mkConsTags . unLoc) `concatMap` dd_cons
+              mkGhcTag' feqn_tycon TkDataTypeFamilyInstance : (mkConsTags . unLoc) `concatMap` dd_cons
             XHsDataDefn {}         ->
-              mkGhcTag feqn_tycon TkDataTypeFamilyInstance : []
+              mkGhcTag' feqn_tycon TkDataTypeFamilyInstance : []
 
         HsIB { hsib_body = XFamEqn {} } -> []
 
@@ -409,6 +442,7 @@ getGhcTags (L _ HsModule { hsmodDecls }) =
         XHsImplicitBndrs {} -> Nothing
 
         -- TODO: should we check @feqn_rhs :: LHsType GhcPs@ as well?
-        HsIB { hsib_body = FamEqn { feqn_tycon } } -> Just $ mkGhcTag feqn_tycon TkTypeFamilyInstance
+        HsIB { hsib_body = FamEqn { feqn_tycon } } ->
+          Just $ mkGhcTag' feqn_tycon TkTypeFamilyInstance
 
         HsIB { hsib_body = XFamEqn {} } -> Nothing
