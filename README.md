@@ -33,7 +33,7 @@ ghc -plugin-package=ghc-tags-plugin -fplugin=Plugin.GhcTags
 
 Install the `ghc-tags-plugin` to cabal store with:
 ```
-cabal install ghc-tags-plugin
+cabal install --lib ghc-tags-plugin
 ```
 
 In `cabal.project.local` file add `package` stanza for every local package :
