@@ -1,0 +1,389 @@
+.:	src/Control/Monad/Class/MonadAsync.hs	235;"	kind:⊢
+.:	src/Control/Monad/Class/MonadAsync.hs	236;"	kind:λ
+Async	src/Control/Monad/Class/MonadAsync.hs	97;"	kind:f
+Async	src/Control/Monad/Class/MonadAsync.hs	203;"	kind:F
+Async	src/Control/Monad/Class/MonadAsync.hs	239;"	kind:F
+BlockedIndefinitely	src/Control/Monad/Class/MonadSTM.hs	199;"	kind:Λ
+BlockedIndefinitely	src/Control/Monad/Class/MonadSTM.hs	199;"	kind:c
+Exception	src/Control/Monad/Class/MonadAsync.hs	305;"	kind:i
+Exception	src/Control/Monad/Class/MonadSTM.hs	205;"	kind:i
+ExceptionInLinkedThread	src/Control/Monad/Class/MonadAsync.hs	295;"	kind:Λ	file:
+ExceptionInLinkedThread	src/Control/Monad/Class/MonadAsync.hs	295;"	kind:c
+ExitCase	src/Control/Monad/Class/MonadThrow.hs	122;"	kind:Λ	file:
+ExitCaseAbort	src/Control/Monad/Class/MonadThrow.hs	125;"	kind:c
+ExitCaseException	src/Control/Monad/Class/MonadThrow.hs	124;"	kind:c
+ExitCaseSuccess	src/Control/Monad/Class/MonadThrow.hs	123;"	kind:c
+LazyTMVar	src/Control/Monad/Class/MonadSTM.hs	69;"	kind:≡	file:
+LazyTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	53;"	kind:≡	file:
+LazyTVar	src/Control/Monad/Class/MonadSTM.hs	68;"	kind:≡	file:
+LazyTVar	src/Control/Monad/Class/MonadSTM/Strict.hs	52;"	kind:≡	file:
+MonadAsync	src/Control/Monad/Class/MonadAsync.hs	92;"	kind:C	file:
+MonadAsync	src/Control/Monad/Class/MonadAsync.hs	201;"	kind:i
+MonadAsync	src/Control/Monad/Class/MonadAsync.hs	238;"	kind:i
+MonadAsyncSTM	src/Control/Monad/Class/MonadAsync.hs	35;"	kind:C	file:
+MonadAsyncSTM	src/Control/Monad/Class/MonadAsync.hs	190;"	kind:i
+MonadCatch	src/Control/Monad/Class/MonadThrow.hs	52;"	kind:C	file:
+MonadCatch	src/Control/Monad/Class/MonadThrow.hs	155;"	kind:i
+MonadCatch	src/Control/Monad/Class/MonadThrow.hs	184;"	kind:i
+MonadCatch	src/Control/Monad/Class/MonadThrow.hs	208;"	kind:i
+MonadCatch	src/Control/Monad/Class/MonadThrow.hs	238;"	kind:i
+MonadDelay	src/Control/Monad/Class/MonadTimer.hs	35;"	kind:C	file:
+MonadDelay	src/Control/Monad/Class/MonadTimer.hs	111;"	kind:i
+MonadDelay	src/Control/Monad/Class/MonadTimer.hs	195;"	kind:i
+MonadFork	src/Control/Monad/Class/MonadFork.hs	27;"	kind:C	file:
+MonadFork	src/Control/Monad/Class/MonadFork.hs	42;"	kind:i
+MonadFork	src/Control/Monad/Class/MonadFork.hs	53;"	kind:i
+MonadMask	src/Control/Monad/Class/MonadThrow.hs	133;"	kind:C	file:
+MonadMask	src/Control/Monad/Class/MonadThrow.hs	169;"	kind:i
+MonadMask	src/Control/Monad/Class/MonadThrow.hs	220;"	kind:i
+MonadMask	src/Control/Monad/Class/MonadThrow.hs	259;"	kind:i
+MonadST	src/Control/Monad/Class/MonadST.hs	24;"	kind:C	file:
+MonadST	src/Control/Monad/Class/MonadST.hs	27;"	kind:i
+MonadST	src/Control/Monad/Class/MonadST.hs	30;"	kind:i
+MonadST	src/Control/Monad/Class/MonadST.hs	33;"	kind:i
+MonadSTM	src/Control/Monad/Class/MonadSTM.hs	127;"	kind:C	file:
+MonadSTM	src/Control/Monad/Class/MonadSTM.hs	189;"	kind:i
+MonadSTM	src/Control/Monad/Class/MonadSTM.hs	218;"	kind:i
+MonadSTMTx	src/Control/Monad/Class/MonadSTM.hs	75;"	kind:C	file:
+MonadSTMTx	src/Control/Monad/Class/MonadSTM.hs	147;"	kind:i
+MonadSay	src/Control/Monad/Class/MonadSay.hs	6;"	kind:C	file:
+MonadSay	src/Control/Monad/Class/MonadSay.hs	9;"	kind:i
+MonadSay	src/Control/Monad/Class/MonadSay.hs	12;"	kind:i
+MonadThread	src/Control/Monad/Class/MonadFork.hs	19;"	kind:C	file:
+MonadThread	src/Control/Monad/Class/MonadFork.hs	37;"	kind:i
+MonadThread	src/Control/Monad/Class/MonadFork.hs	48;"	kind:i
+MonadThrow	src/Control/Monad/Class/MonadThrow.hs	25;"	kind:C	file:
+MonadThrow	src/Control/Monad/Class/MonadThrow.hs	146;"	kind:i
+MonadThrow	src/Control/Monad/Class/MonadThrow.hs	181;"	kind:i
+MonadThrow	src/Control/Monad/Class/MonadThrow.hs	200;"	kind:i
+MonadThrow	src/Control/Monad/Class/MonadThrow.hs	235;"	kind:i
+MonadTime	src/Control/Monad/Class/MonadTime.hs	34;"	kind:C	file:
+MonadTime	src/Control/Monad/Class/MonadTime.hs	50;"	kind:i
+MonadTime	src/Control/Monad/Class/MonadTime.hs	66;"	kind:i
+MonadTimer	src/Control/Monad/Class/MonadTimer.hs	41;"	kind:C	file:
+MonadTimer	src/Control/Monad/Class/MonadTimer.hs	115;"	kind:i
+MonadTimer	src/Control/Monad/Class/MonadTimer.hs	198;"	kind:i
+STM	src/Control/Monad/Class/MonadSTM.hs	129;"	kind:f
+STM	src/Control/Monad/Class/MonadSTM.hs	190;"	kind:F
+STM	src/Control/Monad/Class/MonadSTM.hs	219;"	kind:F
+Show	src/Control/Monad/Class/MonadAsync.hs	297;"	kind:i
+StrictTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	117;"	kind:Λ	file:
+StrictTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	117;"	kind:c
+StrictTVar	src/Control/Monad/Class/MonadSTM/Strict.hs	59;"	kind:Λ	file:
+StrictTVar	src/Control/Monad/Class/MonadSTM/Strict.hs	59;"	kind:c
+TBQueue	src/Control/Monad/Class/MonadSTM.hs	125;"	kind:≡	file:
+TBQueue	src/Control/Monad/Class/MonadSTM.hs	355;"	kind:c
+TBQueueDefault	src/Control/Monad/Class/MonadSTM.hs	355;"	kind:Λ	file:
+TBQueue_	src/Control/Monad/Class/MonadSTM.hs	114;"	kind:f
+TBQueue_	src/Control/Monad/Class/MonadSTM.hs	151;"	kind:F
+TMVar	src/Control/Monad/Class/MonadSTM.hs	123;"	kind:≡	file:
+TMVar	src/Control/Monad/Class/MonadSTM.hs	229;"	kind:c
+TMVarDefault	src/Control/Monad/Class/MonadSTM.hs	229;"	kind:Λ	file:
+TMVar_	src/Control/Monad/Class/MonadSTM.hs	95;"	kind:f
+TMVar_	src/Control/Monad/Class/MonadSTM.hs	149;"	kind:F
+TQueue	src/Control/Monad/Class/MonadSTM.hs	124;"	kind:≡	file:
+TQueue	src/Control/Monad/Class/MonadSTM.hs	307;"	kind:c
+TQueueDefault	src/Control/Monad/Class/MonadSTM.hs	307;"	kind:Λ	file:
+TQueue_	src/Control/Monad/Class/MonadSTM.hs	107;"	kind:f
+TQueue_	src/Control/Monad/Class/MonadSTM.hs	150;"	kind:F
+TVar	src/Control/Monad/Class/MonadSTM.hs	122;"	kind:≡	file:
+TVar_	src/Control/Monad/Class/MonadSTM.hs	76;"	kind:f
+TVar_	src/Control/Monad/Class/MonadSTM.hs	148;"	kind:F
+ThreadId	src/Control/Monad/Class/MonadFork.hs	21;"	kind:f
+ThreadId	src/Control/Monad/Class/MonadFork.hs	38;"	kind:F
+ThreadId	src/Control/Monad/Class/MonadFork.hs	49;"	kind:F
+Time	src/Control/Monad/Class/MonadTime.hs	22;"	kind:Λ	file:
+Time	src/Control/Monad/Class/MonadTime.hs	22;"	kind:c
+Timeout	src/Control/Monad/Class/MonadTimer.hs	42;"	kind:d
+Timeout	src/Control/Monad/Class/MonadTimer.hs	116;"	kind:D
+Timeout	src/Control/Monad/Class/MonadTimer.hs	199;"	kind:D
+TimeoutCancelled	src/Control/Monad/Class/MonadTimer.hs	33;"	kind:c
+TimeoutFired	src/Control/Monad/Class/MonadTimer.hs	33;"	kind:c
+TimeoutIO	src/Control/Monad/Class/MonadTimer.hs	116;"	kind:c
+TimeoutPending	src/Control/Monad/Class/MonadTimer.hs	33;"	kind:c
+TimeoutState	src/Control/Monad/Class/MonadTimer.hs	33;"	kind:Λ	file:
+WrapTimeoutReader	src/Control/Monad/Class/MonadTimer.hs	199;"	kind:c
+addTime	src/Control/Monad/Class/MonadTime.hs	30;"	kind:⊢	file:
+addTime	src/Control/Monad/Class/MonadTime.hs	31;"	kind:λ	file:
+async	src/Control/Monad/Class/MonadAsync.hs	99;"	kind:m
+asyncThreadId	src/Control/Monad/Class/MonadAsync.hs	100;"	kind:m
+atomically	src/Control/Monad/Class/MonadSTM.hs	131;"	kind:m
+awaitTimeout	src/Control/Monad/Class/MonadTimer.hs	88;"	kind:m
+awaitTimeout	src/Control/Monad/Class/MonadTimer.hs	89;"	kind:λ
+blockedIndefinitelyCallStack	src/Control/Monad/Class/MonadSTM.hs	200;"	kind:r
+blockedIndefinitelyException	src/Control/Monad/Class/MonadSTM.hs	201;"	kind:r
+bracket	src/Control/Monad/Class/MonadThrow.hs	30;"	kind:m
+bracket	src/Control/Monad/Class/MonadThrow.hs	34;"	kind:m
+bracket	src/Control/Monad/Class/MonadThrow.hs	36;"	kind:λ
+bracketOnError	src/Control/Monad/Class/MonadThrow.hs	65;"	kind:m
+bracketOnError	src/Control/Monad/Class/MonadThrow.hs	102;"	kind:λ
+bracket_	src/Control/Monad/Class/MonadThrow.hs	31;"	kind:m
+bracket_	src/Control/Monad/Class/MonadThrow.hs	42;"	kind:λ
+cancel	src/Control/Monad/Class/MonadAsync.hs	106;"	kind:m
+cancelTimeout	src/Control/Monad/Class/MonadTimer.hs	85;"	kind:m
+cancelWith	src/Control/Monad/Class/MonadAsync.hs	107;"	kind:m
+castStrictTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	119;"	kind:⊢	file:
+castStrictTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	121;"	kind:λ	file:
+castStrictTVar	src/Control/Monad/Class/MonadSTM/Strict.hs	65;"	kind:⊢	file:
+castStrictTVar	src/Control/Monad/Class/MonadSTM/Strict.hs	67;"	kind:λ	file:
+catch	src/Control/Monad/Class/MonadThrow.hs	55;"	kind:m
+catchJust	src/Control/Monad/Class/MonadThrow.hs	56;"	kind:m
+catchJust	src/Control/Monad/Class/MonadThrow.hs	77;"	kind:λ
+check	src/Control/Monad/Class/MonadSTM.hs	90;"	kind:m
+check	src/Control/Monad/Class/MonadSTM.hs	91;"	kind:λ
+checkInvariant	src/Control/Monad/Class/MonadSTM/Strict.hs	171;"	kind:⊢	file:
+checkInvariant	src/Control/Monad/Class/MonadSTM/Strict.hs	176;"	kind:λ	file:
+concurrently	src/Control/Monad/Class/MonadAsync.hs	129;"	kind:m
+concurrently	src/Control/Monad/Class/MonadAsync.hs	182;"	kind:λ
+diffTime	src/Control/Monad/Class/MonadTime.hs	26;"	kind:⊢	file:
+diffTime	src/Control/Monad/Class/MonadTime.hs	27;"	kind:λ	file:
+diffTimeToMicrosecondsAsInt	src/Control/Monad/Class/MonadTimer.hs	182;"	kind:⊢
+diffTimeToMicrosecondsAsInt	src/Control/Monad/Class/MonadTimer.hs	183;"	kind:λ
+finally	src/Control/Monad/Class/MonadThrow.hs	32;"	kind:m
+finally	src/Control/Monad/Class/MonadThrow.hs	44;"	kind:λ
+fork	src/Control/Monad/Class/MonadFork.hs	29;"	kind:m
+forkRepeat	src/Control/Monad/Class/MonadAsync.hs	342;"	kind:⊢
+forkRepeat	src/Control/Monad/Class/MonadAsync.hs	343;"	kind:λ
+forkWithUnmask	src/Control/Monad/Class/MonadFork.hs	30;"	kind:m
+generalBracket	src/Control/Monad/Class/MonadThrow.hs	71;"	kind:m
+generalBracket	src/Control/Monad/Class/MonadThrow.hs	73;"	kind:m
+generalBracket	src/Control/Monad/Class/MonadThrow.hs	110;"	kind:λ
+getCurrentTime	src/Control/Monad/Class/MonadTime.hs	43;"	kind:m
+getMonotonicNSec	src/Control/Monad/Class/MonadTime.hs	60;"	kind:I	ffi:"getMonotonicNSec"
+getMonotonicTime	src/Control/Monad/Class/MonadTime.hs	39;"	kind:m
+handle	src/Control/Monad/Class/MonadThrow.hs	61;"	kind:m
+handle	src/Control/Monad/Class/MonadThrow.hs	94;"	kind:λ
+handleJust	src/Control/Monad/Class/MonadThrow.hs	62;"	kind:m
+handleJust	src/Control/Monad/Class/MonadThrow.hs	95;"	kind:λ
+invariant	src/Control/Monad/Class/MonadSTM/Strict.hs	60;"	kind:r
+isCancel	src/Control/Monad/Class/MonadAsync.hs	337;"	kind:⊢
+isCancel	src/Control/Monad/Class/MonadAsync.hs	338;"	kind:λ
+isEmptyTBQueue	src/Control/Monad/Class/MonadSTM.hs	119;"	kind:m
+isEmptyTBQueueDefault	src/Control/Monad/Class/MonadSTM.hs	407;"	kind:⊢	file:
+isEmptyTBQueueDefault	src/Control/Monad/Class/MonadSTM.hs	408;"	kind:λ	file:
+isEmptyTMVar	src/Control/Monad/Class/MonadSTM.hs	105;"	kind:m
+isEmptyTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	156;"	kind:⊢	file:
+isEmptyTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	157;"	kind:λ	file:
+isEmptyTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	296;"	kind:⊢	file:
+isEmptyTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	297;"	kind:λ	file:
+isEmptyTQueue	src/Control/Monad/Class/MonadSTM.hs	112;"	kind:m
+isEmptyTQueueDefault	src/Control/Monad/Class/MonadSTM.hs	341;"	kind:⊢	file:
+isEmptyTQueueDefault	src/Control/Monad/Class/MonadSTM.hs	342;"	kind:λ	file:
+isFullTBQueue	src/Control/Monad/Class/MonadSTM.hs	120;"	kind:m
+isFullTBQueueDefault	src/Control/Monad/Class/MonadSTM.hs	417;"	kind:⊢	file:
+isFullTBQueueDefault	src/Control/Monad/Class/MonadSTM.hs	418;"	kind:λ	file:
+killThread	src/Control/Monad/Class/MonadFork.hs	33;"	kind:m
+killThread	src/Control/Monad/Class/MonadFork.hs	34;"	kind:λ
+labelThread	src/Control/Monad/Class/MonadFork.hs	24;"	kind:m
+lengthTBQueueDefault	src/Control/Monad/Class/MonadSTM.hs	438;"	kind:⊢	file:
+lengthTBQueueDefault	src/Control/Monad/Class/MonadSTM.hs	439;"	kind:λ	file:
+link	src/Control/Monad/Class/MonadAsync.hs	327;"	kind:⊢	file:
+link	src/Control/Monad/Class/MonadAsync.hs	329;"	kind:λ	file:
+linkOnly	src/Control/Monad/Class/MonadAsync.hs	331;"	kind:⊢	file:
+linkOnly	src/Control/Monad/Class/MonadAsync.hs	333;"	kind:λ	file:
+linkTo	src/Control/Monad/Class/MonadAsync.hs	310;"	kind:⊢	file:
+linkTo	src/Control/Monad/Class/MonadAsync.hs	312;"	kind:λ	file:
+linkToOnly	src/Control/Monad/Class/MonadAsync.hs	314;"	kind:⊢	file:
+linkToOnly	src/Control/Monad/Class/MonadAsync.hs	316;"	kind:λ	file:
+mask	src/Control/Monad/Class/MonadThrow.hs	136;"	kind:m
+mask_	src/Control/Monad/Class/MonadThrow.hs	138;"	kind:m
+mask_	src/Control/Monad/Class/MonadThrow.hs	139;"	kind:λ
+modifyTVar	src/Control/Monad/Class/MonadSTM.hs	84;"	kind:m
+modifyTVar	src/Control/Monad/Class/MonadSTM.hs	85;"	kind:λ
+modifyTVar	src/Control/Monad/Class/MonadSTM/Strict.hs	98;"	kind:⊢	file:
+modifyTVar	src/Control/Monad/Class/MonadSTM/Strict.hs	99;"	kind:λ	file:
+modifyTVar'	src/Control/Monad/Class/MonadSTM.hs	87;"	kind:m
+modifyTVar'	src/Control/Monad/Class/MonadSTM.hs	88;"	kind:λ
+myThreadId	src/Control/Monad/Class/MonadFork.hs	23;"	kind:m
+newEmptyTMVar	src/Control/Monad/Class/MonadSTM.hs	97;"	kind:m
+newEmptyTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	129;"	kind:⊢	file:
+newEmptyTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	130;"	kind:λ	file:
+newEmptyTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	241;"	kind:⊢	file:
+newEmptyTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	242;"	kind:λ	file:
+newEmptyTMVarM	src/Control/Monad/Class/MonadSTM.hs	137;"	kind:m
+newEmptyTMVarM	src/Control/Monad/Class/MonadSTM.hs	141;"	kind:λ
+newEmptyTMVarM	src/Control/Monad/Class/MonadSTM/Strict.hs	132;"	kind:⊢	file:
+newEmptyTMVarM	src/Control/Monad/Class/MonadSTM/Strict.hs	133;"	kind:λ	file:
+newEmptyTMVarMDefault	src/Control/Monad/Class/MonadSTM.hs	246;"	kind:⊢	file:
+newEmptyTMVarMDefault	src/Control/Monad/Class/MonadSTM.hs	247;"	kind:λ	file:
+newTBQueue	src/Control/Monad/Class/MonadSTM.hs	115;"	kind:m
+newTBQueueDefault	src/Control/Monad/Class/MonadSTM.hs	362;"	kind:⊢	file:
+newTBQueueDefault	src/Control/Monad/Class/MonadSTM.hs	363;"	kind:λ	file:
+newTMVar	src/Control/Monad/Class/MonadSTM.hs	96;"	kind:m
+newTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	123;"	kind:⊢	file:
+newTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	124;"	kind:λ	file:
+newTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	231;"	kind:⊢	file:
+newTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	232;"	kind:λ	file:
+newTMVarM	src/Control/Monad/Class/MonadSTM.hs	136;"	kind:m
+newTMVarM	src/Control/Monad/Class/MonadSTM.hs	140;"	kind:λ
+newTMVarM	src/Control/Monad/Class/MonadSTM/Strict.hs	126;"	kind:⊢	file:
+newTMVarM	src/Control/Monad/Class/MonadSTM/Strict.hs	127;"	kind:λ	file:
+newTMVarMDefault	src/Control/Monad/Class/MonadSTM.hs	236;"	kind:⊢	file:
+newTMVarMDefault	src/Control/Monad/Class/MonadSTM.hs	237;"	kind:λ	file:
+newTQueue	src/Control/Monad/Class/MonadSTM.hs	108;"	kind:m
+newTQueueDefault	src/Control/Monad/Class/MonadSTM.hs	310;"	kind:⊢	file:
+newTQueueDefault	src/Control/Monad/Class/MonadSTM.hs	311;"	kind:λ	file:
+newTVar	src/Control/Monad/Class/MonadSTM.hs	78;"	kind:m
+newTVar	src/Control/Monad/Class/MonadSTM/Strict.hs	76;"	kind:⊢	file:
+newTVar	src/Control/Monad/Class/MonadSTM/Strict.hs	77;"	kind:λ	file:
+newTVarM	src/Control/Monad/Class/MonadSTM.hs	135;"	kind:m
+newTVarM	src/Control/Monad/Class/MonadSTM.hs	139;"	kind:λ
+newTVarM	src/Control/Monad/Class/MonadSTM/Strict.hs	79;"	kind:⊢	file:
+newTVarM	src/Control/Monad/Class/MonadSTM/Strict.hs	80;"	kind:λ	file:
+newTVarWithInvariantM	src/Control/Monad/Class/MonadSTM/Strict.hs	82;"	kind:⊢	file:
+newTVarWithInvariantM	src/Control/Monad/Class/MonadSTM/Strict.hs	86;"	kind:λ	file:
+newTimeout	src/Control/Monad/Class/MonadTimer.hs	56;"	kind:m
+onException	src/Control/Monad/Class/MonadThrow.hs	64;"	kind:m
+onException	src/Control/Monad/Class/MonadThrow.hs	97;"	kind:λ
+orElse	src/Control/Monad/Class/MonadSTM.hs	82;"	kind:m
+poll	src/Control/Monad/Class/MonadAsync.hs	104;"	kind:m
+poll	src/Control/Monad/Class/MonadAsync.hs	150;"	kind:λ
+pollSTM	src/Control/Monad/Class/MonadAsync.hs	39;"	kind:m
+putTMVar	src/Control/Monad/Class/MonadSTM.hs	100;"	kind:m
+putTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	141;"	kind:⊢	file:
+putTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	142;"	kind:λ	file:
+putTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	265;"	kind:⊢	file:
+putTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	266;"	kind:λ	file:
+race	src/Control/Monad/Class/MonadAsync.hs	127;"	kind:m
+race	src/Control/Monad/Class/MonadAsync.hs	174;"	kind:λ
+race_	src/Control/Monad/Class/MonadAsync.hs	128;"	kind:m
+race_	src/Control/Monad/Class/MonadAsync.hs	178;"	kind:λ
+readTBQueue	src/Control/Monad/Class/MonadSTM.hs	116;"	kind:m
+readTBQueueDefault	src/Control/Monad/Class/MonadSTM.hs	370;"	kind:⊢	file:
+readTBQueueDefault	src/Control/Monad/Class/MonadSTM.hs	371;"	kind:λ	file:
+readTMVar	src/Control/Monad/Class/MonadSTM.hs	102;"	kind:m
+readTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	147;"	kind:⊢	file:
+readTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	148;"	kind:λ	file:
+readTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	279;"	kind:⊢	file:
+readTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	280;"	kind:λ	file:
+readTQueue	src/Control/Monad/Class/MonadSTM.hs	109;"	kind:m
+readTQueueDefault	src/Control/Monad/Class/MonadSTM.hs	321;"	kind:⊢	file:
+readTQueueDefault	src/Control/Monad/Class/MonadSTM.hs	322;"	kind:λ	file:
+readTVar	src/Control/Monad/Class/MonadSTM.hs	79;"	kind:m
+readTVar	src/Control/Monad/Class/MonadSTM/Strict.hs	90;"	kind:⊢	file:
+readTVar	src/Control/Monad/Class/MonadSTM/Strict.hs	91;"	kind:λ	file:
+readTimeout	src/Control/Monad/Class/MonadTimer.hs	66;"	kind:m
+registerDelay	src/Control/Monad/Class/MonadTimer.hs	95;"	kind:m
+registerDelay	src/Control/Monad/Class/MonadTimer.hs	97;"	kind:m
+registerDelay	src/Control/Monad/Class/MonadTimer.hs	98;"	kind:λ
+retry	src/Control/Monad/Class/MonadSTM.hs	81;"	kind:m
+say	src/Control/Monad/Class/MonadSay.hs	7;"	kind:m	file:
+swapTMVar	src/Control/Monad/Class/MonadSTM.hs	104;"	kind:m
+swapTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	153;"	kind:⊢	file:
+swapTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	154;"	kind:λ	file:
+swapTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	289;"	kind:⊢	file:
+swapTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	290;"	kind:λ	file:
+takeTMVar	src/Control/Monad/Class/MonadSTM.hs	98;"	kind:m
+takeTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	135;"	kind:⊢	file:
+takeTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	136;"	kind:λ	file:
+takeTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	251;"	kind:⊢	file:
+takeTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	252;"	kind:λ	file:
+threadDelay	src/Control/Monad/Class/MonadTimer.hs	36;"	kind:m
+threadDelay	src/Control/Monad/Class/MonadTimer.hs	38;"	kind:m
+threadDelay	src/Control/Monad/Class/MonadTimer.hs	39;"	kind:λ
+throwM	src/Control/Monad/Class/MonadThrow.hs	28;"	kind:m
+throwTo	src/Control/Monad/Class/MonadFork.hs	31;"	kind:m
+timeout	src/Control/Monad/Class/MonadTimer.hs	104;"	kind:m
+toLazyTVar	src/Control/Monad/Class/MonadSTM/Strict.hs	73;"	kind:⊢	file:
+toLazyTVar	src/Control/Monad/Class/MonadSTM/Strict.hs	74;"	kind:λ	file:
+try	src/Control/Monad/Class/MonadThrow.hs	58;"	kind:m
+try	src/Control/Monad/Class/MonadThrow.hs	84;"	kind:λ
+tryAll	src/Control/Monad/Class/MonadAsync.hs	351;"	kind:⊢
+tryAll	src/Control/Monad/Class/MonadAsync.hs	352;"	kind:λ
+tryJust	src/Control/Monad/Class/MonadThrow.hs	59;"	kind:m
+tryJust	src/Control/Monad/Class/MonadThrow.hs	86;"	kind:λ
+tryPutTMVar	src/Control/Monad/Class/MonadSTM.hs	101;"	kind:m
+tryPutTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	144;"	kind:⊢	file:
+tryPutTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	145;"	kind:λ	file:
+tryPutTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	272;"	kind:⊢	file:
+tryPutTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	273;"	kind:λ	file:
+tryReadTBQueue	src/Control/Monad/Class/MonadSTM.hs	117;"	kind:m
+tryReadTBQueueDefault	src/Control/Monad/Class/MonadSTM.hs	373;"	kind:⊢	file:
+tryReadTBQueueDefault	src/Control/Monad/Class/MonadSTM.hs	374;"	kind:λ	file:
+tryReadTMVar	src/Control/Monad/Class/MonadSTM.hs	103;"	kind:m
+tryReadTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	150;"	kind:⊢	file:
+tryReadTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	151;"	kind:λ	file:
+tryReadTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	286;"	kind:⊢	file:
+tryReadTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	287;"	kind:λ	file:
+tryReadTQueue	src/Control/Monad/Class/MonadSTM.hs	110;"	kind:m
+tryReadTQueueDefault	src/Control/Monad/Class/MonadSTM.hs	324;"	kind:⊢	file:
+tryReadTQueueDefault	src/Control/Monad/Class/MonadSTM.hs	325;"	kind:λ	file:
+tryTakeTMVar	src/Control/Monad/Class/MonadSTM.hs	99;"	kind:m
+tryTakeTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	138;"	kind:⊢	file:
+tryTakeTMVar	src/Control/Monad/Class/MonadSTM/Strict.hs	139;"	kind:λ	file:
+tryTakeTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	258;"	kind:⊢	file:
+tryTakeTMVarDefault	src/Control/Monad/Class/MonadSTM.hs	259;"	kind:λ	file:
+tvar	src/Control/Monad/Class/MonadSTM/Strict.hs	62;"	kind:r
+uninterruptibleCancel	src/Control/Monad/Class/MonadAsync.hs	108;"	kind:m
+uninterruptibleCancel	src/Control/Monad/Class/MonadAsync.hs	133;"	kind:m
+uninterruptibleCancel	src/Control/Monad/Class/MonadAsync.hs	153;"	kind:λ
+uninterruptibleMask	src/Control/Monad/Class/MonadThrow.hs	136;"	kind:m
+uninterruptibleMask_	src/Control/Monad/Class/MonadThrow.hs	138;"	kind:m
+uninterruptibleMask_	src/Control/Monad/Class/MonadThrow.hs	140;"	kind:λ
+unwrapTimeoutReader	src/Control/Monad/Class/MonadTimer.hs	200;"	kind:r
+updateTVar	src/Control/Monad/Class/MonadSTM/Strict.hs	101;"	kind:⊢	file:
+updateTVar	src/Control/Monad/Class/MonadSTM/Strict.hs	102;"	kind:λ	file:
+updateTimeout	src/Control/Monad/Class/MonadTimer.hs	76;"	kind:m
+wait	src/Control/Monad/Class/MonadAsync.hs	103;"	kind:m
+wait	src/Control/Monad/Class/MonadAsync.hs	149;"	kind:λ
+waitAny	src/Control/Monad/Class/MonadAsync.hs	110;"	kind:m
+waitAny	src/Control/Monad/Class/MonadAsync.hs	155;"	kind:λ
+waitAnyCancel	src/Control/Monad/Class/MonadAsync.hs	112;"	kind:m
+waitAnyCancel	src/Control/Monad/Class/MonadAsync.hs	135;"	kind:m
+waitAnyCancel	src/Control/Monad/Class/MonadAsync.hs	162;"	kind:λ
+waitAnyCatch	src/Control/Monad/Class/MonadAsync.hs	111;"	kind:m
+waitAnyCatch	src/Control/Monad/Class/MonadAsync.hs	156;"	kind:λ
+waitAnyCatchCancel	src/Control/Monad/Class/MonadAsync.hs	113;"	kind:m
+waitAnyCatchCancel	src/Control/Monad/Class/MonadAsync.hs	136;"	kind:m
+waitAnyCatchCancel	src/Control/Monad/Class/MonadAsync.hs	165;"	kind:λ
+waitAnyCatchSTM	src/Control/Monad/Class/MonadAsync.hs	46;"	kind:m
+waitAnyCatchSTM	src/Control/Monad/Class/MonadAsync.hs	63;"	kind:λ
+waitAnySTM	src/Control/Monad/Class/MonadAsync.hs	45;"	kind:m
+waitAnySTM	src/Control/Monad/Class/MonadAsync.hs	54;"	kind:m
+waitAnySTM	src/Control/Monad/Class/MonadAsync.hs	59;"	kind:λ
+waitBoth	src/Control/Monad/Class/MonadAsync.hs	125;"	kind:m
+waitBoth	src/Control/Monad/Class/MonadAsync.hs	160;"	kind:λ
+waitBothSTM	src/Control/Monad/Class/MonadAsync.hs	52;"	kind:m
+waitBothSTM	src/Control/Monad/Class/MonadAsync.hs	57;"	kind:m
+waitBothSTM	src/Control/Monad/Class/MonadAsync.hs	82;"	kind:λ
+waitCatch	src/Control/Monad/Class/MonadAsync.hs	105;"	kind:m
+waitCatch	src/Control/Monad/Class/MonadAsync.hs	151;"	kind:λ
+waitCatchSTM	src/Control/Monad/Class/MonadAsync.hs	40;"	kind:m
+waitEither	src/Control/Monad/Class/MonadAsync.hs	114;"	kind:m
+waitEither	src/Control/Monad/Class/MonadAsync.hs	157;"	kind:λ
+waitEitherCancel	src/Control/Monad/Class/MonadAsync.hs	121;"	kind:m
+waitEitherCancel	src/Control/Monad/Class/MonadAsync.hs	138;"	kind:m
+waitEitherCancel	src/Control/Monad/Class/MonadAsync.hs	168;"	kind:λ
+waitEitherCatch	src/Control/Monad/Class/MonadAsync.hs	119;"	kind:m
+waitEitherCatch	src/Control/Monad/Class/MonadAsync.hs	159;"	kind:λ
+waitEitherCatchCancel	src/Control/Monad/Class/MonadAsync.hs	122;"	kind:m
+waitEitherCatchCancel	src/Control/Monad/Class/MonadAsync.hs	140;"	kind:m
+waitEitherCatchCancel	src/Control/Monad/Class/MonadAsync.hs	171;"	kind:λ
+waitEitherCatchSTM	src/Control/Monad/Class/MonadAsync.hs	49;"	kind:m
+waitEitherCatchSTM	src/Control/Monad/Class/MonadAsync.hs	77;"	kind:λ
+waitEitherSTM	src/Control/Monad/Class/MonadAsync.hs	47;"	kind:m
+waitEitherSTM	src/Control/Monad/Class/MonadAsync.hs	55;"	kind:m
+waitEitherSTM	src/Control/Monad/Class/MonadAsync.hs	67;"	kind:λ
+waitEitherSTM_	src/Control/Monad/Class/MonadAsync.hs	48;"	kind:m
+waitEitherSTM_	src/Control/Monad/Class/MonadAsync.hs	56;"	kind:m
+waitEitherSTM_	src/Control/Monad/Class/MonadAsync.hs	72;"	kind:λ
+waitEither_	src/Control/Monad/Class/MonadAsync.hs	124;"	kind:m
+waitEither_	src/Control/Monad/Class/MonadAsync.hs	158;"	kind:λ
+waitSTM	src/Control/Monad/Class/MonadAsync.hs	38;"	kind:m
+waitSTM	src/Control/Monad/Class/MonadAsync.hs	42;"	kind:m
+waitSTM	src/Control/Monad/Class/MonadAsync.hs	43;"	kind:λ
+withAsync	src/Control/Monad/Class/MonadAsync.hs	101;"	kind:m
+withAsync	src/Control/Monad/Class/MonadAsync.hs	132;"	kind:m
+withAsync	src/Control/Monad/Class/MonadAsync.hs	144;"	kind:λ
+withLiftST	src/Control/Monad/Class/MonadST.hs	25;"	kind:m	file:
+wrapBlockedIndefinitely	src/Control/Monad/Class/MonadSTM.hs	211;"	kind:⊢
+wrapBlockedIndefinitely	src/Control/Monad/Class/MonadSTM.hs	212;"	kind:λ
+writeTBQueue	src/Control/Monad/Class/MonadSTM.hs	118;"	kind:m
+writeTBQueueDefault	src/Control/Monad/Class/MonadSTM.hs	393;"	kind:⊢	file:
+writeTBQueueDefault	src/Control/Monad/Class/MonadSTM.hs	394;"	kind:λ	file:
+writeTQueue	src/Control/Monad/Class/MonadSTM.hs	111;"	kind:m
+writeTQueueDefault	src/Control/Monad/Class/MonadSTM.hs	316;"	kind:⊢	file:
+writeTQueueDefault	src/Control/Monad/Class/MonadSTM.hs	317;"	kind:λ	file:
+writeTVar	src/Control/Monad/Class/MonadSTM.hs	80;"	kind:m
+writeTVar	src/Control/Monad/Class/MonadSTM/Strict.hs	93;"	kind:⊢	file:
+writeTVar	src/Control/Monad/Class/MonadSTM/Strict.hs	94;"	kind:λ	file:

@@ -107,20 +107,24 @@ vimTagParser =
     <*> parseTagFile
     <*  separator
 
+    -- includes an optional ';"' separator
     <*> AT.eitherP parseAddr parseExCommand
     <*  separator
 
-    -- includes an optional ';"' separator
     <*> (either kindFromField id
           <$> AT.eitherP
                 parseField
-                (charToTagKind <$> AT.anyChar))
+                (charToTagKind <$> AT.satisfy notTabOrNewLine))
 
-    <*> many (separator *> parseField)
-
-    <*  AT.endOfLine
+    <*> (either (const []) id
+          <$> AT.eitherP 
+                AT.endOfLine
+                (separator
+                  *> AT.sepBy parseField separator
+                   <* AT.endOfLine))
   where
     separator = AT.char '\t'
+    notTabOrNewLine = \x -> x /= 't' && x /= '\n' 
 
     parseTagName :: Parser TagName
     parseTagName = TagName <$> AT.takeWhile (/= '\t')
@@ -159,7 +163,7 @@ vimTagParser =
 parseField :: Parser TagField
 parseField =
          TagField
-     <$> AT.takeWhile (\x -> x /= ':'  && x /= '\n')
+     <$> AT.takeWhile (\x -> x /= ':' && x /= '\n')
      <*  AT.char ':'
      <*> AT.takeWhile (\x -> x /= '\t' && x /= '\n')
 
