@@ -40,7 +40,7 @@ formatTagField :: TagField -> Builder
 formatTagField TagField { fieldName, fieldValue } =
       BS.byteString (Text.encodeUtf8 fieldName)
    <> BS.charUtf8 ':'
-   <> foldMap (BS.byteString . Text.encodeUtf8) fieldValue
+   <> BS.byteString (Text.encodeUtf8 fieldValue)
 
 
 -- | 'ByteString' 'Builder' for vim 'Tag' file.

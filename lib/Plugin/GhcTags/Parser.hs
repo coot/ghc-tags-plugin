@@ -36,6 +36,7 @@ import qualified Data.Text.Encoding as Text
 import           Plugin.GhcTags.Generate
                               ( GhcTag (..)
                               , TagKind
+                              , TagField (..)
                               , charToTagKind
                               )
 import           FastString   ( FastString (..)
@@ -78,7 +79,7 @@ data Tag = Tag
 
 
 ghcTagToTag :: GhcTag -> Maybe Tag
-ghcTagToTag GhcTag { gtSrcSpan, gtTag, gtKind, gtExported } =
+ghcTagToTag GhcTag { gtSrcSpan, gtTag, gtKind, gtFields } =
     case gtSrcSpan of
       UnhelpfulSpan {} -> Nothing
       RealSrcSpan realSrcSpan ->
@@ -86,7 +87,7 @@ ghcTagToTag GhcTag { gtSrcSpan, gtTag, gtKind, gtExported } =
                    , tagFile   = TagFile (Text.decodeUtf8 $ fs_bs (srcSpanFile realSrcSpan))
                    , tagAddr   = Left (srcSpanStartLine realSrcSpan)
                    , tagKind   = Just gtKind
-                   , tagFields = if gtExported then [] else [fileField]
+                   , tagFields = gtFields
                    }
 
 
@@ -107,12 +108,14 @@ vimTagParser =
     <*  separator
 
     <*> AT.eitherP parseAddr parseExCommand
-    <* separator
+    <*  separator
 
+    -- includes an optional ';"' separator
     <*> (either kindFromField id
           <$> AT.eitherP
                 parseField
                 (charToTagKind <$> AT.anyChar))
+
     <*> many (separator *> parseField)
 
     <*  AT.endOfLine
@@ -146,33 +149,19 @@ vimTagParser =
                   (AT.char ';' *> AT.char '"')
 
     kindFromField :: TagField -> Maybe TagKind
-    kindFromField TagField { fieldName = "kind", fieldValue = Just t } =
-        if Text.null t
+    kindFromField TagField { fieldName = "kind", fieldValue } =
+        if Text.null fieldValue
           then Nothing
-          else charToTagKind (Text.head t)
+          else charToTagKind (Text.head fieldValue)
     kindFromField _ = Nothing
 
-
-data TagField = TagField {
-      fieldName  :: Text,
-      fieldValue :: Maybe Text
-    }
-  deriving (Eq, Ord, Show)
-
-fileField :: TagField
-fileField = TagField { fieldName = "file", fieldValue = Nothing }
 
 parseField :: Parser TagField
 parseField =
          TagField
      <$> AT.takeWhile (\x -> x /= ':'  && x /= '\n')
      <*  AT.char ':'
-     <*> (toValue <$> AT.takeWhile (\x -> x /= '\t' && x /= '\n'))
-  where
-    toValue :: Text -> Maybe Text
-    toValue "" = Nothing
-    toValue bs = Just bs
-
+     <*> AT.takeWhile (\x -> x /= '\t' && x /= '\n')
 
 
 -- | A vim-style tag file parser.
@@ -199,8 +188,8 @@ vimTagHeaderLine = AT.choice
     , AT.string (Text.pack "!_TAG_PROGRAM_VERSION") *> params
     ]
   where
-
     params = void $ AT.char '\t' *> AT.skipWhile (/= '\n') *> AT.char '\n'
+
 
 -- | Parse a vim-style tag file.
 --

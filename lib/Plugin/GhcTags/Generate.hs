@@ -1,6 +1,7 @@
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 -- | Interface for generatating tags for a parsed module.
@@ -9,23 +10,29 @@ module Plugin.GhcTags.Generate
   ( GhcTag (..)
   , GhcTags
   , TagKind (..)
+  , TagField (..)
   , tagKindToChar
   , charToTagKind
   , getGhcTags
   ) where
 
 import           Data.List     (find)
-import           Data.Maybe    (isJust, mapMaybe)
+import           Data.Maybe    (mapMaybe, maybeToList)
 import           Data.Foldable (foldl')
+import           Data.Text   (Text)
+import qualified Data.Text as Text
 
 -- Ghc imports
+import           BasicTypes   ( SourceText (..)
+                              )
 import           FastString   ( FastString (..)
                               )
 import           HsBinds      ( HsBindLR (..)
                               , PatSynBind (..)
                               , Sig (..)
                               )
-import           HsDecls      ( ClsInstDecl (..)
+import           HsDecls      ( ForeignImport (..)
+                              , ClsInstDecl (..)
                               , ConDecl (..)
                               , DataFamInstDecl (..)
                               , FamEqn (..)
@@ -41,11 +48,12 @@ import           HsDecls      ( ClsInstDecl (..)
                               , TyFamInstDecl (..)
                               )
 import           HsImpExp     ( IE (..)
-                              , ieName
+                              , ieWrappedName
                               )
 import           HsSyn        ( FieldOcc (..)
                               , GhcPs
                               , HsModule (..)
+                              , IdP
                               , LFieldOcc
                               )
 import           HsTypes      ( ConDeclField (..)
@@ -99,7 +107,7 @@ tagKindToChar tagKind = case tagKind of
     TkGADTConstructor         -> 'g'
     TkRecordField             -> 'r'
     TkTypeSynonym             -> '≡'
-    TkTypeSignature           -> 's'
+    TkTypeSignature           -> '⊢'
     TkPatternSynonym          -> 'p'
     TkTypeClass               -> 'C'
     TkTypeClassMember         -> 'm'
@@ -135,6 +143,17 @@ charToTagKind c = case c of
      _   -> Nothing
 
 
+
+data TagField = TagField {
+      fieldName  :: Text,
+      fieldValue :: Text
+    }
+  deriving (Eq, Ord, Show)
+
+fileField :: TagField
+fileField = TagField { fieldName = "file", fieldValue = "" }
+
+
 -- | We can read names from using fields of type 'GHC.Hs.Extensions.IdP' (a tpye
 -- family) which for @'Parsed@ resolved to 'RdrName'
 --
@@ -142,37 +161,51 @@ data GhcTag = GhcTag {
     gtSrcSpan  :: !SrcSpan
   , gtTag      :: !FastString
   , gtKind     :: !TagKind
-  , gtExported :: !Bool
+  , gtFields   :: ![TagField]
   }
   deriving Show
 
+appendField :: TagField -> GhcTag -> GhcTag
+appendField f gt = gt { gtFields = f : gtFields gt }
+
+
 type GhcTags = [GhcTag]
 
-isRdrNameExported :: Maybe [IE GhcPs] -> Located RdrName -> Bool
-isRdrNameExported Nothing   _name = True
-isRdrNameExported (Just ies) name = isJust $ find (\a -> ieName a == unLoc name) ies
 
-mkGhcTag :: Bool
-         -- ^ is exported
-         -> Located RdrName
+isRdrNameExported :: Maybe [IE GhcPs] -> Located RdrName -> Maybe TagField
+isRdrNameExported Nothing   _name = Just fileField
+isRdrNameExported (Just ies) name =
+      const fileField <$> find (\a -> ieName a == Just (unLoc name)) ies
+  where
+    -- TODO: the GHC's one is partial, and I got a panic error.
+    ieName :: IE GhcPs -> Maybe (IdP GhcPs)
+    ieName (IEVar _ (L _ n))              = Just $ ieWrappedName n
+    ieName (IEThingAbs  _ (L _ n))        = Just $ ieWrappedName n
+    ieName (IEThingWith _ (L _ n) _ _ _)  = Just $ ieWrappedName n
+    ieName (IEThingAll  _ (L _ n))        = Just $ ieWrappedName n
+    ieName _ = Nothing
+
+mkGhcTag :: Located RdrName
          -- ^ @RdrName ~ IdP GhcPs@ it *must* be a name of a top level identifier.
          -> TagKind
          -- ^ tag's kind
+         -> [TagField]
+         -- ^ tag's fields
          -> GhcTag
-mkGhcTag gtExported (L gtSrcSpan rdrName) gtKind =
+mkGhcTag (L gtSrcSpan rdrName) gtKind gtFields =
     case rdrName of
       Unqual occName ->
         GhcTag { gtTag = occNameFS occName
                , gtSrcSpan
                , gtKind
-               , gtExported
+               , gtFields
                }
 
       Qual _ occName ->
         GhcTag { gtTag = occNameFS occName
                , gtSrcSpan
                , gtKind
-               , gtExported
+               , gtFields
                }
 
       -- Orig is the only one we are interested in
@@ -180,14 +213,14 @@ mkGhcTag gtExported (L gtSrcSpan rdrName) gtKind =
         GhcTag { gtTag = occNameFS occName
                , gtSrcSpan
                , gtKind
-               , gtExported
+               , gtFields
                }
 
       Exact eName -> 
         GhcTag { gtTag = occNameFS $ nameOccName eName
                , gtSrcSpan
                , gtKind
-               , gtExported
+               , gtFields
                }
 
 
@@ -221,7 +254,7 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
               -> TagKind
               -- ^ tag's kind
               -> GhcTag
-    mkGhcTag' a = mkGhcTag (isRdrNameExported mies a) a
+    mkGhcTag' a k = mkGhcTag a k (maybeToList $ isRdrNameExported mies a)
 
     go :: GhcTags -> LHsDecl GhcPs -> GhcTags
     go tags (L _ hsDecl) = case hsDecl of
@@ -306,9 +339,14 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
       -- foreign declaration
       ForD _ foreignDecl ->
         case foreignDecl of
-          ForeignImport { fd_name } ->
-              mkGhcTag' fd_name TkForeignImport
-            : tags
+          ForeignImport { fd_name, fd_fi = CImport _ _ _mheader _ (L _ sourceText) } ->
+                case sourceText of
+                  NoSourceText -> tag
+                  -- TODO: add header information from '_mheader'
+                  SourceText s -> TagField "ffi" (Text.pack s) `appendField` tag
+              : tags
+            where
+              tag = mkGhcTag' fd_name TkForeignImport
 
           ForeignExport { fd_name } ->
               mkGhcTag' fd_name TkForeignExport
@@ -413,10 +451,10 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
         
         HsQualTy {hst_body}   -> mkLHsTypeTag hst_body
 
-        HsTyVar _ _ a         -> Just $ mkGhcTag True a TkTypeClassInstance
+        HsTyVar _ _ a         -> Just $ mkGhcTag a TkTypeClassInstance []
 
         HsAppTy _ a _         -> mkLHsTypeTag a
-        HsOpTy _ _ a _        -> Just $ mkGhcTag True a TkTypeClassInstance
+        HsOpTy _ _ a _        -> Just $ mkGhcTag a TkTypeClassInstance []
         HsKindSig _ a _       -> mkLHsTypeTag a
 
         _                     -> Nothing
