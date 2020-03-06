@@ -96,7 +96,7 @@ parseTag =
 parseField :: Parser TagField
 parseField =
          TagField
-     <$> AT.takeWhile (\x -> x /= ':' && x /= '\n')
+     <$> AT.takeWhile (\x -> x /= ':' && x /= '\n' && x /= '\t')
      <*  AT.char ':'
      <*> AT.takeWhile (\x -> x /= '\t' && x /= '\n')
 
