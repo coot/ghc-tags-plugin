@@ -21,10 +21,7 @@ import qualified Plugin.GhcTags.Vim as Vim
 
 tests :: TestTree
 tests = testGroup "Vim"
-  [ testProperty "round-trip"
-      (either (flip counterexample (property False)) property
-      . roundTrip
-      . getArbTag)
+  [ testProperty "round-trip" (roundTrip . getArbTag)
   ]
 
 
@@ -36,7 +33,7 @@ genTextNonEmpty =
       (not . Text.null)
 
 fixText :: Text -> Text
-fixText = Text.filter (\x -> x /= '\t' && x /= '\n')
+fixText = Text.filter (\x -> x /= '\t' && x /= '\n' && x /= '\NUL')
 
 
 genField :: Gen TagField
@@ -49,7 +46,7 @@ genField =
     g = fixFieldText <$> arbitrary
 
 fixFieldText :: Text -> Text
-fixFieldText = Text.filter (\x -> x /= '\t' && x /= ':' && x /= '\n')
+fixFieldText = Text.filter (\x -> x /= '\t' && x /= ':' && x /= '\n' && x /= '\NUL')
 
 fixAddr :: Text -> Text
 fixAddr = fixText . Text.replace ";\"" ""
@@ -92,7 +89,7 @@ instance Arbitrary ArbTag where
       <*> frequency
             [ (4, Just <$> genKind)
             -- TODO: fix parsing of this case
-            -- , (1, pure Nothing)
+            , (1, pure Nothing)
             ]
       <*> listOf genField
     shrink (ArbTag tag@Tag {tagName, tagFile, tagAddr, tagFields}) =
@@ -123,14 +120,19 @@ instance Arbitrary ArbTag where
               Just (addr'', _) -> addr''
             
 
-roundTrip :: Tag -> Either String Bool
+roundTrip :: Tag -> Property
 roundTrip tag =
-  let mtag = AT.parseOnly Vim.parseTag
-           . Text.decodeUtf8
-           . BL.toStrict
+  let bs   = BL.toStrict
            . BB.toLazyByteString
            . Vim.formatTag
            $ tag
+      mtag = AT.parseOnly Vim.parseTag 
+           . Text.decodeUtf8
+           $ bs
   in case mtag of
-    Left  err  -> Left err
-    Right tag' -> Right $ tag == tag'
+    Left  err  -> counterexample
+                    ("parser error: " ++ err ++ " bs: " ++ (Text.unpack (Text.decodeUtf8 bs)))
+                    (property False)
+    Right tag' -> counterexample
+                    (show $ Text.decodeUtf8 bs)
+                    (tag === tag')

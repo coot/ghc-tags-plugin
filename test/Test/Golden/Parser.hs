@@ -24,6 +24,17 @@ tests = testGroup "Golden.Parser"
          output
          (parseGoldenFile input output)
 
+  -- we are dropping tag kinds which we don't recognize
+  {-
+  , let input  = "test/golden/vim.tags"
+        output = "test/golden/vim.tags.out"
+    in goldenVsFile 
+        "vim tags"
+         input
+         output
+         (parseGoldenFile input output)
+  -}
+
   , let input  = "test/golden/typed-protocols.tags"
         output = "test/golden/typed-protocols.tags.out"
     in goldenVsFile 
