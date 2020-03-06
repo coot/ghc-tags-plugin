@@ -9,8 +9,7 @@ import qualified Data.Text          as Text
 import qualified Data.Text.Encoding as Text
 import           System.IO
 
-import           Plugin.GhcTags.Parser
-import           Plugin.GhcTags.Vim
+import qualified Plugin.GhcTags.Vim as Vim
 
 import           Test.Tasty (TestTree, testGroup)
 import           Test.Tasty.Golden
@@ -66,9 +65,9 @@ parseGoldenFile :: FilePath -- input file
                 -> IO ()
 parseGoldenFile input output = do
     res <- withBinaryFile input ReadMode
-      (BS.hGetContents >=> parseVimTagFile . Text.decodeUtf8)
+      (BS.hGetContents >=> Vim.parseTagsFile . Text.decodeUtf8)
     case res of
       Left  err  -> throwIO (userError err)
       Right tags ->
         withBinaryFile output WriteMode
-          $ flip BS.hPutBuilder (foldMap formatVimTag tags)
+          $ flip BS.hPutBuilder (foldMap Vim.formatTag tags)

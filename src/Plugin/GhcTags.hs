@@ -31,8 +31,8 @@ import           HsExtension (GhcPs)
 import           HsSyn (HsModule)
 
 import           Plugin.GhcTags.Generate
-import           Plugin.GhcTags.Parser
-import           Plugin.GhcTags.Vim
+import           Plugin.GhcTags.Tag
+import qualified Plugin.GhcTags.Vim as Vim
 
 
 -- |  Global shared state which persists across compilation of different
@@ -119,7 +119,7 @@ updateTags tagsFile lmodule =
                       putStrLn $ "GhcTags: error reading \"" ++ tagsFile ++ "\": " ++ (show err)
                       pure $ Right []
                     Right txt ->
-                      parseVimTagFile txt
+                      Vim.parseTagsFile txt
                 else pure $ Right []
             case res of
               Left err -> do
@@ -141,7 +141,7 @@ updateTags tagsFile lmodule =
       -- write it to `tagsMVar' it will not contain any thunks.
       withFile tagsFile WriteMode
         $ flip BS.hPutBuilder
-            ( formatVimTagFile
+            ( Vim.formatTagsFile
             . sort
             . concat
             . Map.elems

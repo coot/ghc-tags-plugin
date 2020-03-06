@@ -39,8 +39,10 @@ library
 library ghc-tags-library
   hs-source-dirs:      lib
   exposed-modules:     Plugin.GhcTags.Generate
-                       Plugin.GhcTags.Parser
+                       Plugin.GhcTags.Tag
                        Plugin.GhcTags.Vim
+                       Plugin.GhcTags.Vim.Parser
+                       Plugin.GhcTags.Vim.Formatter
                        Paths_ghc_tags_plugin
   autogen-modules:     Paths_ghc_tags_plugin
   build-depends:       base         ^>=4.12.0.0,
