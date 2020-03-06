@@ -81,15 +81,14 @@ instance Arbitrary ArbTag where
     arbitrary = fmap ArbTag $
           Tag
       <$> (TagName <$> genTextNonEmpty)
+      <*> frequency
+            [ (4, Just <$> genKind)
+            , (1, pure Nothing)
+            ]
       <*> (TagFile <$> genTextNonEmpty)
       <*> oneof
             [ Left . getPositive <$> arbitrary
             , Right . (Text.cons '/' . flip Text.snoc '/' . fixAddr) <$> genTextNonEmpty
-            ]
-      <*> frequency
-            [ (4, Just <$> genKind)
-            -- TODO: fix parsing of this case
-            , (1, pure Nothing)
             ]
       <*> listOf genField
     shrink (ArbTag tag@Tag {tagName, tagFile, tagAddr, tagFields}) =

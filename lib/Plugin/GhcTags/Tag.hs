@@ -64,9 +64,9 @@ newtype TagFile = TagFile { getTagFile :: Text }
 --
 data Tag = Tag
   { tagName   :: !TagName
+  , tagKind   :: !(Maybe TagKind)
   , tagFile   :: !TagFile
   , tagAddr   :: !(Either Int Text)
-  , tagKind   :: !(Maybe TagKind)
   , tagFields :: ![TagField]
   }
   deriving (Ord, Eq, Show)
