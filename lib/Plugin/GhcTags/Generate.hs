@@ -172,10 +172,10 @@ appendField f gt = gt { gtFields = f : gtFields gt }
 type GhcTags = [GhcTag]
 
 
-isRdrNameExported :: Maybe [IE GhcPs] -> Located RdrName -> Maybe TagField
-isRdrNameExported Nothing   _name = Just fileField
-isRdrNameExported (Just ies) name =
-      const fileField <$> find (\a -> ieName a == Just (unLoc name)) ies
+getFileTagField :: Maybe [IE GhcPs] -> Located RdrName -> Maybe TagField
+getFileTagField Nothing   _name = Nothing
+getFileTagField (Just ies) name =
+      maybe (Just fileField) (const Nothing) $ find (\a -> ieName a == Just (unLoc name)) ies
   where
     -- TODO: the GHC's one is partial, and I got a panic error.
     ieName :: IE GhcPs -> Maybe (IdP GhcPs)
@@ -254,7 +254,7 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
               -> TagKind
               -- ^ tag's kind
               -> GhcTag
-    mkGhcTag' a k = mkGhcTag a k (maybeToList $ isRdrNameExported mies a)
+    mkGhcTag' a k = mkGhcTag a k (maybeToList $ getFileTagField mies a)
 
     go :: GhcTags -> LHsDecl GhcPs -> GhcTags
     go tags (L _ hsDecl) = case hsDecl of
