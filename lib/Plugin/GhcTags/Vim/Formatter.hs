@@ -10,6 +10,7 @@ module Plugin.GhcTags.Vim.Formatter
 
 import           Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as BS
+import           Data.Char (isAscii)
 import           Data.Version (showVersion)
 import qualified Data.Text.Encoding as Text
 import           Text.Printf (printf)
@@ -33,10 +34,14 @@ formatTag Tag { tagName, tagFile, tagAddr, tagKind, tagFields} =
     <> BS.stringUtf8 ";\""
     -- tag kind: we are encoding them using field syntax: this is because vim
     -- is using them in the right way: https://github.com/vim/vim/issues/5724
-    <> foldMap ((BS.stringUtf8 "\tkind:" <>) . BS.charUtf8 . tagKindToChar) tagKind
+    <> foldMap (formatKindChar . tagKindToChar) tagKind
     -- tag fields
     <> foldMap ((BS.charUtf8 '\t' <>) . formatField) tagFields 
     <> BS.charUtf8 '\n'
+  where
+    formatKindChar :: Char -> Builder
+    formatKindChar c | isAscii c = BS.charUtf8 '\t' <> BS.charUtf8 c
+                     | otherwise = BS.stringUtf8 "\tkind:" <> BS.charUtf8 c
 
 
 formatField :: TagField -> Builder

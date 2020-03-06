@@ -5,6 +5,7 @@
 {-# LANGUAGE NamedFieldPuns             #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TupleSections              #-}
 
 -- | Parser combinators for vim style tags
 --
@@ -12,6 +13,7 @@ module Plugin.GhcTags.Vim.Parser
   ( parseTagsFile
   , parseTags
   , parseTag
+  , parseField
   ) where
 
 import           Control.Applicative (many, (<|>))
@@ -38,13 +40,19 @@ parseTag =
 
     -- includes an optional ';"' separator
     <*> AT.eitherP parseAddr parseExCommand
-    <*  separator
 
-    <*> (     (,) <$> (kindFromField <$> parseField)
-                  <*> parseFields
-          <|> (,) <$> (charToTagKind <$> AT.satisfy notTabOrNewLine)
-                  <*>  parseFields
-          <|> pure (Nothing, []) <* AT.endOfLine)
+    <*> (  -- kind field followed by list of fields
+              separator *>
+              ((,) <$> parseKindField
+                   <*> parseFields)
+          -- list of fields (kind field might be later, but we'll never check for it)
+          <|> ((Nothing,) <$> parseFields)
+          -- kind encoded as a single letter, followed by a list of fields
+          <|> separator *>
+              ((,) <$> (charToTagKind <$> AT.satisfy notTabOrNewLine)
+                   <*> parseFields)
+          <|> AT.char '\n' *> pure (Nothing, [])
+        )
 
   where
     separator = AT.char '\t'
@@ -76,12 +84,10 @@ parseTag =
                   AT.endOfLine
                   (AT.char ';' *> AT.char '"')
 
-    kindFromField :: TagField -> Maybe TagKind
-    kindFromField TagField { fieldName = "kind", fieldValue } =
-        if Text.null fieldValue
-          then Nothing
-          else charToTagKind (Text.head fieldValue)
-    kindFromField _ = Nothing
+    parseKindField :: Parser (Maybe TagKind)
+    parseKindField =
+      charToTagKind <$>
+        (AT.string "kind:" *> AT.satisfy notTabOrNewLine)
 
     parseFields :: Parser [TagField]
     parseFields =
