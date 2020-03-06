@@ -14,7 +14,7 @@ module Plugin.GhcTags.Vim.Parser
   , parseTag
   ) where
 
-import           Control.Applicative (many)
+import           Control.Applicative (many, (<|>))
 import           Data.Attoparsec.Text  (Parser, (<?>))
 import qualified Data.Attoparsec.Text  as AT
 import           Data.Either (rights)
@@ -29,7 +29,7 @@ import           Plugin.GhcTags.Tag
 --
 parseTag :: Parser Tag
 parseTag =
-        Tag
+        (\n f l (k, fs) -> Tag n f l k fs)
     <$> parseName
     <*  separator
 
@@ -40,17 +40,12 @@ parseTag =
     <*> AT.eitherP parseAddr parseExCommand
     <*  separator
 
-    <*> (either kindFromField id
-          <$> AT.eitherP
-                parseField
-                (charToTagKind <$> AT.satisfy notTabOrNewLine))
+    <*> (     (,) <$> (kindFromField <$> parseField)
+                  <*> parseFields
+          <|> (,) <$> (charToTagKind <$> AT.satisfy notTabOrNewLine)
+                  <*>  parseFields
+          <|> pure (Nothing, []) <* AT.endOfLine)
 
-    <*> (either (const []) id
-          <$> AT.eitherP 
-                AT.endOfLine
-                (separator
-                  *> AT.sepBy parseField separator
-                   <* AT.endOfLine))
   where
     separator = AT.char '\t'
     notTabOrNewLine = \x -> x /= 't' && x /= '\n' 
@@ -87,6 +82,15 @@ parseTag =
           then Nothing
           else charToTagKind (Text.head fieldValue)
     kindFromField _ = Nothing
+
+    parseFields :: Parser [TagField]
+    parseFields =
+        (either (const []) id
+          <$> AT.eitherP 
+                AT.endOfLine
+                (separator
+                  *> AT.sepBy parseField separator
+                   <* AT.endOfLine))
 
 
 parseField :: Parser TagField
