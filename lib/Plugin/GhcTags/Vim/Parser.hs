@@ -16,11 +16,12 @@ module Plugin.GhcTags.Vim.Parser
   , parseField
   ) where
 
+import           Control.Arrow ((***))
 import           Control.Applicative (many, (<|>))
 import           Data.Attoparsec.Text  (Parser, (<?>))
 import qualified Data.Attoparsec.Text  as AT
 import           Data.Either (rights)
-import           Data.Functor (void)
+import           Data.Functor (void, ($>))
 import           Data.Text          (Text)
 import qualified Data.Text          as Text
 
@@ -32,38 +33,54 @@ import           Plugin.GhcTags.Tag
 parseTag :: Parser Tag
 parseTag =
         (\n f l (k, fs) -> Tag n f l k fs)
-    <$> parseName
+    <$> parseTagName
     <*  separator
 
-    <*> parseFile
+    <*> parseFileName
     <*  separator
 
     -- includes an optional ';"' separator
     <*> AT.eitherP parseAddr parseExCommand
 
-    <*> (  -- kind field followed by list of fields
-              separator *>
-              ((,) <$> parseKindField
-                   <*> parseFields)
-          -- list of fields (kind field might be later, but we'll never check for it)
-          <|> ((Nothing,) <$> parseFields)
-          -- kind encoded as a single letter, followed by a list of fields
-          <|> separator *>
-              ((,) <$> (charToTagKind <$> AT.satisfy notTabOrNewLine)
-                   <*> parseFields)
-          <|> AT.char '\n' *> pure (Nothing, [])
+    <*> (  -- kind field followed by list of fields or end of line.
+              ((,) <$> ( separator *> parseKindField )
+                   <*> ( separator *> parseFields <* AT.endOfLine
+                         <|>
+                         AT.endOfLine $> [])
+                       )
+
+          -- list of fields (kind field might be later, but don't check it, we
+          -- always format it as the first field) or end of line.
+          <|> (Nothing,)
+                <$> ( separator *> parseFields <* AT.endOfLine
+                      <|>
+                      AT.endOfLine $> []
+                    )
+
+          -- kind encoded as a single letter, followed by a list
+          -- of fields or end of line.
+          <|> curry (charToTagKind *** id)
+                  <$> ( separator *> AT.satisfy notTabOrNewLine )
+                  <*> ( separator *> parseFields <* AT.endOfLine
+                        <|>
+                        AT.endOfLine $> []
+                      )
+          <|> AT.endOfLine $> (Nothing, [])
         )
 
   where
+    separator :: Parser Char
     separator = AT.char '\t'
+
+    notTabOrNewLine :: Char -> Bool
     notTabOrNewLine = \x -> x /= '\t' && x /= '\n' 
 
-    parseName :: Parser TagName
-    parseName = TagName <$> AT.takeWhile (/= '\t')
+    parseTagName :: Parser TagName
+    parseTagName = TagName <$> AT.takeWhile (/= '\t')
                            <?> "parsing tag name failed"
 
-    parseFile :: Parser TagFile
-    parseFile = TagFile <$> AT.takeWhile (/= '\t')
+    parseFileName :: Parser TagFile
+    parseFileName = TagFile <$> AT.takeWhile (/= '\t')
 
     parseExCommand :: Parser Text
     parseExCommand = (\x -> Text.take (Text.length x - 1) x) <$>
@@ -90,13 +107,7 @@ parseTag =
         (AT.string "kind:" *> AT.satisfy notTabOrNewLine)
 
     parseFields :: Parser [TagField]
-    parseFields =
-        (either (const []) id
-          <$> AT.eitherP 
-                AT.endOfLine
-                (separator
-                  *> AT.sepBy parseField separator
-                   <* AT.endOfLine))
+    parseFields = AT.sepBy parseField separator
 
 
 parseField :: Parser TagField
