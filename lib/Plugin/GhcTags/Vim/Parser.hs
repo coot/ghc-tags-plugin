@@ -70,7 +70,7 @@ parseTag =
                      AT.scan "" go
                   <* AT.anyChar
       where
-        -- go until either '`n' or ';"' sequence is found.
+        -- go until either '\n' or ';"' sequence is found.
         go :: String -> Char -> Maybe String
         go _ '\n'             = Nothing
         go !s c  | l == "\";" = Nothing
