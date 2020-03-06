@@ -48,7 +48,7 @@ parseTag =
 
   where
     separator = AT.char '\t'
-    notTabOrNewLine = \x -> x /= 't' && x /= '\n' 
+    notTabOrNewLine = \x -> x /= '\t' && x /= '\n' 
 
     parseName :: Parser TagName
     parseName = TagName <$> AT.takeWhile (/= '\t')
