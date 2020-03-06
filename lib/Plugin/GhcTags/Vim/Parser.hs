@@ -32,7 +32,8 @@ import           Plugin.GhcTags.Tag
 --
 parseTag :: Parser Tag
 parseTag =
-        (\n f l (k, fs) -> Tag n f l k fs)
+      (\tagName tagFile tagAddr (tagKind, tagFields)
+        -> Tag { tagName, tagFile, tagAddr, tagKind, tagFields })
     <$> parseTagName
     <*  separator
 
