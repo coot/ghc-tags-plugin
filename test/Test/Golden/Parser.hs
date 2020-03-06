@@ -5,7 +5,6 @@ import           Control.Monad ((>=>))
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BS
-import qualified Data.Text          as Text
 import qualified Data.Text.Encoding as Text
 import           System.IO
 
@@ -13,7 +12,6 @@ import qualified Plugin.GhcTags.Vim as Vim
 
 import           Test.Tasty (TestTree, testGroup)
 import           Test.Tasty.Golden
-import           Test.Tasty.Golden.Advanced
 
 
 tests :: TestTree
