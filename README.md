@@ -11,7 +11,7 @@ which generates tags for each compiled module or component.
 ghc >= 8.6
 ```
 
-# vim configuration
+# Vim configuration
 
 Each generated tags file is put next to the corresponding `*.cabal` file.  If
 you just have a repo with a cabal file in the main directory `vim` default
@@ -21,7 +21,7 @@ need to set:
 :set tags+=*/tags
 ```
 
-# Plugin usage
+# Plugin configuration
 
 Configuration of this plugin requires some familiarity with `ghc` packages.
 Check out
