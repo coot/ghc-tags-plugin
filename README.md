@@ -2,6 +2,12 @@
 A [Ghc Compiler Plugin](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/extending_ghc.html#compiler-plugins)
 which generates tags for each compiled module or component.
 
+# Requirements
+
+```
+ghc >= 8.6
+```
+
 # vim configuration
 
 Each generated tags file is put next to the corresponding `*.cabal` file.  If
