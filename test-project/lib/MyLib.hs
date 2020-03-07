@@ -5,8 +5,9 @@
 module MyLib 
   ( someFunc
   , MyLength (..)
-  , GetHeader (..)
-  , X (..)
+  , GetHeader (Header)
+  , Header(HeaderInt)
+  , X (XInt)
   ) where
 
 someFunc :: IO ()

@@ -1,6 +1,6 @@
 {-# LANGUAGE GADTs #-}
 
-module AnotherModule where
+module AnotherModule (BlockOrHeader (Block)) where
 
 import MyLib
 
