@@ -1,0 +1,17 @@
+name: "GHC-8.6.5"
+on: [push]
+
+jobs:
+  tests:
+    name: "Build GhcTagsPlugin"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: cachix/install-nix-action@v7
+      - uses: cachix/cachix-action@v5
+        with:
+          name: "ghc-tags-plugin"
+          signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+          file: release.nix
+          attributes: "ghc-tags-plugin"
+          nixBuildArgs: "--argstr compiler ghc865"
