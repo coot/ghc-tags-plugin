@@ -5,7 +5,6 @@
 {-# LANGUAGE NamedFieldPuns             #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE TupleSections              #-}
 
 -- | Parser combinators for vim style tags
 --
@@ -52,7 +51,7 @@ parseTag =
 
           -- list of fields (kind field might be later, but don't check it, we
           -- always format it as the first field) or end of line.
-          <|> (NoKind,)
+          <|> curry id NoKind
                 <$> ( separator *> parseFields <* AT.endOfLine
                       <|>
                       AT.endOfLine $> []
