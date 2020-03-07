@@ -16,6 +16,7 @@ module Plugin.GhcTags.Generate
   , getGhcTags
   ) where
 
+-- import           Data.ByteString (ByteString)
 import           Data.List     (find)
 import           Data.Maybe    (mapMaybe, maybeToList)
 import           Data.Foldable (foldl')
@@ -26,6 +27,8 @@ import qualified Data.Text as Text
 import           BasicTypes   ( SourceText (..)
                               )
 import           FastString   ( FastString (..)
+                              )
+import           FieldLabel   ( FieldLbl (..)
                               )
 import           HsBinds      ( HsBindLR (..)
                               , PatSynBind (..)
@@ -48,12 +51,12 @@ import           HsDecls      ( ForeignImport (..)
                               , TyFamInstDecl (..)
                               )
 import           HsImpExp     ( IE (..)
+                              , IEWildcard (..)
                               , ieWrappedName
                               )
 import           HsSyn        ( FieldOcc (..)
                               , GhcPs
                               , HsModule (..)
-                              , IdP
                               , LFieldOcc
                               )
 import           HsTypes      ( ConDeclField (..)
@@ -69,11 +72,22 @@ import           SrcLoc       ( GenLocated (..)
                               , unLoc
                               )
 import           RdrName      ( RdrName (..)
+                              , rdrNameOcc
                               )
 import           Name         ( nameOccName
                               , occNameFS
                               )
-
+{-
+import           OccName      ( NameSpace
+                              , isDataConNameSpace
+                              , isTcClsNameSpace
+                              , isTvNameSpace
+                              , isValNameSpace
+                              , isVarNameSpace
+                              , occNameSpace
+                              , pprNameSpace
+                              )
+-}
 
 -- | `ctags` can generate tags kind, so do we.
 --
@@ -178,12 +192,45 @@ getFileTagField (Just ies) name =
       maybe (Just fileField) (const Nothing) $ find (\a -> ieName a == Just (unLoc name)) ies
   where
     -- TODO: the GHC's one is partial, and I got a panic error.
-    ieName :: IE GhcPs -> Maybe (IdP GhcPs)
+    ieName :: IE GhcPs -> Maybe RdrName
     ieName (IEVar _ (L _ n))              = Just $ ieWrappedName n
     ieName (IEThingAbs  _ (L _ n))        = Just $ ieWrappedName n
     ieName (IEThingWith _ (L _ n) _ _ _)  = Just $ ieWrappedName n
     ieName (IEThingAll  _ (L _ n))        = Just $ ieWrappedName n
     ieName _ = Nothing
+
+-- | Either class members or type constructors.
+--
+getFileTagFieldForMember :: Maybe [IE GhcPs]
+                         -> Located RdrName -- member name / constructor name
+                         -> Located RdrName -- type class name / type constructor name
+                         -> Maybe TagField
+getFileTagFieldForMember Nothing    _memberName _className = Nothing
+getFileTagFieldForMember (Just ies) memberName  className  =
+    maybe (Just fileField) (const Nothing) $ find go ies
+  where
+    go :: IE GhcPs -> Bool
+
+    go (IEVar _ (L _ n)) = ieWrappedName n == unLoc memberName
+
+    go (IEThingAbs _ _)  = False
+
+    go (IEThingAll _ (L _ n)) = ieWrappedName n == unLoc className
+
+    go (IEThingWith _ _ IEWildcard{} _ _) = True
+
+    go (IEThingWith _ (L _ n) NoIEWildcard ns lfls) =
+            ieWrappedName n == unLoc className
+         && (isInWrappedNames || isInFieldLbls)
+      where
+        -- the 'NameSpace' does not agree between things that are in the 'IE'
+        -- list and passed member or type class names (constructor / type
+        -- constructor names, respectively)
+        isInWrappedNames = any ((== occNameFS (rdrNameOcc (unLoc memberName))) . occNameFS . rdrNameOcc . ieWrappedName . unLoc) ns
+        isInFieldLbls    = any ((== occNameFS (rdrNameOcc (unLoc memberName))) . occNameFS . rdrNameOcc . flSelector. unLoc) lfls 
+
+    go _ = False
+
 
 mkGhcTag :: Located RdrName
          -- ^ @RdrName ~ IdP GhcPs@ it *must* be a name of a top level identifier.
@@ -256,13 +303,20 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
               -> GhcTag
     mkGhcTag' a k = mkGhcTag a k (maybeToList $ getFileTagField mies a)
 
+    mkGhcTagForMember :: Located RdrName -- member name
+                      -> Located RdrName -- class name
+                      -> GhcKind
+                      -> GhcTag
+    mkGhcTagForMember memberName className kind =
+      mkGhcTag memberName kind (maybeToList $ getFileTagFieldForMember mies memberName className)
+
     go :: GhcTags -> LHsDecl GhcPs -> GhcTags
     go tags (L _ hsDecl) = case hsDecl of
       -- type or class declaration
       TyClD _ tyClDecl ->
         case tyClDecl of
           FamDecl { tcdFam } ->
-            case mkFamilyDeclTags tcdFam of
+            case mkFamilyDeclTags tcdFam Nothing of
               Just tag -> tag : tags
               Nothing  ->       tags
 
@@ -273,7 +327,7 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
             case tcdDataDefn of
               HsDataDefn { dd_cons } ->
                      mkGhcTag' tcdLName TkTypeConstructor
-                   : (mkConsTags . unLoc) `concatMap` dd_cons
+                   : (mkConsTags tcdLName . unLoc) `concatMap` dd_cons
                   ++ tags
 
               XHsDataDefn {} -> tags
@@ -283,13 +337,13 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
               -- class name
               mkGhcTag' tcdLName TkTypeClass
                -- class methods
-             : (mkSigTags . unLoc) `concatMap` tcdSigs
+             : (mkClsMemberTags tcdLName . unLoc) `concatMap` tcdSigs
                -- default methods
             ++ foldl' (\tags' hsBind -> mkHsBindLRTags (unLoc hsBind) ++ tags')
                      tags
                      tcdMeths
             -- associated types
-            ++ (mkFamilyDeclTags . unLoc) `mapMaybe` tcdATs
+            ++ (flip mkFamilyDeclTags (Just tcdLName) . unLoc) `mapMaybe` tcdATs
 
           XTyClDecl {} -> tags
 
@@ -312,7 +366,6 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
                 where
                   dataFamTags = (mkDataFamInstDeclTag . unLoc) `concatMap` cid_datafam_insts
                   tyFamTags   = (mkTyFamInstDeclTag   . unLoc) `mapMaybe`  cid_tyfam_insts
-
 
           DataFamInstD { dfid_inst } ->
             mkDataFamInstDeclTag  dfid_inst ++ tags
@@ -368,14 +421,19 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
       XHsDecl {}    -> tags
 
     -- tags of all constructors of a type
-    mkConsTags :: ConDecl GhcPs -> GhcTags
-    mkConsTags ConDeclGADT { con_names, con_args } =
-         flip mkGhcTag' TkGADTConstructor `map` con_names
+    mkConsTags :: Located RdrName
+               -- name of the type
+               -> ConDecl GhcPs
+               -- constrtructor declaration
+               -> GhcTags
+    mkConsTags tyName ConDeclGADT { con_names, con_args } =
+         (\n -> mkGhcTagForMember n tyName TkGADTConstructor)
+         `map` con_names
       ++ mkHsConDeclDetails con_args
-    mkConsTags ConDeclH98  { con_name, con_args } =
-        mkGhcTag' con_name TkDataConstructor
+    mkConsTags tyName ConDeclH98  { con_name, con_args } =
+        mkGhcTagForMember con_name tyName TkDataConstructor
       : mkHsConDeclDetails con_args
-    mkConsTags XConDecl {} = []
+    mkConsTags _ XConDecl {} = []
 
     mkHsConDeclDetails :: HsConDeclDetails GhcPs -> GhcTags
     mkHsConDeclDetails (RecCon (L _ fields)) = foldl' f [] fields
@@ -414,6 +472,18 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
 
         XHsBindsLR {} -> []
 
+    mkClsMemberTags :: Located RdrName -> Sig GhcPs -> GhcTags
+    mkClsMemberTags clsName (TypeSig   _ lhs _) =
+      (\n -> mkGhcTagForMember n clsName TkTypeSignature)
+      `map` lhs
+    mkClsMemberTags clsName (PatSynSig _ lhs _) =
+      (\n -> mkGhcTagForMember n clsName TkPatternSynonym)
+      `map` lhs
+    mkClsMemberTags clsName (ClassOpSig _ _ lhs _) =
+      (\n ->  mkGhcTagForMember n clsName TkTypeClassMember)
+      `map` lhs
+    mkClsMemberTags _ _ = []
+
     mkSigTags :: Sig GhcPs -> GhcTags
     mkSigTags (TypeSig   _ lhs _)    = flip mkGhcTag' TkTypeSignature   `map` lhs
     mkSigTags (PatSynSig _ lhs _)    = flip mkGhcTag' TkPatternSynonym  `map` lhs
@@ -434,28 +504,37 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
     mkSigTags XSig {}                = []
 
     mkFamilyDeclTags :: FamilyDecl GhcPs
+                     -> Maybe (Located RdrName)
+                     -- if this type family is associate, pass the name of the
+                     -- associated class
                      -> Maybe GhcTag
-    mkFamilyDeclTags FamilyDecl { fdLName, fdInfo } = Just $ mkGhcTag' fdLName tk
+    mkFamilyDeclTags FamilyDecl { fdLName, fdInfo } assocClsName =
+      case assocClsName of
+        Nothing      -> Just $ mkGhcTag' fdLName tk
+        Just clsName -> Just $ mkGhcTagForMember fdLName clsName tk 
       where
         tk = case fdInfo of
               DataFamily           -> TkDataTypeFamily
               OpenTypeFamily       -> TkTypeFamily
               ClosedTypeFamily {}  -> TkTypeFamily
-    mkFamilyDeclTags XFamilyDecl {} = Nothing
+    mkFamilyDeclTags XFamilyDecl {} _ = Nothing
 
     -- used to generate tag of an instance declaration
     mkLHsTypeTag :: LHsType GhcPs -> Maybe GhcTag
-    mkLHsTypeTag (L _ hsType) =
+    mkLHsTypeTag (L _ hsType) = (\a -> mkGhcTag a TkTypeClassInstance []) <$> hsTypeTagName hsType
+
+    hsTypeTagName :: HsType GhcPs -> Maybe (Located RdrName)
+    hsTypeTagName hsType =
       case hsType of
-        HsForAllTy {hst_body} -> mkLHsTypeTag hst_body
+        HsForAllTy {hst_body} -> hsTypeTagName (unLoc hst_body)
         
-        HsQualTy {hst_body}   -> mkLHsTypeTag hst_body
+        HsQualTy {hst_body}   -> hsTypeTagName (unLoc hst_body)
 
-        HsTyVar _ _ a         -> Just $ mkGhcTag a TkTypeClassInstance []
+        HsTyVar _ _ a         -> Just $ a
 
-        HsAppTy _ a _         -> mkLHsTypeTag a
-        HsOpTy _ _ a _        -> Just $ mkGhcTag a TkTypeClassInstance []
-        HsKindSig _ a _       -> mkLHsTypeTag a
+        HsAppTy _ a _         -> hsTypeTagName (unLoc a)
+        HsOpTy _ _ a _        -> Just $ a
+        HsKindSig _ a _       -> hsTypeTagName (unLoc a)
 
         _                     -> Nothing
 
@@ -468,8 +547,9 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
         HsIB { hsib_body = FamEqn { feqn_tycon, feqn_rhs } } ->
           case feqn_rhs of
             HsDataDefn { dd_cons } ->
-              mkGhcTag' feqn_tycon TkDataTypeFamilyInstance : (mkConsTags . unLoc) `concatMap` dd_cons
-            XHsDataDefn {}         ->
+                mkGhcTag' feqn_tycon TkDataTypeFamilyInstance
+              : (mkConsTags feqn_tycon . unLoc) `concatMap` dd_cons
+            XHsDataDefn {} ->
               mkGhcTag' feqn_tycon TkDataTypeFamilyInstance : []
 
         HsIB { hsib_body = XFamEqn {} } -> []
@@ -484,3 +564,22 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
           Just $ mkGhcTag' feqn_tycon TkTypeFamilyInstance
 
         HsIB { hsib_body = XFamEqn {} } -> Nothing
+
+--
+-- Debugging
+--
+
+{-
+rdrNameToBS :: RdrName -> ByteString
+rdrNameToBS = fs_bs . occNameFS . rdrNameOcc
+
+showNameSpace :: NameSpace -> String
+showNameSpace ns | isDataConNameSpace ns  = "data constructor"
+                 | isTcClsNameSpace ns    = "type constructor or class"
+                 | isTvNameSpace ns       = "type variable"
+                 | isValNameSpace ns      = "variable"
+                 | otherwise              = error "impossible happend"
+
+rdrNameSpace :: RdrName -> String
+rdrNameSpace = showNameSpace . occNameSpace . rdrNameOcc 
+-}
