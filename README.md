@@ -1,4 +1,5 @@
-# Ghc Tags Compiler Plugin
+# Ghc Tags Compiler Plugin ![](https://github.com/coot/ghc-tags-plugin/workflows/GhcTagsPlugin%20CI%20Workflow/badge.svg)
+
 A [Ghc Compiler Plugin](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/extending_ghc.html#compiler-plugins)
 which generates tags for each compiled module or component.
 
