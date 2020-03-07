@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -8,7 +9,9 @@ import           Control.Concurrent
 import           Control.Exception
 import qualified Data.ByteString         as BS
 import qualified Data.ByteString.Builder as BS
+#if __GLASGOW_HASKELL__ < 808
 import           Data.Functor ((<$))
+#endif
 import           Data.List (sort)
 import qualified Data.Map as Map
 import           Data.Maybe (mapMaybe)
@@ -21,12 +24,11 @@ import qualified Data.Text.Encoding as Text
 import           GhcPlugins ( CommandLineOption
                             , Hsc
                             , HsParsedModule (..)
+                            , Located
                             , ModSummary
                             , Plugin (..)
-                            , liftIO
-                            , purePlugin
                             )
-import           GhcPlugins hiding (occName, (<>))
+import qualified GhcPlugins
 import           HsExtension (GhcPs)
 import           HsSyn (HsModule)
 
@@ -71,7 +73,7 @@ tagsMVar = unsafePerformIO $ newMVar Nothing
 plugin :: Plugin
 plugin = GhcPlugins.defaultPlugin {
       parsedResultAction = ghcTagPlugin,
-      pluginRecompile    = purePlugin
+      pluginRecompile    = GhcPlugins.purePlugin
    }
 
 
@@ -79,7 +81,7 @@ plugin = GhcPlugins.defaultPlugin {
 --
 ghcTagPlugin :: [CommandLineOption] -> ModSummary -> HsParsedModule -> Hsc HsParsedModule
 ghcTagPlugin options _modSummary hsParsedModule@HsParsedModule {hpm_module} =
-    hsParsedModule <$ liftIO (updateTags tagsFile hpm_module)
+    hsParsedModule <$ GhcPlugins.liftIO (updateTags tagsFile hpm_module)
   where
     tagsFile :: FilePath
     tagsFile = case options of
