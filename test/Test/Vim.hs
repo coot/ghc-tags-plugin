@@ -6,6 +6,7 @@ module Test.Vim (tests) where
 import qualified Data.Attoparsec.Text as AT
 import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.Char as Char
 import           Data.Maybe (isNothing)
 import           Data.Text   (Text)
 import qualified Data.Text as Text
@@ -33,8 +34,10 @@ genTextNonEmpty =
       (fixText <$> arbitrary)
       (not . Text.null)
 
+-- filter only printable characters, removing tabs and newlines which have
+-- special role in vim tag syntax
 fixText :: Text -> Text
-fixText = Text.filter (\x -> x /= '\t' && x /= '\n' && x /= '\NUL')
+fixText = Text.filter (\x -> x /= '\t' && x /= '\n' && Char.isPrint x)
 
 
 genField :: Gen TagField
@@ -42,15 +45,22 @@ genField =
         TagField
     <$> suchThat g (not . Text.null)
     <*> g
-  where 
+  where
     g :: Gen Text
     g = fixFieldText <$> arbitrary
 
+-- filter only printable characters, removing tabs, newlines and colons which
+-- have special role in vim field syntax
 fixFieldText :: Text -> Text
-fixFieldText = Text.filter (\x -> x /= '\t' && x /= ':' && x /= '\n' && x /= '\NUL')
+fixFieldText = Text.filter (\x -> x /= '\t' && x /= ':' && x /= '\n' && Char.isPrint x)
 
+
+-- address cannot contain ";\"" sequence
 fixAddr :: Text -> Text
 fixAddr = fixText . Text.replace ";\"" ""
+
+wrap :: Char -> Text -> Text
+wrap c = Text.cons c . flip Text.snoc c
 
 genGhcKind :: Gen GhcKind
 genGhcKind = elements
@@ -99,9 +109,10 @@ instance Arbitrary ArbTag where
       <$> (TagName <$> genTextNonEmpty)
       <*> genTagKind
       <*> (TagFile <$> genTextNonEmpty)
-      <*> oneof
-            [ Left . getPositive <$> arbitrary
-            , Right . (Text.cons '/' . flip Text.snoc '/' . fixAddr) <$> genTextNonEmpty
+      <*> frequency
+            [ (2, Left . getPositive <$> arbitrary)
+            , (1, Right . (wrap '/' . fixAddr) <$> genTextNonEmpty)
+            , (1, Right . (wrap '?' . fixAddr) <$> genTextNonEmpty)
             ]
       <*> listOf genField
     shrink (ArbTag tag@Tag {tagName, tagFile, tagAddr, tagFields}) =
@@ -117,7 +128,7 @@ instance Arbitrary ArbTag where
           | addr <- case tagAddr of
               Left  addr -> Left `map` shrink addr
               Right addr -> Left 0
-                          : (Right . Text.cons '/' . flip Text.snoc '/' . fixAddr)
+                          : (Right . wrap '/' . fixAddr)
                             `map` (shrink . stripEnds) addr
           ]
        ++ [ ArbTag $ tag { tagFields = fields }
@@ -130,7 +141,7 @@ instance Arbitrary ArbTag where
             Just (_, addr') -> case Text.unsnoc addr' of
               Nothing -> error "impossible happend"
               Just (addr'', _) -> addr''
-            
+
 
 roundTrip :: Tag -> Property
 roundTrip tag =
@@ -138,7 +149,7 @@ roundTrip tag =
            . BB.toLazyByteString
            . Vim.formatTag
            $ tag
-      mtag = AT.parseOnly Vim.parseTag 
+      mtag = AT.parseOnly Vim.parseTag
            . Text.decodeUtf8
            $ bs
   in case mtag of
