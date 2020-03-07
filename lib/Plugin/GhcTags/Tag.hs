@@ -12,7 +12,9 @@ module Plugin.GhcTags.Tag
   , TagName (..)
   , TagFile (..)
   , TagKind (..)
-  , charToTagKind
+  , GhcKind (..)
+  , charToGhcKind
+  , ghcKindToChar
   , TagField (..)
   , ghcTagToTag
   , TagsMap
@@ -35,9 +37,10 @@ import           SrcLoc       ( SrcSpan (..)
 
 import           Plugin.GhcTags.Generate
                               ( GhcTag (..)
-                              , TagKind (..)
+                              , GhcKind (..)
                               , TagField (..)
-                              , charToTagKind
+                              , charToGhcKind
+                              , ghcKindToChar
                               )
 
 --
@@ -57,6 +60,17 @@ newtype TagFile = TagFile { getTagFile :: Text }
   deriving newtype (Eq, Ord, Show)
 
 
+-- | When we parse a `tags` file we can eithera find no kind or recognize the
+-- kind of GhcKind or we store the found character kind.  This allows us to
+-- preserve information from parsed tags files which were not created by
+-- `ghc-tags-plugin'
+--
+data TagKind
+  = GhcKind  !GhcKind
+  | CharKind !Char
+  | NoKind
+  deriving (Eq, Ord, Show)
+
 -- | Simple Tag record.  For the moment on tag name, tag file and line numbers
 -- are supported.
 --
@@ -64,7 +78,7 @@ newtype TagFile = TagFile { getTagFile :: Text }
 --
 data Tag = Tag
   { tagName   :: !TagName
-  , tagKind   :: !(Maybe TagKind)
+  , tagKind   :: !TagKind
   , tagFile   :: !TagFile
   , tagAddr   :: !(Either Int Text)
   , tagFields :: ![TagField]
@@ -80,7 +94,7 @@ ghcTagToTag GhcTag { gtSrcSpan, gtTag, gtKind, gtFields } =
         Just $ Tag { tagName   = TagName (Text.decodeUtf8 $ fs_bs gtTag)
                    , tagFile   = TagFile (Text.decodeUtf8 $ fs_bs (srcSpanFile realSrcSpan))
                    , tagAddr   = Left (srcSpanStartLine realSrcSpan)
-                   , tagKind   = Just gtKind
+                   , tagKind   = GhcKind gtKind
                    , tagFields = gtFields
                    }
 

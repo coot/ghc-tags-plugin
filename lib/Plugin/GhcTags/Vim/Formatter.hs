@@ -34,14 +34,21 @@ formatTag Tag { tagName, tagFile, tagAddr, tagKind, tagFields} =
     <> BS.stringUtf8 ";\""
     -- tag kind: we are encoding them using field syntax: this is because vim
     -- is using them in the right way: https://github.com/vim/vim/issues/5724
-    <> foldMap (formatKindChar . tagKindToChar) tagKind
+    <> formatKindChar tagKind
     -- tag fields
     <> foldMap ((BS.charUtf8 '\t' <>) . formatField) tagFields 
     <> BS.charUtf8 '\n'
   where
-    formatKindChar :: Char -> Builder
-    formatKindChar c | isAscii c = BS.charUtf8 '\t' <> BS.charUtf8 c
+    formatKindChar :: TagKind -> Builder
+    formatKindChar NoKind = mempty
+    formatKindChar (CharKind c)
+                     | isAscii c = BS.charUtf8 '\t' <> BS.charUtf8 c
                      | otherwise = BS.stringUtf8 "\tkind:" <> BS.charUtf8 c
+    formatKindChar (GhcKind ghcKind)
+                     | isAscii c = BS.charUtf8 '\t' <> BS.charUtf8 c
+                     | otherwise = BS.stringUtf8 "\tkind:" <> BS.charUtf8 c
+      where
+        c = ghcKindToChar ghcKind
 
 
 formatField :: TagField -> Builder

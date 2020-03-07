@@ -6,6 +6,7 @@ module Test.Vim (tests) where
 import qualified Data.Attoparsec.Text as AT
 import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Lazy as BL
+import           Data.Maybe (isNothing)
 import           Data.Text   (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
@@ -51,8 +52,8 @@ fixFieldText = Text.filter (\x -> x /= '\t' && x /= ':' && x /= '\n' && x /= '\N
 fixAddr :: Text -> Text
 fixAddr = fixText . Text.replace ";\"" ""
 
-genKind :: Gen TagKind
-genKind = elements
+genGhcKind :: Gen GhcKind
+genGhcKind = elements
   [ TkTerm
   , TkFunction
   , TkTypeConstructor
@@ -73,6 +74,21 @@ genKind = elements
   , TkForeignExport
   ]
 
+genTagKind :: Gen TagKind
+genTagKind = oneof
+    [ pure NoKind
+    , CharKind <$> genChar
+    , GhcKind <$> genGhcKind
+    ]
+  where
+    genChar = suchThat arbitrary
+                       (\x ->    x /= '\t'
+                              && x /= '\n'
+                              && x /= ':'
+                              && x /= '\NUL'
+                              && isNothing (charToGhcKind x)
+                       )
+
 
 newtype ArbTag = ArbTag { getArbTag :: Tag }
   deriving Show
@@ -81,10 +97,7 @@ instance Arbitrary ArbTag where
     arbitrary = fmap ArbTag $
           Tag
       <$> (TagName <$> genTextNonEmpty)
-      <*> frequency
-            [ (4, Just <$> genKind)
-            , (1, pure Nothing)
-            ]
+      <*> genTagKind
       <*> (TagFile <$> genTextNonEmpty)
       <*> oneof
             [ Left . getPositive <$> arbitrary
