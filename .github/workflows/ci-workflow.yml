@@ -13,5 +13,12 @@ jobs:
           name: "ghc-tags-plugin"
           signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
           file: release.nix
-          attributs: "ghc-tags-plugin"
+          attributes: "ghc-tags-plugin"
           nixBuildArgs: "--argstr compiler ghc865"
+      - uses: cachix/cachix-action@v5
+        with:
+          name: "ghc-tags-plugin"
+          signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+          file: release.nix
+          attributes: "ghc-tags-plugin"
+          nixBuildArgs: "--argstr compiler ghc883"
