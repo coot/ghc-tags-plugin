@@ -9,10 +9,10 @@
 module Plugin.GhcTags.Generate
   ( GhcTag (..)
   , GhcTags
-  , TagKind (..)
+  , GhcKind (..)
   , TagField (..)
-  , tagKindToChar
-  , charToTagKind
+  , ghcKindToChar
+  , charToGhcKind
   , getGhcTags
   ) where
 
@@ -77,7 +77,7 @@ import           Name         ( nameOccName
 
 -- | `ctags` can generate tags kind, so do we.
 --
-data TagKind = TkTerm
+data GhcKind = TkTerm
              | TkFunction
              | TkTypeConstructor
              | TkDataConstructor
@@ -98,8 +98,8 @@ data TagKind = TkTerm
   deriving (Ord, Eq, Show)
 
 
-tagKindToChar :: TagKind -> Char
-tagKindToChar tagKind = case tagKind of
+ghcKindToChar :: GhcKind -> Char
+ghcKindToChar tagKind = case tagKind of
     TkTerm                    -> '`'
     TkFunction                -> 'λ'
     TkTypeConstructor         -> 'Λ'
@@ -120,8 +120,8 @@ tagKindToChar tagKind = case tagKind of
     TkForeignExport           -> 'E'
 
 
-charToTagKind :: Char -> Maybe TagKind
-charToTagKind c = case c of
+charToGhcKind :: Char -> Maybe GhcKind
+charToGhcKind c = case c of
      '`' -> Just TkTerm
      'λ' -> Just TkFunction
      'Λ' -> Just TkTypeConstructor
@@ -160,7 +160,7 @@ fileField = TagField { fieldName = "file", fieldValue = "" }
 data GhcTag = GhcTag {
     gtSrcSpan  :: !SrcSpan
   , gtTag      :: !FastString
-  , gtKind     :: !TagKind
+  , gtKind     :: !GhcKind
   , gtFields   :: ![TagField]
   }
   deriving Show
@@ -187,7 +187,7 @@ getFileTagField (Just ies) name =
 
 mkGhcTag :: Located RdrName
          -- ^ @RdrName ~ IdP GhcPs@ it *must* be a name of a top level identifier.
-         -> TagKind
+         -> GhcKind
          -- ^ tag's kind
          -> [TagField]
          -- ^ tag's fields
@@ -251,7 +251,7 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
     -- like 'mkGhcTag' but checks if the identifier is exported
     mkGhcTag' :: Located RdrName
               -- ^ @RdrName ~ IdP GhcPs@ it *must* be a name of a top level identifier.
-              -> TagKind
+              -> GhcKind
               -- ^ tag's kind
               -> GhcTag
     mkGhcTag' a k = mkGhcTag a k (maybeToList $ getFileTagField mies a)

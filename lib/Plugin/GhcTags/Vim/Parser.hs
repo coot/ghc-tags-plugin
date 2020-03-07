@@ -52,7 +52,7 @@ parseTag =
 
           -- list of fields (kind field might be later, but don't check it, we
           -- always format it as the first field) or end of line.
-          <|> (Nothing,)
+          <|> (NoKind,)
                 <$> ( separator *> parseFields <* AT.endOfLine
                       <|>
                       AT.endOfLine $> []
@@ -66,7 +66,7 @@ parseTag =
                         <|>
                         AT.endOfLine $> []
                       )
-          <|> AT.endOfLine $> (Nothing, [])
+          <|> AT.endOfLine $> (NoKind, [])
         )
 
   where
@@ -102,13 +102,19 @@ parseTag =
                   AT.endOfLine
                   (AT.char ';' *> AT.char '"')
 
-    parseKindField :: Parser (Maybe TagKind)
+    parseKindField :: Parser TagKind
     parseKindField =
       charToTagKind <$>
         (AT.string "kind:" *> AT.satisfy notTabOrNewLine)
 
     parseFields :: Parser [TagField]
     parseFields = AT.sepBy parseField separator
+
+
+charToTagKind :: Char -> TagKind
+charToTagKind c = case charToGhcKind c of
+    Nothing      -> CharKind c
+    Just ghcTag  -> GhcKind  ghcTag
 
 
 parseField :: Parser TagField
