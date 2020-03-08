@@ -9,6 +9,7 @@
 module Plugin.GhcTags.Tag
   ( -- * Tag
     Tag (..)
+  , compareTags
   , TagName (..)
   , TagFile (..)
   , TagKind (..)
@@ -21,7 +22,8 @@ module Plugin.GhcTags.Tag
   , mkTagsMap
   ) where
 
-import           Data.List (sort)
+import           Data.Function (on)
+import           Data.List (sortBy)
 import           Data.Map  (Map)
 import qualified Data.Map as Map
 import           Data.Text   (Text)
@@ -83,7 +85,50 @@ data Tag = Tag
   , tagAddr   :: !(Either Int Text)
   , tagFields :: ![TagField]
   }
-  deriving (Ord, Eq, Show)
+  deriving (Eq, Show)
+
+compareTags :: Tag -> Tag -> Ordering
+compareTags t0 t1 | on (/=) tagName t0 t1 = on compare tagName t0 t1
+
+                  -- sort type classes / type families before their instances,
+                  -- and take precendence over a file where they are defined.
+                  | tagKind t0 == GhcKind TkTypeClass
+                    &&
+                    tagKind t1 == GhcKind TkTypeClassInstance
+                    = LT
+
+                  | tagKind t1 == GhcKind TkTypeClass
+                    &&
+                    tagKind t0 == GhcKind TkTypeClassInstance
+                    = GT
+
+                  | tagKind t0 == GhcKind TkTypeFamily
+                    &&
+                    tagKind t1 == GhcKind TkTypeFamilyInstance
+                    = LT
+
+                  | tagKind t1 == GhcKind TkTypeFamily
+                    &&
+                    tagKind t0 == GhcKind TkTypeFamilyInstance
+                    = GT
+
+                  | tagKind t0 == GhcKind TkDataTypeFamily
+                    &&
+                    tagKind t1 == GhcKind TkDataTypeFamilyInstance
+                    = LT
+
+                  | tagKind t1 == GhcKind TkDataTypeFamily
+                    &&
+                    tagKind t0 == GhcKind TkDataTypeFamilyInstance
+                    = GT
+
+                  | on (/=) tagFile t0 t1 = on compare tagFile t0 t1
+                  | on (/=) tagAddr t0 t1 = on compare tagAddr t0 t1
+                  | on (/=) tagKind t0 t1 = on compare tagKind t0 t1
+
+                  -- this is not compatible with 'Eq' intsance, but we are not
+                  -- defining a 'Ord' instance!
+                  | otherwise             = EQ
 
 
 ghcTagToTag :: GhcTag -> Maybe Tag
@@ -111,6 +156,6 @@ type TagsMap = Map TagFile [Tag]
 --
 mkTagsMap :: [Tag] -> TagsMap
 mkTagsMap =
-      fmap sort
+      fmap (sortBy compareTags)
     . Map.fromListWith (<>)
     . map (\t -> (tagFile t, [t]))
