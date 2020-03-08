@@ -54,8 +54,14 @@ project some-project
 ```
 
 `PACKAGE_DB` is likely to be something like (for `ghc-8.6.5`)
-'${HOME}/.cabal/store/ghc-8.6.5/package.db' (all environment variables must be
-expanded).
+(all environment variables must be expanded):
+```
+${HOME}/.cabal/store/ghc-8.6.5/package.db
+```
+or on Windows (note the `""` syntax)
+```
+"C:\\Users\\USER_NAME\\AppData\\Roaming\\cabal\\store\\ghc-8.6.5\\package.db
+```
 
 ## stack
 
