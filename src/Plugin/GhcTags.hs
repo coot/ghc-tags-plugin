@@ -12,7 +12,7 @@ import qualified Data.ByteString.Builder as BS
 #if __GLASGOW_HASKELL__ < 808
 import           Data.Functor ((<$))
 #endif
-import           Data.List (sort)
+import           Data.List (sortBy)
 import qualified Data.Map as Map
 import           Data.Maybe (mapMaybe)
 import           System.IO
@@ -144,7 +144,7 @@ updateTags tagsFile lmodule =
       withFile tagsFile WriteMode
         $ flip BS.hPutBuilder
             ( Vim.formatTagsFile
-            . sort
+            . sortBy compareTags
             . concat
             . Map.elems
             $ tagsMap'
