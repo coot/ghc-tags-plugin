@@ -3,7 +3,7 @@ on: [push]
 
 jobs:
   tests:
-    name: "Build GhcTagsPlugin"
+    name: "Build GhcTagsPlugin on GHC-8.8.3"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
