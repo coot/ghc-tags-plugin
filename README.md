@@ -62,7 +62,6 @@ or on Windows (note the `""` syntax)
 ```
 "C:\\Users\\USER_NAME\\AppData\\Roaming\\cabal\\store\\ghc-8.6.5\\package.db
 ```
-
 ## stack
 
 Install `ghc-tags-plugin` 
@@ -81,6 +80,14 @@ ghc-options:
 
 where `PACKAGE_DB` is the package db where `ghc-tags-plugin` was installed by
 `stack`.
+
+## ghcid
+
+If you follows cabal configuration as above
+```
+ghcid --comaand "cabal repl project"
+```
+Will update `tags` file as you modify your project.
 
 ## modifying `cabal` files
 
