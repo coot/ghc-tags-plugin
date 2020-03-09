@@ -287,8 +287,8 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtFields =
 --  * data type families instances
 --  * data type family instances constructors
 --
-getGhcTags :: Located (HsModule GhcPs)
-                      -> GhcTags
+getGhcTags ::Located (HsModule GhcPs)
+           -> GhcTags
 getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) = 
     reverse $ foldl' go [] hsmodDecls
   where

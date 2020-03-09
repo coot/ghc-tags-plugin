@@ -27,6 +27,7 @@ import           Data.List (sortBy)
 import           Data.Map  (Map)
 import qualified Data.Map as Map
 import           Data.Text   (Text)
+import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 
 -- GHC imports
@@ -58,7 +59,7 @@ newtype TagName = TagName { getTagName :: Text }
 
 -- | 'ByteString' which encodes a tag file.
 --
-newtype TagFile = TagFile { getTagFile :: Text }
+newtype TagFile = TagFile { getTagFile :: String }
   deriving newtype (Eq, Ord, Show)
 
 
@@ -137,7 +138,7 @@ ghcTagToTag GhcTag { gtSrcSpan, gtTag, gtKind, gtFields } =
       UnhelpfulSpan {} -> Nothing
       RealSrcSpan realSrcSpan ->
         Just $ Tag { tagName   = TagName (Text.decodeUtf8 $ fs_bs gtTag)
-                   , tagFile   = TagFile (Text.decodeUtf8 $ fs_bs (srcSpanFile realSrcSpan))
+                   , tagFile   = TagFile (Text.unpack $ Text.decodeUtf8 $ fs_bs (srcSpanFile realSrcSpan))
                    , tagAddr   = Left (srcSpanStartLine realSrcSpan)
                    , tagKind   = GhcKind gtKind
                    , tagFields = gtFields

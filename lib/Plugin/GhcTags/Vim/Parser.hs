@@ -80,7 +80,7 @@ parseTag =
                            <?> "parsing tag name failed"
 
     parseFileName :: Parser TagFile
-    parseFileName = TagFile <$> AT.takeWhile (/= '\t')
+    parseFileName = TagFile . Text.unpack <$> AT.takeWhile (/= '\t')
 
     parseExCommand :: Parser Text
     parseExCommand = (\x -> Text.take (Text.length x - 1) x) <$>
