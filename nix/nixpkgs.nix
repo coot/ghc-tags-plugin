@@ -1,8 +1,7 @@
 { compiler ? "ghc865" }:
 with builtins;
 let
-  rev = "b13f8788dc0f9e584ad26786e0558be1734b77c2";
-  url = "https://github.com/NixOS/nixpkgs/archive/${rev}.tar.gz";
+  sources = import ./sources.nix {};
   config =
     { packageOverrides = super:
       let self = super.pkgs;
@@ -19,5 +18,5 @@ let
         };
       };
     };
-  nixpkgs = import (fetchTarball { inherit url; }) { inherit config; };
+  nixpkgs = import sources.nixpkgs { inherit config; };
 in nixpkgs
