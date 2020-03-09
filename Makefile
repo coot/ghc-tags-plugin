@@ -2,27 +2,27 @@
 # install, uninstall and friends ghc-tags-plugin in cabal store
 #
 
-CABAL_STORE = ${HOME}/.cabal/store/ghc-$(shell ghc --numeric-version)/package.db
+PACKAGE_DB = ${HOME}/.cabal/store/ghc-$(shell ghc --numeric-version)/package.db
 
 uninstall:
 	ghc-pkg unregister \
-	  --package-db=${CABAL_STORE} \
+	  --package-db=${PACKAGE_DB} \
 	  --force \
 	  z-ghc-tags-plugin-z-ghc-tags-library \
 	  ghc-tags-plugin
 
 install:
-	cabal install --package-db=${CABAL_STORE} --lib ghc-tags-plugin
+	cabal install --package-db=${PACKAGE_DB} --lib ghc-tags-plugin
 
 reinstall: uninstall install
 
 list:
-	ghc-pkg list --package-db=${CABAL_STORE} | grep ghc-tags
+	ghc-pkg list --package-db=${PACKAGE_DB} | grep ghc-tags
 
 latest:
-	ghc-pkg latest --package-db=${CABAL_STORE} ghc-tags-plugin
+	ghc-pkg latest --package-db=${PACKAGE_DB} ghc-tags-plugin
 
 recache:
-	ghc-pkg recache --package-db=${CABAL_STORE}
+	ghc-pkg recache --package-db=${PACKAGE_DB}
 
 .PHONY: install, uninstall, reinstall, show, latest
