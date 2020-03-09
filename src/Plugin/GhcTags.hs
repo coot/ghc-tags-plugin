@@ -145,9 +145,9 @@ updateTags tagsFile lmodule =
                   return $ mkTagsMap tagList
 
         cwd <- getCurrentDirectory
-        -- absolute directory path of the tags file
-        -- we need absolute path to make all tags file relative to it.
-        tagsDir <- makeAbsolute (fst $ splitFileName tagsFile)
+        -- absolute directory path of the tags file; we need canonical path
+        -- (without ".." and ".") to make 'makeRelative' works.
+        tagsDir <- canonicalizePath (fst $ splitFileName tagsFile)
 
         let tagsMap' :: TagsMap
             tagsMap' =
