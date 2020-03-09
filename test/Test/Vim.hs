@@ -38,7 +38,7 @@ instance Arbitrary ArbTag where
           Tag
       <$> (TagName <$> genTextNonEmpty)
       <*> genTagKind
-      <*> (TagFile <$> genTextNonEmpty)
+      <*> (TagFile  <$> genFilePath)
       <*> frequency
             [ (2, Left . getPositive <$> arbitrary)
             , (1, Right . (wrap '/' . fixAddr) <$> genTextNonEmpty)
@@ -51,8 +51,8 @@ instance Arbitrary ArbTag where
           , not (Text.null x)
           ]
        ++ [ ArbTag $ tag { tagFile = TagFile x }
-          | x <- fixText `map` shrink (getTagFile tagFile)
-          , not (Text.null x)
+          | x <- fixFilePath `map` shrink (getTagFile tagFile)
+          , not (null x)
           ]
        ++ [ ArbTag $ tag { tagAddr = addr }
           | addr <- case tagAddr of

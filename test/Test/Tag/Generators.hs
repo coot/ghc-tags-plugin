@@ -3,6 +3,7 @@
 module Test.Tag.Generators where
 
 import qualified Data.Char as Char
+import           Data.List as List
 import           Data.Maybe (isNothing)
 import           Data.Text   (Text)
 import qualified Data.Text as Text
@@ -28,6 +29,14 @@ genTextNonEmpty =
 fixText :: Text -> Text
 fixText = Text.filter (\x -> x /= '\t' && x /= '\n' && Char.isPrint x)
 
+fixFilePath :: String -> String
+fixFilePath = List.filter (\x -> x /= '\t' && x /= '\n' && Char.isPrint x)
+
+genFilePath :: Gen String
+genFilePath =
+    suchThat
+      (fixFilePath <$> arbitrary)
+      (not . null)
 
 genField :: Gen TagField
 genField =
