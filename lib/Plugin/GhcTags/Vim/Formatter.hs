@@ -12,6 +12,7 @@ import           Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as BS
 import           Data.Char (isAscii)
 import           Data.Version (showVersion)
+import qualified Data.Text          as Text
 import qualified Data.Text.Encoding as Text
 import           Text.Printf (printf)
 
@@ -27,7 +28,7 @@ formatTag :: Tag -> Builder
 formatTag Tag { tagName, tagFile, tagAddr, tagKind, tagFields} =
        (BS.byteString . Text.encodeUtf8 . getTagName $ tagName)
     <> BS.charUtf8 '\t'
-    <> (BS.byteString . Text.encodeUtf8 . getTagFile $ tagFile)
+    <> (BS.byteString . Text.encodeUtf8 . Text.pack . getTagFile $ tagFile)
     <> BS.charUtf8 '\t'
     <> either BS.intDec (BS.byteString . Text.encodeUtf8) tagAddr
     -- we are using extended format: '_TAG_FILE_FROMAT	2'

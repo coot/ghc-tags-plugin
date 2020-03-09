@@ -15,10 +15,11 @@ import           Data.Functor ((<$))
 import           Data.List (sortBy)
 import qualified Data.Map as Map
 import           Data.Maybe (mapMaybe)
+import           System.Directory
+import           System.FilePath
 import           System.IO
 import           System.IO.Error  (tryIOError)
 import           System.IO.Unsafe (unsafePerformIO)
-import           System.Directory
 import qualified Data.Text.Encoding as Text
 
 import           GhcPlugins ( CommandLineOption
@@ -130,15 +131,22 @@ updateTags tagsFile lmodule =
               Right tagList -> do
                 return $ mkTagsMap tagList
 
+      cwd <- getCurrentDirectory
+      -- absolute directory path of the tags file
+      -- we need absolute path to make all tags file relative to it.
+      tagsDir <- makeAbsolute (fst $ splitFileName tagsFile)
+
       let tagsMap' :: TagsMap
           tagsMap' =
               (mkTagsMap               -- created 'TagsMap'
+                . map (fixFileName cwd tagsDir)
+                                       -- fix file names
                 . mapMaybe ghcTagToTag -- tranalte 'GhcTag' to 'Tag'
                 . getGhcTags           -- generate 'GhcTag's
                 $ lmodule)
             `Map.union`
               tagsMap
-
+              
       -- update tags file, this will force evaluation `tagsMap'`, so when we
       -- write it to `tagsMVar' it will not contain any thunks.
       withFile tagsFile WriteMode
@@ -151,6 +159,11 @@ updateTags tagsFile lmodule =
             )
 
       pure (Just tagsMap')
+
+  where
+    fixFileName :: FilePath -> FilePath -> Tag -> Tag
+    fixFileName cwd tagsDir tag@Tag { tagFile = TagFile path } =
+      tag { tagFile = TagFile (makeRelative tagsDir (cwd </> path)) }
 
 
 -- | The 'MVar' is used as an exlusive lock.  Also similar to 'bracket' but
