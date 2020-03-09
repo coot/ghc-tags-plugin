@@ -20,6 +20,8 @@ need to set:
 ```
 :set tags+=*/tags
 ```
+This can be modified by passing an option, see
+[below](https://github.com/coot/ghc-tags-plugin/#plugin-options).
 
 # Plugin configuration
 
@@ -31,6 +33,16 @@ us `-plugin-package=ghc-tags-plugin` but specifying version
 `-package=ghc-tags-plugin-0.0.0.0` (where `0.0.0.0` is the version you
 installed), might work better.  You can use `ghc-pkg latest`  (likely with
 appropriate `--package-db` flag) to check which version is available.
+
+# Plugin options
+
+The plugin accepts an only one option, which is a file path to the tags file.
+It can be an absolute path or relative (to the cabal project file), for example:
+```
+-fplugin-opt=Plugin.GhcTags:../tags
+```
+This is useful if for cabal projects which are located in subdirectories.
+
 
 ## ghc
 
@@ -94,6 +106,21 @@ Will update `tags` file as you modify your project.
 You can always add `ghc-tags-plugin` as a build dependency in a cabal file (for
 each component).  You should hide it behind a flag and then use `cabal` or `stack`
 to enable it (or `cabal.project.local` or `stack.yaml` files for that purpose).
+
+# Exceptions
+
+If a `GHC` plugin throws an exception, ghc stops.  This plugin wraps
+`IOException`s, to make it obvious that it failes rather than `GHC`.  This
+might mean you missconfigured the plugin (by passing wrong options).  The
+result might look like this:
+
+```
+ghc: panic! (the 'impossible' happened)
+  (GHC version 8.6.5 for x86_64-unknown-linux):
+        GhcTagsPluginIOExceptino ../: openFile: inappropriate type (Is a directory)
+
+```
+
 
 # Security implications of compiler plugins
 

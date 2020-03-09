@@ -20,3 +20,9 @@
 * Change order of tags: type classes, type families and data type families are
   sorted before their instances.  If one is using multipe tags (the default),
   the order of them also matters (i.e. in the vim `tags` option).
+
+## 0.1.3.0 -- ?
+
+* Added path argument, can be passed using `-fplugin-opt=Plugin.GhcTags:../tags`.
+* Wrapped `IOExceptions`, so when it will happen it will be obvious that the
+  plugin failed not `ghc`
