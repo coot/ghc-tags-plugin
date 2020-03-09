@@ -78,6 +78,16 @@ plugin = GhcPlugins.defaultPlugin {
    }
 
 
+-- | IOExcption wrapper; it is useful for the user to know that it's the plugin
+-- not `ghc` that throwed the error.
+--
+data GhcTagsPluginException =
+    GhcTagsPluginIOExceptino IOException
+    deriving Show
+
+instance Exception GhcTagsPluginException
+
+
 -- | The plugin does not change the 'HsParedModule', it only runs side effects.
 --
 ghcTagPlugin :: [CommandLineOption] -> ModSummary -> HsParsedModule -> Hsc HsParsedModule
@@ -100,65 +110,68 @@ updateTags :: FilePath
            -> Located (HsModule GhcPs)
            -> IO ()
 updateTags tagsFile lmodule =
-    -- Take exclusive lock.  This assures that only one thread will have access to
-    -- the tags file.  Parsing and the rest of the compilation pipeline can
-    -- happen concurrently.
-    mvarLock tagsMVar $ \mTagsMap -> do
-      (tagsMap :: TagsMap) <-
-        case mTagsMap of
+    -- wrap 'IOException's
+    handle (throwIO . GhcTagsPluginIOExceptino) $
 
-          Just tagsMap -> return tagsMap
+      -- Take exclusive lock.  This assures that only one thread will have access to
+      -- the tags file.  Parsing and the rest of the compilation pipeline can
+      -- happen concurrently.
+      mvarLock tagsMVar $ \mTagsMap -> do
+        (tagsMap :: TagsMap) <-
+          case mTagsMap of
 
-          -- the 'tagsMVar' is empty, which means we are compiling the first
-          -- module.  In this case read the tags from disk.
-          Nothing -> do
-            a <- doesFileExist tagsFile
-            res <-
-              if a
-                then do
-                  mtext <- tryIOError (Text.decodeUtf8 <$> BS.readFile tagsFile)
-                  case mtext of
-                    Left err    -> do
-                      putStrLn $ "GhcTags: error reading \"" ++ tagsFile ++ "\": " ++ (show err)
-                      pure $ Right []
-                    Right txt ->
-                      Vim.parseTagsFile txt
-                else pure $ Right []
-            case res of
-              Left err -> do
-                putStrLn $ "GhcTags: error reading or parsing \"" ++ tagsFile ++ "\": " ++ err
-                return $ Map.empty
-              Right tagList -> do
-                return $ mkTagsMap tagList
+            Just tagsMap -> return tagsMap
 
-      cwd <- getCurrentDirectory
-      -- absolute directory path of the tags file
-      -- we need absolute path to make all tags file relative to it.
-      tagsDir <- makeAbsolute (fst $ splitFileName tagsFile)
+            -- the 'tagsMVar' is empty, which means we are compiling the first
+            -- module.  In this case read the tags from disk.
+            Nothing -> do
+              a <- doesFileExist tagsFile
+              res <-
+                if a
+                  then do
+                    mtext <- tryIOError (Text.decodeUtf8 <$> BS.readFile tagsFile)
+                    case mtext of
+                      Left err    -> do
+                        putStrLn $ "GhcTags: error reading \"" ++ tagsFile ++ "\": " ++ (show err)
+                        pure $ Right []
+                      Right txt ->
+                        Vim.parseTagsFile txt
+                  else pure $ Right []
+              case res of
+                Left err -> do
+                  putStrLn $ "GhcTags: error reading or parsing \"" ++ tagsFile ++ "\": " ++ err
+                  return $ Map.empty
+                Right tagList -> do
+                  return $ mkTagsMap tagList
 
-      let tagsMap' :: TagsMap
-          tagsMap' =
-              (mkTagsMap               -- created 'TagsMap'
-                . map (fixFileName cwd tagsDir)
-                                       -- fix file names
-                . mapMaybe ghcTagToTag -- tranalte 'GhcTag' to 'Tag'
-                . getGhcTags           -- generate 'GhcTag's
-                $ lmodule)
-            `Map.union`
-              tagsMap
-              
-      -- update tags file, this will force evaluation `tagsMap'`, so when we
-      -- write it to `tagsMVar' it will not contain any thunks.
-      withFile tagsFile WriteMode
-        $ flip BS.hPutBuilder
-            ( Vim.formatTagsFile
-            . sortBy compareTags
-            . concat
-            . Map.elems
-            $ tagsMap'
-            )
+        cwd <- getCurrentDirectory
+        -- absolute directory path of the tags file
+        -- we need absolute path to make all tags file relative to it.
+        tagsDir <- makeAbsolute (fst $ splitFileName tagsFile)
 
-      pure (Just tagsMap')
+        let tagsMap' :: TagsMap
+            tagsMap' =
+                (mkTagsMap               -- created 'TagsMap'
+                  . map (fixFileName cwd tagsDir)
+                                         -- fix file names
+                  . mapMaybe ghcTagToTag -- tranalte 'GhcTag' to 'Tag'
+                  . getGhcTags           -- generate 'GhcTag's
+                  $ lmodule)
+              `Map.union`
+                tagsMap
+                
+        -- update tags file, this will force evaluation `tagsMap'`, so when we
+        -- write it to `tagsMVar' it will not contain any thunks.
+        withFile tagsFile WriteMode
+          $ flip BS.hPutBuilder
+              ( Vim.formatTagsFile
+              . sortBy compareTags
+              . concat
+              . Map.elems
+              $ tagsMap'
+              )
+
+        pure (Just tagsMap')
 
   where
     fixFileName :: FilePath -> FilePath -> Tag -> Tag
