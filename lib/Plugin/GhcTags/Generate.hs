@@ -344,6 +344,19 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
                      tcdMeths
             -- associated types
             ++ (flip mkFamilyDeclTags (Just tcdLName) . unLoc) `mapMaybe` tcdATs
+            -- associated type defaults (data type families, type families
+            -- (open or closed)
+            ++ foldl'
+                (\tags' (L _ tyFamDeflEqn) ->
+                  case tyFamDeflEqn of
+                    FamEqn { feqn_rhs } -> 
+                      case hsTypeTagName (unLoc feqn_rhs) of
+                        -- TODO: add a `default` field
+                        Just a  -> mkGhcTag' a TkTypeFamilyInstance : tags'
+                        Nothing -> tags'
+                    XFamEqn {} -> tags')
+                [] tcdATDefs
+            ++ tags
 
           XTyClDecl {} -> tags
 
