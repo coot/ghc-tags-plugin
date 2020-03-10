@@ -1,6 +1,5 @@
 {-# LANGUAGE BangPatterns               #-}
 {-# LANGUAGE LambdaCase                 #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE NamedFieldPuns             #-}
 {-# LANGUAGE OverloadedStrings          #-}
@@ -54,13 +53,13 @@ import           Plugin.GhcTags.Generate
 -- | 'ByteString' which encodes a tag name.
 --
 newtype TagName = TagName { getTagName :: Text }
-  deriving newtype (Eq, Ord, Show)
+  deriving (Eq, Ord, Show)
 
 
 -- | 'ByteString' which encodes a tag file.
 --
 newtype TagFile = TagFile { getTagFile :: String }
-  deriving newtype (Eq, Ord, Show)
+  deriving (Eq, Ord, Show)
 
 
 -- | When we parse a `tags` file we can eithera find no kind or recognize the
