@@ -95,7 +95,7 @@ where `PACKAGE_DB` is the package db where `ghc-tags-plugin` was installed by
 
 ## ghcid
 
-If you follows cabal configuration as above
+If you follow cabal configuration as above
 ```
 ghcid --comaand "cabal repl project"
 ```
@@ -110,8 +110,8 @@ to enable it (or `cabal.project.local` or `stack.yaml` files for that purpose).
 # Exceptions
 
 If a `GHC` plugin throws an exception, ghc stops.  This plugin wraps
-`IOException`s, to make it obvious that it failes rather than `GHC`.  This
-might mean you missconfigured the plugin (by passing wrong options).  The
+`IOException`s, to make it obvious that it files rather than `GHC`.  This
+might mean you misconfigured the plugin (by passing wrong options).  The
 result might look like this:
 
 ```
