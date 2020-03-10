@@ -39,7 +39,6 @@ instance Arbitrary ArbOrdTag where
                        [ "find"
                        , "Ord"
                        , "Eq"
-                       , "hPut"
                        ])
              <*> genTagKind
              <*> elements (TagFile `map`

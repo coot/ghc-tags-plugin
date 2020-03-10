@@ -87,40 +87,23 @@ data Tag = Tag
   }
   deriving (Eq, Show)
 
+-- | Total order relation on 'Tag' elements.
+--
+-- It sorts type classes / type families ('TkTypeClass', 'TkTypeFamily',
+-- 'TkDataTypeFamily')  before instances ('TkTypeClassInstance',
+-- 'TkTypeFamilyInstance', 'TkDataTypeFamilyInstance'); but also (as a side
+-- effect of keeping transitivity property) it will put type classes and their
+-- instances before other kinds.
+--
 compareTags :: Tag -> Tag -> Ordering
 compareTags t0 t1 | on (/=) tagName t0 t1 = on compare tagName t0 t1
 
                   -- sort type classes / type families before their instances,
                   -- and take precendence over a file where they are defined.
-                  | tagKind t0 == GhcKind TkTypeClass
-                    &&
-                    tagKind t1 == GhcKind TkTypeClassInstance
-                    = LT
-
-                  | tagKind t1 == GhcKind TkTypeClass
-                    &&
-                    tagKind t0 == GhcKind TkTypeClassInstance
-                    = GT
-
-                  | tagKind t0 == GhcKind TkTypeFamily
-                    &&
-                    tagKind t1 == GhcKind TkTypeFamilyInstance
-                    = LT
-
-                  | tagKind t1 == GhcKind TkTypeFamily
-                    &&
-                    tagKind t0 == GhcKind TkTypeFamilyInstance
-                    = GT
-
-                  | tagKind t0 == GhcKind TkDataTypeFamily
-                    &&
-                    tagKind t1 == GhcKind TkDataTypeFamilyInstance
-                    = LT
-
-                  | tagKind t1 == GhcKind TkDataTypeFamily
-                    &&
-                    tagKind t0 == GhcKind TkDataTypeFamilyInstance
-                    = GT
+                  -- 
+                  -- This will also sort type classes and instances before any
+                  -- other terms.
+                  | on (/=) getTkClass t0 t1 = on compare getTkClass t0 t1
 
                   | on (/=) tagFile t0 t1 = on compare tagFile t0 t1
                   | on (/=) tagAddr t0 t1 = on compare tagAddr t0 t1
@@ -129,6 +112,16 @@ compareTags t0 t1 | on (/=) tagName t0 t1 = on compare tagName t0 t1
                   -- this is not compatible with 'Eq' intsance, but we are not
                   -- defining a 'Ord' instance!
                   | otherwise             = EQ
+    where
+      getTkClass :: Tag -> Maybe GhcKind
+      getTkClass t = case tagKind t of
+        GhcKind TkTypeClass              -> Just TkTypeClass
+        GhcKind TkTypeClassInstance      -> Just TkTypeClassInstance
+        GhcKind TkTypeFamily             -> Just TkTypeFamily
+        GhcKind TkTypeFamilyInstance     -> Just TkTypeFamilyInstance
+        GhcKind TkDataTypeFamily         -> Just TkDataTypeFamily
+        GhcKind TkDataTypeFamilyInstance -> Just TkDataTypeFamilyInstance
+        _                                -> Nothing
 
 
 ghcTagToTag :: GhcTag -> Maybe Tag
