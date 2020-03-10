@@ -16,6 +16,11 @@ maintainer:          profunctor@pm.me
 -- category:
 extra-source-files:  CHANGELOG.md
 
+flag tags
+  Description: Enable GhcTagsPlugin
+  Manual:  True
+  Default: False
+
 library
   exposed-modules:     MyLib
                        AnotherModule

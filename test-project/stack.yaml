@@ -1,0 +1,16 @@
+resolver: lts-15.3
+packages:
+- .
+
+# adding version from github; it's not yet on stackage
+extra-deps:
+  - git: https://github.com/coot/ghc-tags-plugin
+    commit: a841dae7fb9c335101f7fa4187d02687d306f972
+
+# set the plugin; for each project for which you use it,
+# it must be defined in its `build-depends` (checkout the
+# `test-project.cabal`` file)
+test-project: -plugin-package=ghc-tags-plugin
+              -fplugin=Plugin.GhcTags
+
+compiler-check: newer-minor
