@@ -44,13 +44,13 @@ It can be an absolute path or relative (to the cabal project file), for example:
 This is useful if for cabal projects which are located in subdirectories.
 
 
-## ghc
+## Ghc
 
 ```
 ghc -plugin-package=ghc-tags-plugin -fplugin=Plugin.GhcTags
 ```
 
-## cabal
+## Cabal
 
 Install the `ghc-tags-plugin` to cabal store with:
 ```
@@ -74,7 +74,12 @@ or on Windows (note the `""` syntax)
 ```
 "C:\\Users\\USER_NAME\\AppData\\Roaming\\cabal\\store\\ghc-8.6.5\\package.db
 ```
-## stack
+
+Note that you can also configure in this way non-local projects.  You will
+likely want to pass `-fplugin-opt=Plugin.GhcTags=PATH` where `PATH` is *an
+absolute* path to your `tags` file.
+
+## Stack
 
 Install `ghc-tags-plugin` 
 
@@ -93,7 +98,7 @@ ghc-options:
 where `PACKAGE_DB` is the package db where `ghc-tags-plugin` was installed by
 `stack`.
 
-## ghcid
+## Ghcid
 
 If you follow cabal configuration as above
 ```
@@ -101,11 +106,14 @@ ghcid --comaand "cabal repl project"
 ```
 Will update `tags` file as you modify your project.
 
-## modifying `cabal` files
+## Modifying `cabal` files
 
 You can always add `ghc-tags-plugin` as a build dependency in a cabal file (for
 each component).  You should hide it behind a flag and then use `cabal` or `stack`
 to enable it (or `cabal.project.local` or `stack.yaml` files for that purpose).
+
+This is the most reliable way for setting the plugin to work, but it's only
+acceptable in some scenarios.
 
 # Exceptions
 
