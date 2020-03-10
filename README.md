@@ -81,22 +81,25 @@ absolute* path to your `tags` file.
 
 ## Stack
 
-Install `ghc-tags-plugin` 
+This is alternative method, which also could be modified for `cabal` (and is
+not as nice as the method for cabal where you don't need to modify any files
+checked in vcs).
+
+Add `ghc-tags-plugin` to  `build-depends` in your `*.cabal` files. (You should
+hide it behind a cabal flag).  And add these lines to `stack.yaml` file:
 
 ```
-stack install ghc-tags-plugin
+extra-deps:
+  - git: https://github.com/coot/ghc-tags-plugin
+    commit: a841dae7fb9c335101f7fa4187d02687d306f972
+
+test-project: -plugin-package=ghc-tags-plugin
+              -fplugin=Plugin.GhcTags
 ```
 
-In `stack.yaml` file add:
-```
-ghc-options:
-    some-project: -package-db=PACKAGE_DB
-                  -plugin-package=ghc-tags-plugin
-                  -fplugin=Plugin.GhcTags
-```
+Check out an example
+[here](https://github.com/coot/ghc-tags-plugin/tree/stack-setup/test-project).
 
-where `PACKAGE_DB` is the package db where `ghc-tags-plugin` was installed by
-`stack`.
 
 ## Ghcid
 
@@ -105,15 +108,6 @@ If you follow cabal configuration as above
 ghcid --comaand "cabal repl project"
 ```
 Will update `tags` file as you modify your project.
-
-## Modifying `cabal` files
-
-You can always add `ghc-tags-plugin` as a build dependency in a cabal file (for
-each component).  You should hide it behind a flag and then use `cabal` or `stack`
-to enable it (or `cabal.project.local` or `stack.yaml` files for that purpose).
-
-This is the most reliable way for setting the plugin to work, but it's only
-acceptable in some scenarios.
 
 # Exceptions
 
