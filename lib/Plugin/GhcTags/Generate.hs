@@ -429,14 +429,14 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
     mkConsTags tyName ConDeclGADT { con_names, con_args } =
          (\n -> mkGhcTagForMember n tyName TkGADTConstructor)
          `map` con_names
-      ++ mkHsConDeclDetails con_args
+      ++ mkHsConDeclDetails tyName con_args
     mkConsTags tyName ConDeclH98  { con_name, con_args } =
         mkGhcTagForMember con_name tyName TkDataConstructor
-      : mkHsConDeclDetails con_args
+      : mkHsConDeclDetails tyName con_args
     mkConsTags _ XConDecl {} = []
 
-    mkHsConDeclDetails :: HsConDeclDetails GhcPs -> GhcTags
-    mkHsConDeclDetails (RecCon (L _ fields)) = foldl' f [] fields
+    mkHsConDeclDetails :: Located RdrName -> HsConDeclDetails GhcPs -> GhcTags
+    mkHsConDeclDetails tyName (RecCon (L _ fields)) = foldl' f [] fields
       where
         f :: GhcTags -> LConDeclField GhcPs -> GhcTags
         f ts (L _ ConDeclField { cd_fld_names }) = foldl' g ts cd_fld_names
@@ -444,11 +444,11 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
 
         g :: GhcTags -> LFieldOcc GhcPs -> GhcTags
         g ts (L _ FieldOcc { rdrNameFieldOcc }) =
-            mkGhcTag' rdrNameFieldOcc TkRecordField
+            mkGhcTagForMember rdrNameFieldOcc tyName TkRecordField
           : ts
         g ts _ = ts
 
-    mkHsConDeclDetails _  = []
+    mkHsConDeclDetails _ _ = []
 
     mkHsBindLRTags :: HsBindLR GhcPs GhcPs -> GhcTags
     mkHsBindLRTags hsBind =

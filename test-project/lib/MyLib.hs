@@ -8,6 +8,7 @@ module MyLib
   , GetHeader (Header)
   , Header(HeaderInt)
   , X (XInt)
+  , Record (recordId)
   ) where
 
 someFunc :: IO ()
