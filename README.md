@@ -5,36 +5,26 @@
 A [Ghc Compiler Plugin](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/extending_ghc.html#compiler-plugins)
 which generates tags for each compiled module or component.
 
-# Requirements
+
+# ● Requirements
 
 ```
 ghc >= 8.6
 ```
 
-# Vim configuration
+# ● Vim configuration
 
-Each generated tags file is put next to the corresponding `*.cabal` file.  If
-you just have a repo with a cabal file in the main directory `vim` default
-`tags` setting will work, if you have some modules in subdirectories you will
-need to set:
+By default each generated tags file is put next to the corresponding `*.cabal`
+file.  If you just have a repo with a cabal file in the main directory `vim`
+default `tags` setting will work, if you have some modules in subdirectories
+you will need to set:
 ```
 :set tags+=*/tags
 ```
-This can be modified by passing an option, see
-[below](https://github.com/coot/ghc-tags-plugin/#plugin-options).
+This can be modified by passing an option, see below.
 
-# Plugin configuration
 
-Configuration of this plugin requires some familiarity with `ghc` packages.
-Check out
-[documentation](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/packages.html#packages)
-how to use `-plugin-package` or `-plugin-package-id`.  In the examples below we
-us `-plugin-package=ghc-tags-plugin` but specifying version
-`-package=ghc-tags-plugin-0.0.0.0` (where `0.0.0.0` is the version you
-installed), might work better.  You can use `ghc-pkg latest`  (likely with
-appropriate `--package-db` flag) to check which version is available.
-
-# Plugin options
+# ● Plugin options
 
 The plugin accepts an only one option, which is a file path to the tags file.
 It can be an absolute path or relative (to the cabal project file), for example:
@@ -44,13 +34,28 @@ It can be an absolute path or relative (to the cabal project file), for example:
 This is useful if for cabal projects which are located in subdirectories.
 
 
-## Ghc
+# ● Configuration: Ghc / Cabal / Stack
+
+Configuration of this plugin requires some familiarity with `ghc` packages.
+Check out
+[documentation](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/packages.html#packages)
+to use `-plugin-package` or `-plugin-package-id`.  In the examples below we
+us `-plugin-package=ghc-tags-plugin` but specifying version
+`-package=ghc-tags-plugin-0.0.0.0` (where `0.0.0.0` is the version you
+installed), might work better.  You can use `ghc-pkg latest ghc-tags-plugin`
+(likely with appropriate `--package-db` flag) to check which version is
+available.
+
+
+## ● Ghc
 
 ```
 ghc -plugin-package=ghc-tags-plugin -fplugin=Plugin.GhcTags
 ```
 
-## Cabal
+You might also need to pass `-package-db` in which you installed the plugin.
+
+## ● Cabal
 
 Install the `ghc-tags-plugin` to cabal store with:
 ```
@@ -79,7 +84,8 @@ Note that you can also configure in this way non-local projects.  You will
 likely want to pass `-fplugin-opt=Plugin.GhcTags=PATH` where `PATH` is *an
 absolute* path to your `tags` file.
 
-## Stack
+
+## ● Stack
 
 This is alternative method, which also could be modified for `cabal` (and is
 not as nice as the method for cabal where you don't need to modify any files
@@ -101,7 +107,7 @@ Check out an example
 [here](https://github.com/coot/ghc-tags-plugin/tree/stack-setup/test-project).
 
 
-## Ghcid
+## ● Ghcid
 
 If you follow cabal configuration as above
 ```
@@ -109,7 +115,8 @@ ghcid --comaand "cabal repl project"
 ```
 Will update `tags` file as you modify your project.
 
-# Exceptions
+
+# ● Exceptions
 
 If a `GHC` plugin throws an exception, ghc stops.  This plugin wraps
 `IOException`s, to make it obvious that it files rather than `GHC`.  This
@@ -124,7 +131,7 @@ ghc: panic! (the 'impossible' happened)
 ```
 
 
-# Security implications of compiler plugins
+# ● Security implications of compiler plugins
 
 Such plugins can:
 
