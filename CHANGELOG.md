@@ -27,3 +27,4 @@
 * Wrapped `IOExceptions`, so when it will happen it will be obvious that the
   plugin failed not `ghc`
 * Fixed the tag ordering function to be fullfil the transitivness property.
+* Tags for default instances of associated (data) type familes.
