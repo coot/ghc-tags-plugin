@@ -8,6 +8,8 @@ import           Data.Maybe (isNothing)
 import           Data.Text   (Text)
 import qualified Data.Text as Text
 
+import           Algebra.Lattice
+
 import           Test.QuickCheck
 import           Test.QuickCheck.Instances.Text ()
 
@@ -27,10 +29,12 @@ genTextNonEmpty =
 -- filter only printable characters, removing tabs and newlines which have
 -- special role in vim tag syntax
 fixText :: Text -> Text
-fixText = Text.filter (\x -> x /= '\t' && x /= '\n' && Char.isPrint x)
+fixText = Text.filter ( ((/= Char.Control) . Char.generalCategory)
+                        /\ Char.isPrint)
 
 fixFilePath :: String -> String
-fixFilePath = List.filter (\x -> x /= '\t' && x /= '\n' && Char.isPrint x)
+fixFilePath = List.filter ( ((/= Char.Control) . Char.generalCategory)
+                            /\ Char.isPrint)
 
 genFilePath :: Gen String
 genFilePath =
@@ -50,7 +54,9 @@ genField =
 -- filter only printable characters, removing tabs, newlines and colons which
 -- have special role in vim field syntax
 fixFieldText :: Text -> Text
-fixFieldText = Text.filter (\x -> x /= '\t' && x /= ':' && x /= '\n' && Char.isPrint x)
+fixFieldText = Text.filter ( (/= ':')
+                             /\ ((/= Char.Control) . Char.generalCategory)
+                             /\ Char.isPrint)
 
 
 -- address cannot contain ";\"" sequence
@@ -90,13 +96,7 @@ genTagKind = oneof
     ]
   where
     genChar = suchThat arbitrary
-                       (\x ->    x /= '\t'
-                              && x /= '\n'
-                              && x /= ':'
-                              && x /= '\NUL'
-                              && isNothing (charToGhcKind x)
+                       ( ((/= Char.Control) . Char.generalCategory)
+                         /\ (/= ':')
+                         /\ (isNothing . charToGhcKind)
                        )
-
---
---
---

@@ -70,6 +70,7 @@ test-suite ghc-tags-tests
   build-depends:       attoparsec,
                        base,
                        bytestring,
+                       lattices,
                        QuickCheck,
                        quickcheck-instances,
                        tasty,
