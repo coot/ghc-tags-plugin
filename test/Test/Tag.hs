@@ -35,16 +35,18 @@ newtype ArbOrdTag = ArbOrdTag { getArbOrdTag :: Tag }
 instance Arbitrary ArbOrdTag where
     arbitrary = fmap ArbOrdTag
               $  Tag
-             <$> elements (TagName `map`
-                       [ "find"
-                       , "Ord"
-                       , "Eq"
-                       ])
+             <$> elements
+                   (TagName `map`
+                     [ "find"
+                     , "Ord"
+                     , "Eq"
+                     ])
              <*> genTagKind
-             <*> elements (TagFile `map`
-                       [ "Main.hs"
-                       , "Lib.hs"
-                       ])
+             <*> elements
+                   (TagFile `map`
+                     [ "Main.hs"
+                     , "Lib.hs"
+                     ])
              <*> frequency
                    [ (8, Left . getPositive <$> arbitrary)
                    , (1, Right . (wrap '/' . fixAddr) <$> genTextNonEmpty)
