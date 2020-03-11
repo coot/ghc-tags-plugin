@@ -4,7 +4,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
--- | Interface for generatating tags for a parsed module.
+-- | Interface for generating tags for a parsed module.
 --
 module Plugin.GhcTags.Generate
   ( GhcTag (..)
@@ -147,7 +147,7 @@ charToGhcKind c = case c of
 
 
 
--- | Unit of data associated with a tag.  vim nativelly supports `file:` and
+-- | Unit of data associated with a tag.  Vim natively supports `file:` and
 -- `kind:` tags but it can display any other tags too.
 --
 data TagField = TagField {
@@ -164,7 +164,7 @@ fileField :: TagField
 fileField = TagField { fieldName = "file", fieldValue = "" }
 
 
--- | We can read names from using fields of type 'GHC.Hs.Extensions.IdP' (a tpye
+-- | We can read names from using fields of type 'GHC.Hs.Extensions.IdP' (a type
 -- family) which for @'Parsed@ resolved to 'RdrName'
 --
 data GhcTag = GhcTag {
@@ -183,7 +183,7 @@ appendField f gt = gt { gtFields = f : gtFields gt }
 type GhcTags = [GhcTag]
 
 
--- | Check if an identifier is exported, if it is not return 'fileFiled'.
+-- | Check if an identifier is exported, if it is not return 'fileField'.
 --
 getFileTagField :: Maybe [IE GhcPs] -> Located RdrName -> Maybe TagField
 getFileTagField Nothing   _name = Nothing
@@ -355,7 +355,7 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
           --   type class name,
           --   type class members,
           --   default methods,
-          --   defalt data type instance
+          --   default data type instance
           --
           ClassDecl { tcdLName, tcdSigs, tcdMeths, tcdATs, tcdATDefs } ->
               -- class name
@@ -423,7 +423,7 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
 
           XInstDecl {} -> tags
 
-      -- deriveving declaration
+      -- deriving declaration
       DerivD {} -> tags
 
       -- value declaration
@@ -469,7 +469,7 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
     mkConsTags :: Located RdrName
                -- name of the type
                -> ConDecl GhcPs
-               -- constrtructor declaration
+               -- constructor declaration
                -> GhcTags
 
     mkConsTags tyName ConDeclGADT { con_names, con_args } =
@@ -514,7 +514,7 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
 
         VarBind { var_id, var_rhs = L srcSpan _ } -> [mkGhcTag' (L srcSpan var_id) TkTerm]
 
-        -- abstraction binding are only used after translaction
+        -- abstraction binding is only used after translation
         AbsBinds {} -> []
 
         PatSynBind _ PSB { psb_id } -> [mkGhcTag' psb_id TkPatternSynonym]

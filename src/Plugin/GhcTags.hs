@@ -39,16 +39,16 @@ import qualified Plugin.GhcTags.Vim as Vim
 
 
 -- |  Global shared state which persists across compilation of different
--- modules - a nasty hack which is only used for optimzation.
+-- modules - a nasty hack which is only used for optimization.
 --
 tagsMVar :: MVar (Maybe TagsMap)
 tagsMVar = unsafePerformIO $ newMVar Nothing
 
 -- | The GhcTags plugin.  It will run for every compiled module and have access
--- to parsed syntax tree.  It will inpect it and:
+-- to parsed syntax tree.  It will inspect it and:
 --
 -- * update a global mutable state variable, which stores a tag map.
---   It is shared accross modules compiled in the same `ghc` run.
+--   It is shared across modules compiled in the same `ghc` run.
 -- * update 'tags' file.
 --
 -- The global mutable variable save us from parsing the tags file for every
@@ -79,7 +79,7 @@ plugin = GhcPlugins.defaultPlugin {
 
 
 -- | IOExcption wrapper; it is useful for the user to know that it's the plugin
--- not `ghc` that throwed the error.
+-- not `ghc` that thrown the error.
 --
 data GhcTagsPluginException =
     GhcTagsPluginIOExceptino IOException
@@ -154,7 +154,7 @@ updateTags tagsFile lmodule =
                 (mkTagsMap               -- created 'TagsMap'
                   . map (fixFileName cwd tagsDir)
                                          -- fix file names
-                  . mapMaybe ghcTagToTag -- tranalte 'GhcTag' to 'Tag'
+                  . mapMaybe ghcTagToTag -- translate 'GhcTag' to 'Tag'
                   . getGhcTags           -- generate 'GhcTag's
                   $ lmodule)
               `Map.union`
