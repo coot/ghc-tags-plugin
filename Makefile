@@ -25,4 +25,4 @@ latest:
 recache:
 	ghc-pkg recache --package-db=${PACKAGE_DB}
 
-.PHONY: install, uninstall, reinstall, show, latest
+.PHONY: install, uninstall, reinstall, latest
