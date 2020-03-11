@@ -21,10 +21,10 @@
   sorted before their instances.  If one is using multipe tags (the default),
   the order of them also matters (i.e. in the vim `tags` option).
 
-## 0.1.3.0 -- ?
+## 0.1.4.0 -- 2020-03.11
 
+* Tags for default instances of associated (data) type familes.
 * Added path argument, can be passed using `-fplugin-opt=Plugin.GhcTags:../tags`.
 * Wrapped `IOExceptions`, so when it will happen it will be obvious that the
   plugin failed not `ghc`
 * Fixed the tag ordering function to be fullfil the transitivness property.
-* Tags for default instances of associated (data) type familes.

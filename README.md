@@ -15,21 +15,20 @@ ghc >= 8.6
 # ● Vim configuration
 
 By default each generated tags file is put next to the corresponding `*.cabal`
-file.  If you just have a repo with a cabal file in the main directory `vim`
-default `tags` setting will work, if you have some modules in subdirectories
-you will need to set:
+package file.  If you just have a repo with a cabal file in the main directory
+`vim` default `tags` setting will work, if you have some modules in
+subdirectories you will either need to set:
 ```
 :set tags+=*/tags
 ```
-This can be modified by passing an option, see below.
+or pass an option to modify where tags are written, see below.
 
 
 # ● Plugin options
 
 The plugin accepts an only one option, which is a file path to the tags file.
 It can be an absolute path or relative (to the `*.cabal` package file rather
-than
-`cabal.project` file), for example:
+than `cabal.project` file), for example:
 ```
 -fplugin-opt=Plugin.GhcTags:../tags
 ```
@@ -88,8 +87,8 @@ absolute* path to your `tags` file.
 
 ## ● Stack
 
-This is alternative method, which also could be modified for `cabal` (and is
-not as nice as the method for cabal where you don't need to modify any files
+This is alternative method, which also could be modified for `cabal` (but it is
+not as nice as the previous method where you don't need to modify any files
 checked in vcs).
 
 Add `ghc-tags-plugin` to  `build-depends` in your `*.cabal` files. (You should
@@ -110,11 +109,11 @@ Check out an example
 
 ## ● Ghcid
 
-If you follow cabal configuration as above
+If you follow the cabal configuration as above (using `stack` should work too)
 ```
 ghcid --comaand "cabal repl project"
 ```
-Will update `tags` file as you modify your project.
+will update `tags` file as you modify your project.
 
 
 ## ● Makefile
@@ -122,7 +121,7 @@ Will update `tags` file as you modify your project.
 The [Makefile](https://github.com/coot/ghc-tags-plugin/blob/master/Makefile)
 contains some useful commands, e.g. `install`,  `uninstall` or `reinstall` the
 package in a `package.db` (by default into `cabal` store).  This is mostly for
-development, but it could be useful in other scenarios.
+development, but it could be useful in other scenarios as well.
 
 # ● Exceptions
 
