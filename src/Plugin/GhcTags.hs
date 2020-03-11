@@ -15,23 +15,25 @@ import           Data.Functor ((<$))
 import           Data.List (sortBy)
 import qualified Data.Map as Map
 import           Data.Maybe (mapMaybe)
+import qualified Data.Text.Encoding as Text
 import           System.Directory
 import           System.FilePath
 import           System.IO
 import           System.IO.Error  (tryIOError)
 import           System.IO.Unsafe (unsafePerformIO)
-import qualified Data.Text.Encoding as Text
 
 import           GhcPlugins ( CommandLineOption
                             , Hsc
                             , HsParsedModule (..)
                             , Located
-                            , ModSummary
+                            , ModSummary (..)
                             , Plugin (..)
                             )
 import qualified GhcPlugins
 import           HsExtension (GhcPs)
-import           HsSyn (HsModule)
+import           HsSyn (HsModule (..))
+import qualified Outputable as Out
+import qualified PprColour
 
 import           Plugin.GhcTags.Generate
 import           Plugin.GhcTags.Tag
@@ -91,8 +93,8 @@ instance Exception GhcTagsPluginException
 -- | The plugin does not change the 'HsParedModule', it only runs side effects.
 --
 ghcTagsPlugin :: [CommandLineOption] -> ModSummary -> HsParsedModule -> Hsc HsParsedModule
-ghcTagsPlugin options _modSummary hsParsedModule@HsParsedModule {hpm_module} =
-    hsParsedModule <$ GhcPlugins.liftIO (updateTags tagsFile hpm_module)
+ghcTagsPlugin options moduleSummary hsParsedModule@HsParsedModule {hpm_module} =
+    hsParsedModule <$ GhcPlugins.liftIO (updateTags moduleSummary tagsFile hpm_module)
   where
     tagsFile :: FilePath
     tagsFile = case options of
@@ -106,10 +108,11 @@ ghcTagsPlugin options _modSummary hsParsedModule@HsParsedModule {hpm_module} =
 -- compilation step since we don't know if the currently compiled module is the
 -- last one or not.
 --
-updateTags :: FilePath
+updateTags :: ModSummary
+           -> FilePath
            -> Located (HsModule GhcPs)
            -> IO ()
-updateTags tagsFile lmodule =
+updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags} tagsFile lmodule =
     -- wrap 'IOException's
     handle (throwIO . GhcTagsPluginIOExceptino) $
 
@@ -132,14 +135,14 @@ updateTags tagsFile lmodule =
                     mtext <- tryIOError (Text.decodeUtf8 <$> BS.readFile tagsFile)
                     case mtext of
                       Left err    -> do
-                        putStrLn $ "GhcTags: error reading \"" ++ tagsFile ++ "\": " ++ (show err)
+                        putDocLn (errorDoc $ displayException err)
                         pure $ Right []
                       Right txt ->
                         Vim.parseTagsFile txt
                   else pure $ Right []
               case res of
                 Left err -> do
-                  putStrLn $ "GhcTags: error reading or parsing \"" ++ tagsFile ++ "\": " ++ err
+                  putDocLn (errorDoc err)
                   return $ Map.empty
                 Right tagList -> do
                   return $ mkTagsMap tagList
@@ -177,6 +180,28 @@ updateTags tagsFile lmodule =
     fixFileName :: FilePath -> FilePath -> Tag -> Tag
     fixFileName cwd tagsDir tag@Tag { tagFile = TagFile path } =
       tag { tagFile = TagFile (makeRelative tagsDir (cwd </> path)) }
+
+    errorDoc :: String -> Out.SDoc
+    errorDoc errorMessage =
+      Out.coloured PprColour.colBold
+        $ Out.blankLine
+            Out.$+$
+              ((Out.text "GhcTagsPlugin: ")
+                Out.<> (Out.coloured PprColour.colRedFg (Out.text "error:")))
+            Out.$$
+              (Out.nest 4 $ Out.ppr ms_mod)
+            Out.$$
+              (Out.nest 8 $ Out.coloured PprColour.colRedFg (Out.text errorMessage))
+            Out.$+$
+            Out.blankLine
+
+    putDocLn :: Out.SDoc -> IO ()
+    putDocLn sdoc =
+        putStrLn $
+          Out.renderWithStyle
+            dynFlags
+            sdoc
+            (Out.setStyleColoured True $ Out.defaultErrStyle dynFlags)
 
 
 -- | The 'MVar' is used as an exlusive lock.  Also similar to 'bracket' but
