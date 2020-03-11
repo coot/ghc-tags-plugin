@@ -27,11 +27,13 @@ This can be modified by passing an option, see below.
 # ● Plugin options
 
 The plugin accepts an only one option, which is a file path to the tags file.
-It can be an absolute path or relative (to the cabal project file), for example:
+It can be an absolute path or relative (to the `*.cabal` package file rather
+than
+`cabal.project` file), for example:
 ```
 -fplugin-opt=Plugin.GhcTags:../tags
 ```
-This is useful if for cabal projects which are located in subdirectories.
+This is useful if for *cabal packages* which are located in subdirectories.
 
 
 # ● Configuration: Ghc / Cabal / Stack
@@ -40,12 +42,11 @@ Configuration of this plugin requires some familiarity with `ghc` packages.
 Check out
 [documentation](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/packages.html#packages)
 to use `-plugin-package` or `-plugin-package-id`.  In the examples below we
-us `-plugin-package=ghc-tags-plugin` but specifying version
+use `-plugin-package=ghc-tags-plugin` but specifying version
 `-package=ghc-tags-plugin-0.0.0.0` (where `0.0.0.0` is the version you
 installed), might work better.  You can use `ghc-pkg latest ghc-tags-plugin`
 (likely with appropriate `--package-db` flag) to check which version is
 available.
-
 
 ## ● Ghc
 
@@ -116,17 +117,24 @@ ghcid --comaand "cabal repl project"
 Will update `tags` file as you modify your project.
 
 
+## ● Makefile
+
+The [Makefile](https://github.com/coot/ghc-tags-plugin/blob/master/Makefile)
+contains some useful commands, e.g. `install`,  `uninstall` or `reinstall` the
+package in a `package.db` (by default into `cabal` store).  This is mostly for
+development, but it could be useful in other scenarios.
+
 # ● Exceptions
 
-If a `GHC` plugin throws an exception, ghc stops.  This plugin wraps
-`IOException`s, to make it obvious that it files rather than `GHC`.  This
+If a `GHC` plugin throws an exception, `GHC` stops.  This plugin wraps
+`IOException`s, to make it obvious that it filed rather than `GHC`.  This
 might mean you misconfigured the plugin (by passing wrong options).  The
 result might look like this:
 
 ```
 ghc: panic! (the 'impossible' happened)
   (GHC version 8.6.5 for x86_64-unknown-linux):
-        GhcTagsPluginIOExceptino ../: openFile: inappropriate type (Is a directory)
+        GhcTagsPluginIOException ../: openFile: inappropriate type (Is a directory)
 
 ```
 
@@ -141,5 +149,5 @@ Such plugins can:
 
 This plugin only reads & writes to `tags` file (and updates a shared mutable
 state) as of `IO`, and does not
-[modify/](https://github.com/coot/ghc-tags-plugin/blob/master/lib/Plugin/GhcTags.hs#L79)
+[modify/](https://github.com/coot/ghc-tags-plugin/blob/master/src/Plugin/GhcTags.hs#L95)
 the syntax tree.

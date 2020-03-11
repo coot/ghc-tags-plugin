@@ -73,7 +73,7 @@ tagsMVar = unsafePerformIO $ newMVar Nothing
 --
 plugin :: Plugin
 plugin = GhcPlugins.defaultPlugin {
-      parsedResultAction = ghcTagPlugin,
+      parsedResultAction = ghcTagsPlugin,
       pluginRecompile    = GhcPlugins.purePlugin
    }
 
@@ -90,8 +90,8 @@ instance Exception GhcTagsPluginException
 
 -- | The plugin does not change the 'HsParedModule', it only runs side effects.
 --
-ghcTagPlugin :: [CommandLineOption] -> ModSummary -> HsParsedModule -> Hsc HsParsedModule
-ghcTagPlugin options _modSummary hsParsedModule@HsParsedModule {hpm_module} =
+ghcTagsPlugin :: [CommandLineOption] -> ModSummary -> HsParsedModule -> Hsc HsParsedModule
+ghcTagsPlugin options _modSummary hsParsedModule@HsParsedModule {hpm_module} =
     hsParsedModule <$ GhcPlugins.liftIO (updateTags tagsFile hpm_module)
   where
     tagsFile :: FilePath
