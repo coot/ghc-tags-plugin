@@ -1,5 +1,9 @@
 Ghc Tags Compiler Plugin
 ========================
+![Haskell Programming Language](https://img.shields.io/badge/language-Haskell-8D82AC.svg)
+![MPL-2.0 License](http://img.shields.io/badge/license-MPL20-brightgreen.svg)
+![Hackage](http://img.shields.io/hackage/v/ghc-tags-plugin.svg)
+
 ![](https://github.com/coot/ghc-tags-plugin/workflows/GHC-8.8.3/badge.svg)
 ![](https://github.com/coot/ghc-tags-plugin/workflows/GHC-8.6.5/badge.svg)
 
