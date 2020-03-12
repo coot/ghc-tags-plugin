@@ -9,6 +9,7 @@ module Plugin.GhcTags.Tag
   ( -- * Tag
     Tag (..)
   , compareTags
+  , tagFilePath
   , TagName (..)
   , TagFile (..)
   , TagKind (..)
@@ -17,14 +18,9 @@ module Plugin.GhcTags.Tag
   , ghcKindToChar
   , TagField (..)
   , ghcTagToTag
-  , TagsMap
-  , mkTagsMap
   ) where
 
 import           Data.Function (on)
-import           Data.List (sortBy)
-import           Data.Map  (Map)
-import qualified Data.Map as Map
 import           Data.Text   (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
@@ -61,6 +57,9 @@ newtype TagName = TagName { getTagName :: Text }
 newtype TagFile = TagFile { getTagFile :: String }
   deriving (Eq, Ord, Show)
 
+tagFilePath :: Tag -> FilePath
+tagFilePath = getTagFile . tagFile
+
 
 -- | When we parse a `tags` file we can eithera find no kind or recognize the
 -- kind of GhcKind or we store the found character kind.  This allows us to
@@ -86,6 +85,7 @@ data Tag = Tag
   , tagFields :: ![TagField]
   }
   deriving (Eq, Show)
+
 
 -- | Total order relation on 'Tag' elements.
 --
@@ -135,20 +135,3 @@ ghcTagToTag GhcTag { gtSrcSpan, gtTag, gtKind, gtFields } =
                    , tagKind   = GhcKind gtKind
                    , tagFields = gtFields
                    }
-
-
---
--- TagsMap
---
-
-
-type TagsMap = Map TagFile [Tag]
-
--- | Map from TagName to list of tags.  This will be useful when updating tags.
--- We will just need to merge dictionaries.
---
-mkTagsMap :: [Tag] -> TagsMap
-mkTagsMap =
-      fmap (sortBy compareTags)
-    . Map.fromListWith (<>)
-    . map (\t -> (tagFile t, [t]))

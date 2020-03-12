@@ -5,7 +5,6 @@
 
 module Plugin.GhcTags ( plugin ) where
 
-import           Control.Concurrent
 import           Control.Exception
 import qualified Data.ByteString         as BS
 import qualified Data.ByteString.Builder as BS
@@ -13,20 +12,21 @@ import qualified Data.ByteString.Builder as BS
 import           Data.Functor ((<$))
 #endif
 import           Data.List (sortBy)
-import qualified Data.Map as Map
 import           Data.Maybe (mapMaybe)
 import qualified Data.Text.Encoding as Text
 import           System.Directory
 import           System.FilePath
 import           System.IO
 import           System.IO.Error  (tryIOError)
-import           System.IO.Unsafe (unsafePerformIO)
+import           System.FileLock  ( SharedExclusive (..)
+                                  , withFileLock)
 
 import           GhcPlugins ( CommandLineOption
                             , Hsc
                             , HsParsedModule (..)
                             , Located
                             , ModSummary (..)
+                            , ModLocation (..)
                             , Plugin (..)
                             )
 import qualified GhcPlugins
@@ -39,12 +39,6 @@ import           Plugin.GhcTags.Generate
 import           Plugin.GhcTags.Tag
 import qualified Plugin.GhcTags.Vim as Vim
 
-
--- |  Global shared state which persists across compilation of different
--- modules - a nasty hack which is only used for optimization.
---
-tagsMVar :: MVar (Maybe TagsMap)
-tagsMVar = unsafePerformIO $ newMVar Nothing
 
 -- | The GhcTags plugin.  It will run for every compiled module and have access
 -- to parsed syntax tree.  It will inspect it and:
@@ -102,81 +96,90 @@ ghcTagsPlugin options moduleSummary hsParsedModule@HsParsedModule {hpm_module} =
       a : _ -> a
 
 
--- | Extract tags from a module and update tags file as well as the 'tagsMVar'
--- Using 'tagsMVar' we can save on parsing the tags file: we do it only when
--- the first module is compiled.  We need to write the results at every
--- compilation step since we don't know if the currently compiled module is the
--- last one or not.
+-- | Extract tags from a module and update tags file
 --
 updateTags :: ModSummary
            -> FilePath
            -> Located (HsModule GhcPs)
            -> IO ()
-updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags} tagsFile lmodule =
+updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags, ms_location} tagsFile lmodule =
     -- wrap 'IOException's
     handle (throwIO . GhcTagsPluginIOExceptino) $
 
-      -- Take exclusive lock.  This assures that only one thread will have access to
-      -- the tags file.  Parsing and the rest of the compilation pipeline can
-      -- happen concurrently.
-      mvarLock tagsMVar $ \mTagsMap -> do
-        (tagsMap :: TagsMap) <-
-          case mTagsMap of
-
-            Just tagsMap -> return tagsMap
-
-            -- the 'tagsMVar' is empty, which means we are compiling the first
-            -- module.  In this case read the tags from disk.
-            Nothing -> do
-              a <- doesFileExist tagsFile
-              res <-
-                if a
-                  then do
-                    mtext <- tryIOError (Text.decodeUtf8 <$> BS.readFile tagsFile)
-                    case mtext of
-                      Left err    -> do
-                        putDocLn (errorDoc $ displayException err)
-                        pure $ Right []
-                      Right txt ->
-                        Vim.parseTagsFile txt
-                  else pure $ Right []
+      -- Take advisory exclusive lock (a BSD lock using `flock`) on the tags
+      -- file.  This is needed when `cabal` compiles in parallel.
+      withFileLock tagsFile Exclusive $ \_ -> do
+        -- read and parse 
+        a <- doesFileExist tagsFile
+        tags <-
+          if a
+            then do
+              res <- tryIOError $
+                      Text.decodeUtf8 <$> BS.readFile tagsFile
+                  >>= Vim.parseTagsFile
               case res of
+                -- reading failed
                 Left err -> do
+                  putDocLn (errorDoc $ displayException err)
+                  pure []
+
+                -- parsing failed
+                Right (Left err) -> do
+                  -- shout and continue
                   putDocLn (errorDoc err)
-                  return $ Map.empty
-                Right tagList -> do
-                  return $ mkTagsMap tagList
+                  pure []
+
+                Right (Right tags) ->
+                  pure tags
+
+            -- no such file
+            else pure []
 
         cwd <- getCurrentDirectory
         -- absolute directory path of the tags file; we need canonical path
         -- (without ".." and ".") to make 'makeRelative' works.
         tagsDir <- canonicalizePath (fst $ splitFileName tagsFile)
 
-        let tagsMap' :: TagsMap
-            tagsMap' =
-                (mkTagsMap               -- created 'TagsMap'
-                  . map (fixFileName cwd tagsDir)
-                                         -- fix file names
-                  . mapMaybe ghcTagToTag -- translate 'GhcTag' to 'Tag'
-                  . getGhcTags           -- generate 'GhcTag's
-                  $ lmodule)
-              `Map.union`
-                tagsMap
+        let tags' :: [Tag]
+            tags' =
+              combineTags
+                (mkModPath cwd tagsDir)
+                ( map (fixFileName cwd tagsDir)
+                                       -- fix file names
+                . sortBy compareTags   -- sort
+                . mapMaybe ghcTagToTag -- translate 'GhcTag' to 'Tag'
+                . getGhcTags           -- generate 'GhcTag's
+                $ lmodule)
+                tags
                 
-        -- update tags file, this will force evaluation `tagsMap'`, so when we
-        -- write it to `tagsMVar' it will not contain any thunks.
-        withFile tagsFile WriteMode
-          $ flip BS.hPutBuilder
-              ( Vim.formatTagsFile
-              . sortBy compareTags
-              . concat
-              . Map.elems
-              $ tagsMap'
-              )
-
-        pure (Just tagsMap')
-
+        -- update tags file
+        withFile tagsFile WriteMode $ \h ->
+          BS.hPutBuilder h (Vim.formatTagsFile tags')
   where
+    mkModPath :: FilePath -> FilePath -> Maybe FilePath
+    mkModPath cwd tagsDir =
+      makeRelative tagsDir . (cwd </>) <$> ml_hs_file ms_location
+
+
+    -- this is crtitical function for perfomance.
+    --
+    -- complexity: /O(max n m)/
+    combineTags :: Maybe FilePath -> [Tag] -> [Tag] -> [Tag]
+    combineTags modPath = go
+      where
+        go as@(a : as') bs@(b : bs')
+          | Just (tagFilePath b) == modPath = go as bs'
+          | otherwise = case a `compareTags` b of
+              LT -> a : go as' bs
+              -- we remove all tags from `bs` which have the same path as the
+              -- current module (thus all tags in `as`)
+              EQ -> error "GhcTagsPlugin: impossible happend"
+              GT -> b : go as  bs'
+        go [] bs = filter (\b -> Just (tagFilePath b) /= modPath) bs
+        go as [] = as
+        {-# INLINE go #-}
+        
+
     fixFileName :: FilePath -> FilePath -> Tag -> Tag
     fixFileName cwd tagsDir tag@Tag { tagFile = TagFile path } =
       tag { tagFile = TagFile (makeRelative tagsDir (cwd </> path)) }
@@ -202,18 +205,3 @@ updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags} tagsFile lmodule =
             dynFlags
             sdoc
             (Out.setStyleColoured True $ Out.defaultErrStyle dynFlags)
-
-
--- | The 'MVar' is used as an exlusive lock.  Also similar to 'bracket' but
--- updates the 'MVar' with returned value, or put the original value if an
--- exception is thrown by the continuation (or an async exception).
---
-mvarLock :: MVar a
-         -> (a -> IO a)
-         -> IO ()
-mvarLock v k = mask $ \unmask -> do
-    a <- takeMVar v
-    a' <- unmask (k a)
-          `onException`
-          putMVar v a
-    putMVar v $! a'
