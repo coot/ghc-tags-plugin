@@ -1,4 +1,5 @@
-# Ghc Tags Compiler Plugin
+Ghc Tags Compiler Plugin
+========================
 ![](https://github.com/coot/ghc-tags-plugin/workflows/GHC-8.8.3/badge.svg)
 ![](https://github.com/coot/ghc-tags-plugin/workflows/GHC-8.6.5/badge.svg)
 
@@ -6,13 +7,15 @@ A [Ghc Compiler Plugin](https://downloads.haskell.org/~ghc/latest/docs/html/user
 which generates tags for each compiled module or component.
 
 
-# ● Requirements
+● Requirements
+--------------
 
 ```
 ghc >= 8.6
 ```
 
-# ● Vim configuration
+● Vim configuration
+-------------------
 
 By default each generated tags file is put next to the corresponding `*.cabal`
 package file.  If you just have a repo with a cabal file in the main directory
@@ -24,7 +27,8 @@ subdirectories you will either need to set:
 or pass an option to modify where tags are written, see below.
 
 
-# ● Plugin options
+● Plugin options
+----------------
 
 The plugin accepts an only one option, which is a file path to the tags file.
 It can be an absolute path or relative (to the `*.cabal` package file rather
@@ -35,7 +39,8 @@ than `cabal.project` file), for example:
 This is useful if for *cabal packages* which are located in subdirectories.
 
 
-# ● Configuration: Ghc / Cabal / Stack
+● Configuration: Ghc / Cabal / Stack
+------------------------------------
 
 Configuration of this plugin requires some familiarity with `ghc` packages.
 Check out
@@ -123,7 +128,8 @@ contains some useful commands, e.g. `install`,  `uninstall` or `reinstall` the
 package in a `package.db` (by default into `cabal` store).  This is mostly for
 development, but it could be useful in other scenarios as well.
 
-# ● Exceptions
+● Exceptions
+------------
 
 If a `GHC` plugin throws an exception, `GHC` stops.  This plugin wraps
 `IOException`s, to make it obvious that it filed rather than `GHC`.  This
@@ -138,7 +144,8 @@ ghc: panic! (the 'impossible' happened)
 ```
 
 
-# ● Security implications of compiler plugins
+● Security implications of compiler plugins
+-------------------------------------------
 
 Such plugins can:
 
