@@ -25,4 +25,7 @@ latest:
 recache:
 	ghc-pkg recache --package-db=${PACKAGE_DB}
 
-.PHONY: install, uninstall, reinstall, latest
+check:
+	ghc-pkg check --package-db=${PACKAGE_DB} 2>&1 | grep ghc-tags
+
+.PHONY: install, uninstall, reinstall, latest, check
