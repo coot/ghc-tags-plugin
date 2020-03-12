@@ -143,6 +143,19 @@ ghc: panic! (the 'impossible' happened)
 
 ```
 
+● Tips
+------
+
+- The plugin is safe for concurrent compilation.  Setting `jobs: $ncpus` is
+  safe.  The plugin holds an exclusive (advisory) lock on the `tags` file.
+  This will create synchronisation between threads / process which are using
+  the same `tags` file.
+
+- If you are working on a larger project, it might be better to not collect all
+  tags in a single `tags` file, since at every compilation step one will need
+  to parse a large `tags` file.  Working with tag files of size 10000 tags (or
+  ~1.5MB) is ok - though this will depend on the hardware.
+
 
 ● Security implications of compiler plugins
 -------------------------------------------
