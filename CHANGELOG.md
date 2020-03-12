@@ -28,3 +28,7 @@
 * Wrapped `IOExceptions`, so when it will happen it will be obvious that the
   plugin failed not `ghc`
 * Fixed the tag ordering function to be fullfil the transitivness property.
+
+## 0.1.5.0 -- ?
+
+* concurrency safety - protection `tags` file using a file lock
