@@ -6,7 +6,6 @@ module Test.Vim (tests) where
 import qualified Data.Attoparsec.Text as AT
 import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Lazy as BL
-import           Data.Text   (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 
@@ -45,32 +44,7 @@ instance Arbitrary ArbTag where
             , (1, Right . (wrap '?' . fixAddr) <$> genTextNonEmpty)
             ]
       <*> listOf genField
-    shrink (ArbTag tag@Tag {tagName, tagFile, tagAddr, tagFields}) =
-          [ ArbTag $ tag { tagName = TagName x }
-          | x <- fixText `map` shrink (getTagName tagName)
-          , not (Text.null x)
-          ]
-       ++ [ ArbTag $ tag { tagFile = TagFile x }
-          | x <- fixFilePath `map` shrink (getTagFile tagFile)
-          , not (null x)
-          ]
-       ++ [ ArbTag $ tag { tagAddr = addr }
-          | addr <- case tagAddr of
-              Left  addr -> Left `map` shrink addr
-              Right addr -> Left 0
-                          : (Right . wrap '/' . fixAddr)
-                            `map` (shrink . stripEnds) addr
-          ]
-       ++ [ ArbTag $ tag { tagFields = fields }
-          | fields <- shrinkList (const []) tagFields
-          ]
-        where
-          stripEnds :: Text -> Text
-          stripEnds addr = case Text.uncons addr of
-            Nothing -> error "impossible happend"
-            Just (_, addr') -> case Text.unsnoc addr' of
-              Nothing -> error "impossible happend"
-              Just (addr'', _) -> addr''
+    shrink = map ArbTag . shrinkTag . getArbTag
 
 
 roundTrip :: Tag -> Property
