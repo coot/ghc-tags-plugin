@@ -18,6 +18,7 @@ module Plugin.GhcTags.Tag
   , ghcKindToChar
   , TagField (..)
   , ghcTagToTag
+  , combineTags
   ) where
 
 import           Data.Function (on)
@@ -135,3 +136,24 @@ ghcTagToTag GhcTag { gtSrcSpan, gtTag, gtKind, gtFields } =
                    , tagKind   = GhcKind gtKind
                    , tagFields = gtFields
                    }
+
+
+-- This is crtitical function for perfomance.  Tags from the first list are
+-- assumeed to be from the same file.
+--
+-- complexity: /O(max n m)/
+combineTags :: [Tag] -> [Tag] -> [Tag]
+combineTags []          ts1 = ts1
+combineTags ts0@(t : _) ts1 = go ts0 ts1
+  where
+    modPath = tagFilePath t
+
+    go as@(a : as') bs@(b : bs')
+      | tagFilePath b == modPath = go as bs'
+      | otherwise = case a `compareTags` b of
+          LT -> a : go as' bs
+          EQ -> a : go as' bs'
+          GT -> b : go as  bs'
+    go [] bs = filter (\b -> tagFilePath b /= modPath) bs
+    go as [] = as
+    {-# INLINE go #-}

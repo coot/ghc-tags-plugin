@@ -26,7 +26,6 @@ import           GhcPlugins ( CommandLineOption
                             , HsParsedModule (..)
                             , Located
                             , ModSummary (..)
-                            , ModLocation (..)
                             , Plugin (..)
                             )
 import qualified GhcPlugins
@@ -102,7 +101,7 @@ updateTags :: ModSummary
            -> FilePath
            -> Located (HsModule GhcPs)
            -> IO ()
-updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags, ms_location} tagsFile lmodule =
+updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags} tagsFile lmodule =
     -- wrap 'IOException's
     handle (throwIO . GhcTagsPluginIOExceptino) $
 
@@ -142,43 +141,20 @@ updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags, ms_location} tagsFile lm
 
         let tags' :: [Tag]
             tags' =
-              combineTags
-                (mkModPath cwd tagsDir)
                 ( map (fixFileName cwd tagsDir)
                                        -- fix file names
                 . sortBy compareTags   -- sort
                 . mapMaybe ghcTagToTag -- translate 'GhcTag' to 'Tag'
                 . getGhcTags           -- generate 'GhcTag's
                 $ lmodule)
+                `combineTags`
                 tags
                 
         -- update tags file
         withFile tagsFile WriteMode $ \h ->
           BS.hPutBuilder h (Vim.formatTagsFile tags')
+
   where
-    mkModPath :: FilePath -> FilePath -> Maybe FilePath
-    mkModPath cwd tagsDir =
-      makeRelative tagsDir . (cwd </>) <$> ml_hs_file ms_location
-
-
-    -- this is crtitical function for perfomance.
-    --
-    -- complexity: /O(max n m)/
-    combineTags :: Maybe FilePath -> [Tag] -> [Tag] -> [Tag]
-    combineTags modPath = go
-      where
-        go as@(a : as') bs@(b : bs')
-          | Just (tagFilePath b) == modPath = go as bs'
-          | otherwise = case a `compareTags` b of
-              LT -> a : go as' bs
-              -- we remove all tags from `bs` which have the same path as the
-              -- current module (thus all tags in `as`)
-              EQ -> error "GhcTagsPlugin: impossible happend"
-              GT -> b : go as  bs'
-        go [] bs = filter (\b -> Just (tagFilePath b) /= modPath) bs
-        go as [] = as
-        {-# INLINE go #-}
-        
 
     fixFileName :: FilePath -> FilePath -> Tag -> Tag
     fixFileName cwd tagsDir tag@Tag { tagFile = TagFile path } =

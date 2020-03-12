@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Test.Tag.Generators where
@@ -100,3 +101,37 @@ genTagKind = oneof
                          /\ (/= ':')
                          /\ (isNothing . charToGhcKind)
                        )
+
+shrinkTag' :: Tag -> [Tag]
+shrinkTag' tag@Tag {tagName, tagAddr, tagFields} =
+      [ tag { tagName = TagName x }
+      | x <- fixText `map` shrink (getTagName tagName)
+      , not (Text.null x)
+      ]
+   ++ [ tag { tagAddr = addr }
+      | addr <- case tagAddr of
+          Left  addr -> Left `map` shrink addr
+          Right addr -> Left 0
+                      : (Right . wrap '/' . fixAddr)
+                        `map` (shrink . stripEnds) addr
+      ,  addr /= tagAddr -- wrap might restore the same address!
+      ]
+   ++ [ tag { tagFields = fields }
+      | fields <- shrinkList (const []) tagFields
+      ]
+    where
+      stripEnds :: Text -> Text
+      stripEnds addr = case Text.uncons addr of
+        Nothing -> error "impossible happend"
+        Just (_, addr') -> case Text.unsnoc addr' of
+          Nothing -> error "impossible happend"
+          Just (addr'', _) -> addr''
+
+
+shrinkTag :: Tag -> [Tag]
+shrinkTag tag@Tag {tagFile} =
+      shrinkTag' tag
+   ++ [ tag { tagFile = TagFile x }
+      | x <- fixFilePath `map` shrink (getTagFile tagFile)
+      , not (null x)
+      ]
