@@ -1,9 +1,9 @@
-name: "GHC-8.6.5"
+name: "Linux"
 on: [push]
 
 jobs:
   tests:
-    name: "Build GhcTagsPlugin on GHC-8.6.5"
+    name: "Linux GHC-8.6.5"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
