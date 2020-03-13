@@ -15,13 +15,13 @@
 * Support for `file:` tags (exported / not exported terms)
 * Added a test-suite (golden tests and property tests)
 
-## 0.1.3.0 -- 2020-03.08
+## 0.1.3.0 -- 2020-03-08
 
 * Change order of tags: type classes, type families and data type families are
   sorted before their instances.  If one is using multipe tags (the default),
   the order of them also matters (i.e. in the vim `tags` option).
 
-## 0.1.4.0 -- 2020-03.11
+## 0.1.4.0 -- 2020-03-11
 
 * Tags for default instances of associated (data) type familes.
 * Added path argument, can be passed using `-fplugin-opt=Plugin.GhcTags:../tags`.
@@ -29,6 +29,6 @@
   plugin failed not `ghc`
 * Fixed the tag ordering function to be fullfil the transitivness property.
 
-## 0.1.5.0 -- ?
+## 0.1.5.0 -- 2020-03-13
 
 * concurrency safety - protection `tags` file using a file lock
