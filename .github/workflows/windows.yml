@@ -1,0 +1,39 @@
+name: "Windows"
+on: [push]
+
+jobs:
+  test-windows-8_6_5:
+    name: "Win32 GHC-8.6.5"
+    runs-on: windows-latest
+    steps:
+      - name: Configure Chocolatey
+        run: choco source add -n mistuke -s https://www.myget.org/F/mistuke/api/v2
+      - name: Install msys2
+        run: choco install -y msys2
+      - name: Install GHC
+        run: choco install -y ghc --version 8.6.5
+      - name: Install Cabal
+        run: choco install -y cabal --version 3.0.0.0
+      - name: Set PATH
+        run: |
+          [Environment]::GetEnvironmentVariable("Path")
+          Write-Host "::add-path::C:\ProgramData\chocolatey\lib\cabal\tools\cabal-3.0.0.0"
+          Write-Host "::add-path::C:\ProgramData\chocolatey\lib\ghc\tools\ghc-8.6.5\bin"
+      - name: Print versions
+        run: |
+          ghc --version
+          cabal --version
+          cabal user-config init -a "http-transport: plain-http" -a "store-dir: C:\SR" -f -v3
+      - uses: actions/cache@v1
+        with:
+          path: C:\SR
+          key: cabal-store-8.6.5
+      - name: Update Hackage index
+        run: cabal v2-update
+      - uses: actions/checkout@v2
+      - name: Build dependencies
+        run: cabal v2-build ghc-tags-plugin --only-dependencies
+      - name: Build ghc-tags-plugin
+        run: cabal v2-build ghc-tags-plugin
+      - name: Run tests
+        run: cabal v2-run ghc-tags-tests
