@@ -18,6 +18,10 @@ homepage:            https://github.com/coot/ghc-tags-plugin#readme
 bug-reports:         https://github.com/coot/ghc-tags-plugin/issues
 tested-with:         GHC==8.6.3, GHC==8.8.3
 
+-- Don't build gtp-check command by default
+flag gtp-check
+  default: False
+  manual:  False
 
 source-repository head
   type:     git
@@ -110,3 +114,13 @@ benchmark benchmark-ghc-tags-plugin
   ghc-options:         -rtsopts
   default-language:    Haskell2010
 
+executable gtp-check
+  if flag(gtp-check)
+    buildable:         True
+  else
+    buildable:         False
+  hs-source-dirs:      app
+  main-is:             check.hs
+  build-depends:       base
+                     , bytestring
+                     , filelock
