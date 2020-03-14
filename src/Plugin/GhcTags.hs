@@ -1,25 +1,33 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 
 module Plugin.GhcTags ( plugin ) where
 
 import           Control.Exception
-import qualified Data.ByteString         as BS
+import           Control.Monad.State.Strict
+import qualified Data.ByteString.Lazy    as BSL
 import qualified Data.ByteString.Builder as BS
 #if __GLASGOW_HASKELL__ < 808
-import           Data.Functor ((<$))
+import           Data.Functor (void, (<$))
 #endif
 import           Data.List (sortBy)
+import           Data.Foldable (traverse_)
 import           Data.Maybe (mapMaybe)
-import qualified Data.Text.Encoding as Text
+import           Data.Text (Text)
 import           System.Directory
 import           System.FilePath
 import           System.IO
-import           System.IO.Error  (tryIOError)
 import           System.FileLock  ( SharedExclusive (..)
                                   , withFileLock)
+
+import qualified Pipes as Pipes
+import qualified Pipes.ByteString as Pipes.BS
+import qualified Pipes.Text.Encoding as Pipes.Text
 
 import           GhcPlugins ( CommandLineOption
                             , Hsc
@@ -36,6 +44,7 @@ import qualified PprColour
 
 import           Plugin.GhcTags.Generate
 import           Plugin.GhcTags.Tag
+import           Plugin.GhcTags.Stream
 import qualified Plugin.GhcTags.Vim as Vim
 
 
@@ -104,57 +113,57 @@ updateTags :: ModSummary
 updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags} tagsFile lmodule =
     -- wrap 'IOException's
     handle (throwIO . GhcTagsPluginIOExceptino) $
-
+    flip finally (void $ try @IOException $ removeFile sourceFile) $
       -- Take advisory exclusive lock (a BSD lock using `flock`) on the tags
       -- file.  This is needed when `cabal` compiles in parallel.
+      -- We take the lock on the copy, otherwise the lock would be removed when
+      -- we move the file.
       withFileLock tagsFile Exclusive $ \_ -> do
-        -- read and parse 
-        a <- doesFileExist tagsFile
-        tags <-
-          if a
-            then do
-              res <- tryIOError $
-                      Text.decodeUtf8 <$> BS.readFile tagsFile
-                  >>= Vim.parseTagsFile
-              case res of
-                -- reading failed
-                Left err -> do
-                  putDocLn (errorDoc $ displayException err)
-                  pure []
+        tagsFileExists <- doesFileExist tagsFile
+        when tagsFileExists
+          $ renameFile tagsFile sourceFile
+        withFile tagsFile ReadWriteMode $ \writeHandle ->
+          withFile sourceFile ReadMode $ \readHandle -> do
 
-                -- parsing failed
-                Right (Left err) -> do
-                  -- shout and continue
-                  putDocLn (errorDoc err)
-                  pure []
+            let -- text parser
+                producer :: Pipes.Producer Text IO ()
+                producer
+                  | tagsFileExists =
+                      void $ Pipes.Text.decodeUtf8
+                               (Pipes.BS.fromHandle readHandle)
+                  | otherwise      = pure ()
 
-                Right (Right tags) ->
-                  pure tags
+                -- gags pipe
+                pipe :: Pipes.Effect (StateT [Tag] IO) ()
+                pipe =
+                  Pipes.for
+                    (Pipes.hoist Pipes.lift $ tagParser Vim.parseTagLine producer)
+                    (runCombineTagsPipe writeHandle Vim.formatTag)
 
-            -- no such file
-            else pure []
+            cwd <- getCurrentDirectory
+            -- absolute directory path of the tags file; we need canonical path
+            -- (without ".." and ".") to make 'makeRelative' works.
+            tagsDir <- canonicalizePath (fst $ splitFileName tagsFile)
 
-        cwd <- getCurrentDirectory
-        -- absolute directory path of the tags file; we need canonical path
-        -- (without ".." and ".") to make 'makeRelative' works.
-        tagsDir <- canonicalizePath (fst $ splitFileName tagsFile)
+            let tags :: [Tag]
+                tags = map (fixFileName cwd tagsDir)
+                                            -- fix file names
+                     . sortBy compareTags   -- sort
+                     . mapMaybe ghcTagToTag -- translate 'GhcTag' to 'Tag'
+                     . getGhcTags           -- generate 'GhcTag's
+                     $ lmodule
 
-        let tags' :: [Tag]
-            tags' =
-                ( map (fixFileName cwd tagsDir)
-                                       -- fix file names
-                . sortBy compareTags   -- sort
-                . mapMaybe ghcTagToTag -- translate 'GhcTag' to 'Tag'
-                . getGhcTags           -- generate 'GhcTag's
-                $ lmodule)
-                `combineTags`
-                tags
-                
-        -- update tags file
-        withFile tagsFile WriteMode $ \h ->
-          BS.hPutBuilder h (Vim.formatTagsFile tags')
+            -- Write header
+            BSL.hPut writeHandle (BS.toLazyByteString (Vim.formatHeaders))
+            -- update tags file / run 'pipe'
+            tags' <- execStateT (Pipes.runEffect pipe) tags
+            -- write the remaining tags'
+            traverse_ (BSL.hPut writeHandle . BS.toLazyByteString . Vim.formatTag) tags'
 
   where
+
+    sourceFile = case splitFileName tagsFile of
+      (dir, name) -> dir </> "." ++ name
 
     fixFileName :: FilePath -> FilePath -> Tag -> Tag
     fixFileName cwd tagsDir tag@Tag { tagFile = TagFile path } =

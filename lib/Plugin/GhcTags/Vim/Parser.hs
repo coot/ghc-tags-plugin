@@ -10,6 +10,7 @@
 --
 module Plugin.GhcTags.Vim.Parser
   ( parseTagsFile
+  , parseTagLine
   , parseTags
   , parseTag
   , parseField
@@ -19,8 +20,8 @@ import           Control.Arrow ((***))
 import           Control.Applicative (many, (<|>))
 import           Data.Attoparsec.Text  (Parser, (<?>))
 import qualified Data.Attoparsec.Text  as AT
-import           Data.Either (rights)
 import           Data.Functor (void, ($>))
+import           Data.Maybe (catMaybes)
 import           Data.Text          (Text)
 import qualified Data.Text          as Text
 
@@ -127,14 +128,15 @@ parseField =
 -- | A vim-style tag file parser.
 --
 parseTags :: Parser [Tag]
-parseTags = rights <$> many parseTagLine
+parseTags = catMaybes <$> many parseTagLine
 
 
-parseTagLine :: Parser (Either () Tag)
+parseTagLine :: Parser (Maybe Tag)
 parseTagLine =
-    AT.eitherP
-      (parseHeader <?> "failed parsing tag")
-      (parseTag     <?> "failed parsing header")
+    either (const Nothing) Just
+      <$> AT.eitherP
+            (parseHeader <?> "failed parsing tag")
+            (parseTag    <?> "failed parsing header")
 
 
 parseHeader :: Parser ()
