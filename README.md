@@ -150,6 +150,21 @@ ghc: panic! (the 'impossible' happened)
 ● Tips
 ------
 
+- If you're getting installation problems when running
+  `cabal install --lib ghc-tags-plugin`; you may need to
+
+  * remove the installed version from
+    `~/.ghc/x86_64-linux-8.6.5/environments/default` (or whatever is your
+  default environment)
+
+  * unregister the installeld from cabal store with (you can check what is
+  installed in your store with `ghc-pkg --package=PACKAGE_DB list | grep ghc-tags`
+  for the following command):
+
+  ```
+  ghc-pkg --package-db=PACKAGE_DB unregister z-ghc-tags-plugin-z-ghc-tags-library ghc-tags-plugin
+  ```
+
 - The plugin is safe for concurrent compilation.  Setting `jobs: $ncpus` is
   safe.  The plugin holds an exclusive (advisory) lock on the `tags` file.
   This will create synchronisation between threads / process which are using
