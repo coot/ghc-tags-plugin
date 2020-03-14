@@ -1,2 +1,7 @@
 packages: ./ghc-tags-plugin.cabal
           ./test-project/test-project.cabal
+
+source-repository-package
+  type: git
+  location: /home/coot/repos/haskell/text-pipes
+  tag: b84e87a10b507ff70da22878344c6c9f446cb10e

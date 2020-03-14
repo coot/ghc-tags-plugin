@@ -5,6 +5,7 @@
 module Plugin.GhcTags.Vim.Formatter
   ( formatTagsFile
   , formatTag
+  , formatHeaders
   , formatHeader
   ) where
 
@@ -62,11 +63,8 @@ formatField TagField { fieldName, fieldValue } =
 formatHeader :: String -> String -> String
 formatHeader header arg = printf ("!_" ++ header ++ "\t%s\t\n") arg
 
-
--- | 'ByteString' 'Builder' for vim 'Tag' file.
---
-formatTagsFile :: [Tag] -> Builder
-formatTagsFile tags =
+formatHeaders :: Builder
+formatHeaders =
        -- format 1 does not append ';"' to lines
        BS.stringUtf8 (formatHeader "TAG_FILE_FORMAT"    "2")
        -- allows for  binary search
@@ -78,4 +76,10 @@ formatTagsFile tags =
                                    "https://hackage.haskell.org/package/ghc-tags-plugin")
        -- version number with git revision
     <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_VERSION" (showVersion version))
+
+-- | 'ByteString' 'Builder' for vim 'Tag' file.
+--
+formatTagsFile :: [Tag] -> Builder
+formatTagsFile tags =
+       formatHeaders
     <> foldMap formatTag tags
