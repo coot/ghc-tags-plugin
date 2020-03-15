@@ -25,11 +25,12 @@ import qualified Pipes.ByteString as Pipes.BS
 import           Plugin.GhcTags.Tag
 
 
-tagParser :: Parser (Maybe Tag)
+tagParser :: MonadIO m
+          => Parser (Maybe Tag)
           -- ^ Parse a single tag.  For Vim this returns should parse a single
           -- line and return the tag, e.g  'parseTagLine'.
-          -> Pipes.Producer Text IO ()
-          -> Pipes.Producer Tag IO ()
+          -> Pipes.Producer Text m ()
+          -> Pipes.Producer Tag m ()
 tagParser parser producer = void $
   Pipes.for
     (Pipes.AP.parsed parser producer)
@@ -66,10 +67,11 @@ combineTagsPipe tag0 ts@(t : _) = go tag0 ts
 -- | run 'combineTagsPipe' taking care of the state.
 --
 runCombineTagsPipe
-    :: Handle
+    :: MonadIO m
+    => Handle
     -> (Tag -> Builder)
     -> Tag
-    -> Pipes.Effect (StateT [Tag] IO) ()
+    -> Pipes.Effect (StateT [Tag] m) ()
 runCombineTagsPipe writeHandle formatTag =
       (\tag -> Pipes.stateP $ fmap ((),) . combineTagsPipe tag)
     ~> Pipes.yield . BS.toLazyByteString . formatTag 

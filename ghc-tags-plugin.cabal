@@ -41,6 +41,7 @@ library
                        pipes-attoparsec ^>=0.5,
                        pipes-bytestring ^>=2.1,
                        pipes-text        >=0.0.2 && <0.0.3 ,
+                       pipes-safe       ^>=2.3,
                        text             ^>=1.2,
 
                        ghc-tags-library
@@ -69,8 +70,9 @@ library ghc-tags-library
                        pipes            ^>=4.3,
                        pipes-attoparsec ^>=0.5,
                        pipes-bytestring ^>=2.1,
-                       pipes-text        >=0.0.2 && <0.0.3 ,
-                       text             ^>=1.2
+                       pipes-text        >=0.0.2 && <0.0.3,
+                       text             ^>=1.2,
+                       transformers
 
   default-language:    Haskell2010
   ghc-options:         -Wall

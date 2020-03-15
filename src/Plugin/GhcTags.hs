@@ -11,7 +11,7 @@ module Plugin.GhcTags ( plugin ) where
 import           Control.Exception
 import           Control.Monad.State.Strict
 import qualified Data.ByteString.Lazy    as BSL
-import qualified Data.ByteString.Builder as BS
+import qualified Data.ByteString.Builder as BB
 #if __GLASGOW_HASKELL__ < 808
 import           Data.Functor (void, (<$))
 #endif
@@ -24,6 +24,8 @@ import           System.FilePath
 import           System.IO
 
 import qualified Pipes as Pipes
+import           Pipes.Safe (SafeT)
+import qualified Pipes.Safe as Pipes.Safe
 import qualified Pipes.ByteString as Pipes.BS
 import qualified Pipes.Text.Encoding as Pipes.Text
 
@@ -85,7 +87,7 @@ plugin = GhcPlugins.defaultPlugin {
 -- not `ghc` that thrown the error.
 --
 data GhcTagsPluginException =
-    GhcTagsPluginIOExceptino IOException
+      GhcTagsPluginIOExceptino IOException
     deriving Show
 
 instance Exception GhcTagsPluginException
@@ -102,6 +104,17 @@ ghcTagsPlugin options moduleSummary hsParsedModule@HsParsedModule {hpm_module} =
       []    -> "tags"
       a : _ -> a
 
+data ExceptionType =
+      ReadException
+    | ParserExectpion
+    | WriteException
+    | UnhandledException
+
+instance Show ExceptionType where
+    show ReadException      = "read error"
+    show ParserExectpion    = "parser error"
+    show WriteException     = "write error"
+    show UnhandledException = "unhandled error"
 
 -- | Extract tags from a module and update tags file
 --
@@ -112,7 +125,7 @@ updateTags :: ModSummary
 updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags} tagsFile lmodule =
     -- wrap 'IOException's
     handle (\ioerr -> do
-           putDocLn (errorDoc (displayException ioerr))
+           putDocLn (errorDoc UnhandledException (displayException ioerr))
            throwIO $ GhcTagsPluginIOExceptino ioerr) $
     flip finally (void $ try @IOException $ removeFile sourceFile) $
       -- Take advisory exclusive lock (a BSD lock using `flock`) on the tags
@@ -126,19 +139,37 @@ updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags} tagsFile lmodule =
         withFile tagsFile WriteMode  $ \writeHandle ->
           withFile sourceFile ReadWriteMode $ \readHandle -> do
             let -- text parser
-                producer :: Pipes.Producer Text IO ()
+                producer :: Pipes.Producer Text (SafeT IO) ()
                 producer
                   | tagsFileExists =
-                      void $ Pipes.Text.decodeUtf8
-                               (Pipes.BS.fromHandle readHandle)
+                      void (Pipes.Text.decodeUtf8
+                             (Pipes.BS.fromHandle readHandle))
+                      `Pipes.Safe.catchP` \(e :: IOException) ->
+                        Pipes.lift $ Pipes.liftIO $
+                          -- don't re-throw; this would kill `ghc`, error
+                          -- loudly and continue.
+                          putDocLn (errorDoc ReadException (displayException e))
                   | otherwise      = pure ()
 
                 -- gags pipe
-                pipe :: Pipes.Effect (StateT [Tag] IO) ()
+                pipe :: Pipes.Effect (StateT [Tag] (SafeT IO)) ()
                 pipe =
                   Pipes.for
-                    (Pipes.hoist Pipes.lift $ tagParser Vim.parseTagLine producer)
-                    (runCombineTagsPipe writeHandle Vim.formatTag)
+                    (Pipes.hoist Pipes.lift (tagParser Vim.parseTagLine producer)
+                      `Pipes.Safe.catchP` \(e :: IOException) ->
+                        Pipes.lift $ Pipes.liftIO $
+                          -- don't re-throw; this would kill `ghc`, error
+                          -- loudly and continue.
+                          putDocLn $ errorDoc ParserExectpion (displayException e)
+                    )
+                    (\tag ->
+                      runCombineTagsPipe writeHandle Vim.formatTag tag
+                        `Pipes.Safe.catchP` \(e :: IOException) ->
+                          Pipes.lift $ Pipes.liftIO $
+                            -- don't re-throw; this would kill `ghc`, error
+                            -- loudly and continue.
+                            putDocLn $ errorDoc WriteException (displayException e)
+                    )
 
             cwd <- getCurrentDirectory
             -- absolute directory path of the tags file; we need canonical path
@@ -154,11 +185,11 @@ updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags} tagsFile lmodule =
                      $ lmodule
 
             -- Write header
-            BSL.hPut writeHandle (BS.toLazyByteString (Vim.formatHeaders))
+            BSL.hPut writeHandle (BB.toLazyByteString (Vim.formatHeaders))
             -- update tags file / run 'pipe'
-            tags' <- execStateT (Pipes.runEffect pipe) tags
+            tags' <- Pipes.Safe.runSafeT $ execStateT ((Pipes.runEffect pipe)) tags
             -- write the remaining tags'
-            traverse_ (BSL.hPut writeHandle . BS.toLazyByteString . Vim.formatTag) tags'
+            traverse_ (BSL.hPut writeHandle . BB.toLazyByteString . Vim.formatTag) tags'
 
   where
 
@@ -170,19 +201,23 @@ updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags} tagsFile lmodule =
     fixFileName cwd tagsDir tag@Tag { tagFile = TagFile path } =
       tag { tagFile = TagFile (makeRelative tagsDir (cwd </> path)) }
 
-    errorDoc :: String -> Out.SDoc
-    errorDoc errorMessage =
+    errorDoc :: ExceptionType -> String -> Out.SDoc
+    errorDoc errorType errorMessage =
       Out.coloured PprColour.colBold
         $ Out.blankLine
             Out.$+$
               ((Out.text "GhcTagsPlugin: ")
-                Out.<> (Out.coloured PprColour.colRedFg (Out.text "error:")))
+                Out.<> (Out.coloured PprColour.colRedFg (Out.text $ show errorType ++ ":")))
             Out.$$
               (Out.nest 4 $ Out.ppr ms_mod)
             Out.$$
               (Out.nest 8 $ Out.coloured PprColour.colRedFg (Out.text errorMessage))
             Out.$+$
-            Out.blankLine
+              Out.blankLine
+            Out.$+$
+              (Out.text "Please report this bug to https://github.com/coot/ghc-tags-plugin/issues")
+            Out.$+$
+              Out.blankLine
 
     putDocLn :: Out.SDoc -> IO ()
     putDocLn sdoc =
