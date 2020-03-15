@@ -31,7 +31,7 @@ formatTag Tag { tagName, tagFile, tagAddr, tagKind, tagFields} =
     <> BS.charUtf8 '\t'
     <> (BS.byteString . Text.encodeUtf8 . Text.pack . getTagFile $ tagFile)
     <> BS.charUtf8 '\t'
-    <> either BS.intDec (BS.byteString . Text.encodeUtf8) tagAddr
+    <> formatTagAddress tagAddr
     -- we are using extended format: '_TAG_FILE_FROMAT	2'
     <> BS.stringUtf8 ";\""
     -- tag kind: we are encoding them using field syntax: this is because vim
@@ -41,6 +41,16 @@ formatTag Tag { tagName, tagFile, tagAddr, tagKind, tagFields} =
     <> foldMap ((BS.charUtf8 '\t' <>) . formatField) tagFields 
     <> BS.charUtf8 '\n'
   where
+
+    formatTagAddress :: TagAddress -> Builder
+    formatTagAddress (TagLineCol lineNo colNo) =
+      BS.intDec lineNo -- Vim only allows to use ranges; there's no way to
+                       -- specify column (`c|` command is not allowed)
+    formatTagAddress (TagLine lineNo) =
+      BS.intDec lineNo
+    formatTagAddress (TagCommand exCommand) =
+      BS.byteString . Text.encodeUtf8 . getExCommand $ exCommand     
+
     formatKindChar :: TagKind -> Builder
     formatKindChar NoKind = mempty
     formatKindChar (CharKind c)

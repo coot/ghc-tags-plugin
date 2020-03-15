@@ -41,7 +41,7 @@ parseTag =
     <*  separator
 
     -- includes an optional ';"' separator
-    <*> AT.eitherP parseAddr parseExCommand
+    <*> parseTagAddress
 
     <*> (  -- kind field followed by list of fields or end of line.
               ((,) <$> ( separator *> parseKindField )
@@ -83,10 +83,10 @@ parseTag =
     parseFileName :: Parser TagFile
     parseFileName = TagFile . Text.unpack <$> AT.takeWhile (/= '\t')
 
-    parseExCommand :: Parser Text
-    parseExCommand = (\x -> Text.take (Text.length x - 1) x) <$>
-                     AT.scan "" go
-                  <* AT.anyChar
+    parseExCommand :: Parser ExCommand
+    parseExCommand = (\x -> ExCommand $ Text.take (Text.length x - 1) x)
+                 <$> AT.scan "" go
+                 <*  AT.anyChar
       where
         -- go until either '\n' or ';"' sequence is found.
         go :: String -> Char -> Maybe String
@@ -96,11 +96,12 @@ parseTag =
           where
             l = take 2 (c : s)
 
-    parseAddr :: Parser Int
-    parseAddr = AT.decimal
-             <* AT.eitherP
-                  AT.endOfLine
-                  (AT.char ';' *> AT.char '"')
+    -- We only parse `TagLine` or `TagCommand`.
+    parseTagAddress :: Parser TagAddress
+    parseTagAddress =
+          TagLine <$> AT.decimal <* (AT.endOfLine <|> (void $ AT.string ";\""))
+      <|>
+          TagCommand <$> parseExCommand
 
     parseKindField :: Parser TagKind
     parseKindField =

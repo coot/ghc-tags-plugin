@@ -110,10 +110,19 @@ shrinkTag' tag@Tag {tagName, tagAddr, tagFields} =
       ]
    ++ [ tag { tagAddr = addr }
       | addr <- case tagAddr of
-          Left  addr -> Left `map` shrink addr
-          Right addr -> Left 0
-                      : (Right . wrap '/' . fixAddr)
-                        `map` (shrink . stripEnds) addr
+          TagLineCol line col ->
+            [ TagLineCol line col'
+            | col' <- shrink col
+            ]
+            ++
+            [ TagLineCol line' col
+            | line' <- shrink line
+            ]
+          TagLine  addr -> TagLine `map` shrink addr
+          TagCommand (ExCommand addr) ->
+              TagLine 0
+            : (TagCommand . ExCommand . wrap '/' . fixAddr)
+              `map` (shrink . stripEnds) addr
       ,  addr /= tagAddr -- wrap might restore the same address!
       ]
    ++ [ tag { tagFields = fields }
