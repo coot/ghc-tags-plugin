@@ -8,7 +8,6 @@ import qualified Data.ByteString.Lazy    as BSL
 import qualified Data.ByteString.Builder as BB
 import           Data.Foldable (traverse_)
 import           Data.Text            (Text)
-import qualified Data.Text          as Text
 import qualified Data.Text.Encoding as Text
 import           System.IO
 
