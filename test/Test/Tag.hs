@@ -57,22 +57,41 @@ tests = testGroup "Tag"
 
 
 -- | 'Tag' generator
+--
 newtype ArbTag = ArbTag { getArbTag :: Tag }
   deriving Show
 
+genTagAddrLine :: Gen Tag
+genTagAddrLine =
+          Tag
+      <$> (TagName <$> resize 5 genTextNonEmpty)
+      <*> genTagKind
+      <*> (TagFile <$> genSmallFilePath)
+      <*> frequency
+            [ (8, TagLine . getPositive <$> arbitrary)
+            , (1, TagCommand . ExCommand . (wrap '/' . fixAddr) <$> genTextNonEmpty)
+            , (1, TagCommand . ExCommand . (wrap '?' . fixAddr) <$> genTextNonEmpty)
+            ]
+      <*> listOf genField
+
+genTagAddrLineCol :: Gen Tag
+genTagAddrLineCol =
+          Tag
+      <$> (TagName <$> resize 5 genTextNonEmpty)
+      <*> genTagKind
+      <*> (TagFile <$> genSmallFilePath)
+      <*> frequency
+            [ (8, TagLineCol <$> (getPositive <$> arbitrary) <*> (getPositive <$> arbitrary))
+            , (1, TagCommand . ExCommand . (wrap '/' . fixAddr) <$> genTextNonEmpty)
+            , (1, TagCommand . ExCommand . (wrap '?' . fixAddr) <$> genTextNonEmpty)
+            ]
+      <*> listOf genField
+
 instance Arbitrary ArbTag where
-    arbitrary =
-        fmap ArbTag $
-            Tag
-        <$> (TagName <$> resize 5 genTextNonEmpty)
-        <*> genTagKind
-        <*> (TagFile <$> genSmallFilePath)
-        <*> frequency
-              [ (8, Left . getPositive <$> arbitrary)
-              , (1, Right . (wrap '/' . fixAddr) <$> genTextNonEmpty)
-              , (1, Right . (wrap '?' . fixAddr) <$> genTextNonEmpty)
-              ]
-        <*> listOf genField
+    arbitrary = oneof
+      [ ArbTag <$> genTagAddrLine
+      , ArbTag <$> genTagAddrLineCol
+      ]
 
     shrink = map ArbTag . shrinkTag . getArbTag
 
@@ -99,9 +118,9 @@ instance Arbitrary ArbOrdTag where
                      , "Lib.hs"
                      ])
              <*> frequency
-                   [ (8, Left . getPositive <$> arbitrary)
-                   , (1, Right . (wrap '/' . fixAddr) <$> genTextNonEmpty)
-                   , (1, Right . (wrap '?' . fixAddr) <$> genTextNonEmpty)
+                   [ (8, TagLine . getPositive <$> arbitrary)
+                   , (1, TagCommand . ExCommand . (wrap '/' . fixAddr) <$> genTextNonEmpty)
+                   , (1, TagCommand . ExCommand . (wrap '?' . fixAddr) <$> genTextNonEmpty)
                    ]
              <*> pure []
 
@@ -264,6 +283,32 @@ combineTags_order (ArbTagsFromFile _ as) (ArbTagList bs) =
 --
 -- combineTagsPipe model test
 --
+
+-- | We need a special generator; the property holds only for list of tags
+-- which have the same address: `TagLine` or `TagLineCol` but not mixed.
+--
+-- The reason for that is that the piped `combineTagsPipe` needs to compare
+-- tags, and the `Eq` instance cannot distinquishes a tag with address `TagLine
+-- 10` with `TagLine 10 3`, even if they are the same tags.  The problem is
+-- that `ctags` have no way to represent column number.
+--
+data ArbTagsFromFileAndTagList = ArbTagsFromFileAndTagList [Tag] [Tag]
+  deriving (Eq, Show)
+
+instance Arbitrary ArbTagsFromFileAndTagList where
+    arbitrary = do
+        filePath <- genSmallFilePath
+        bool     <- arbitrary
+        let tagGen = if bool then genTagAddrLine else genTagAddrLineCol
+        tagsFromFile <- map (fixFile filePath) . nub . sortBy compareTags <$> listOf tagGen
+        tags <- nub . sortBy compareTags <$> listOf tagGen
+        pure $ ArbTagsFromFileAndTagList tagsFromFile tags
+      where
+        fixFile p t = t { tagFile = TagFile p, tagFields = [] }
+
+    -- TODO shrink
+
+
 
 -- | Check, that the `combineTagsPipe` and agree with it's non-stream version
 -- 'combineTags'

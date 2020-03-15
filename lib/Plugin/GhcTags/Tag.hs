@@ -12,6 +12,8 @@ module Plugin.GhcTags.Tag
   , tagFilePath
   , TagName (..)
   , TagFile (..)
+  , ExCommand (..)
+  , TagAddress (..)
   , TagKind (..)
   , GhcKind (..)
   , charToGhcKind
@@ -32,6 +34,7 @@ import           FastString   ( FastString (..)
 import           SrcLoc       ( SrcSpan (..)
                               , srcSpanFile
                               , srcSpanStartLine
+                              , srcSpanStartCol
                               )
 
 import           Plugin.GhcTags.Generate
@@ -73,6 +76,44 @@ data TagKind
   | NoKind
   deriving (Eq, Ord, Show)
 
+
+newtype ExCommand = ExCommand { getExCommand :: Text }
+  deriving (Eq, Ord, Show)
+
+
+-- | Tag address, either from a parsed file or from Haskell's AST>
+data TagAddress =
+      -- | Precise addres: line and column.  This is what we infer from Haskell
+      -- AST.
+      TagLineCol !Int !Int
+
+      -- | vim can only encode a column as an ex-command; This is what we can
+      -- parse from a tag file.
+    | TagLine !Int
+
+      -- | A tag address can be just an ex command.
+    | TagCommand !ExCommand
+  deriving (Eq, Show)
+
+instance Ord TagAddress where
+    TagLineCol l0 c0 `compare` TagLineCol l1 c1 =
+      l0 `compare` l1 <> c0 `compare` c1
+    TagLineCol l0 _  `compare` TagLine l1 =
+      l0 `compare` l1
+    TagLine l0 `compare` TagLineCol l1 _ =
+      l0 `compare` l1
+    TagLineCol {} `compare` TagCommand {} = LT
+    TagCommand {} `compare` TagLineCol {} = GT
+
+    TagLine l0 `compare` TagLine l1 =
+      l0 `compare` l1
+    TagLine {} `compare` TagCommand {} = LT
+    TagCommand {} `compare` TagLine {} = GT
+
+    TagCommand {} `compare` TagCommand {} = EQ
+
+
+
 -- | Simple Tag record.  For the moment on tag name, tag file and line numbers
 -- are supported.
 --
@@ -82,7 +123,7 @@ data Tag = Tag
   { tagName   :: !TagName
   , tagKind   :: !TagKind
   , tagFile   :: !TagFile
-  , tagAddr   :: !(Either Int Text)
+  , tagAddr   :: !TagAddress
   , tagFields :: ![TagField]
   }
   deriving (Eq, Show)
@@ -132,7 +173,8 @@ ghcTagToTag GhcTag { gtSrcSpan, gtTag, gtKind, gtFields } =
       RealSrcSpan realSrcSpan ->
         Just $ Tag { tagName   = TagName (Text.decodeUtf8 $ fs_bs gtTag)
                    , tagFile   = TagFile (Text.unpack $ Text.decodeUtf8 $ fs_bs (srcSpanFile realSrcSpan))
-                   , tagAddr   = Left (srcSpanStartLine realSrcSpan)
+                   , tagAddr   = TagLineCol (srcSpanStartLine realSrcSpan)
+                                            (srcSpanStartCol realSrcSpan)
                    , tagKind   = GhcKind gtKind
                    , tagFields = gtFields
                    }

@@ -39,9 +39,10 @@ instance Arbitrary ArbTag where
       <*> genTagKind
       <*> (TagFile  <$> genFilePath)
       <*> frequency
-            [ (2, Left . getPositive <$> arbitrary)
-            , (1, Right . (wrap '/' . fixAddr) <$> genTextNonEmpty)
-            , (1, Right . (wrap '?' . fixAddr) <$> genTextNonEmpty)
+            [ (2, TagLine . getPositive <$> arbitrary)
+            , (2, TagLineCol <$> (getPositive <$> arbitrary) <*> (getPositive <$> arbitrary))
+            , (1, TagCommand . ExCommand . (wrap '/' . fixAddr) <$> genTextNonEmpty)
+            , (1, TagCommand . ExCommand . (wrap '?' . fixAddr) <$> genTextNonEmpty)
             ]
       <*> listOf genField
     shrink = map ArbTag . shrinkTag . getArbTag
@@ -49,17 +50,22 @@ instance Arbitrary ArbTag where
 
 roundTrip :: Tag -> Property
 roundTrip tag =
-  let bs   = BL.toStrict
-           . BB.toLazyByteString
-           . Vim.formatTag
-           $ tag
-      mtag = AT.parseOnly Vim.parseTag
-           . Text.decodeUtf8
-           $ bs
-  in case mtag of
-    Left  err  -> counterexample
-                    ("parser error: " ++ err ++ " bs: " ++ (Text.unpack (Text.decodeUtf8 bs)))
-                    (property False)
-    Right tag' -> counterexample
-                    (show $ Text.decodeUtf8 bs)
-                    (tag === tag')
+    let bs   = BL.toStrict
+             . BB.toLazyByteString
+             . Vim.formatTag
+             $ tag
+        mtag = AT.parseOnly Vim.parseTag
+             . Text.decodeUtf8
+             $ bs
+    in case mtag of
+      Left  err  -> counterexample
+                      ("parser error: " ++ err ++ " bs: " ++ (Text.unpack (Text.decodeUtf8 bs)))
+                      (property False)
+      Right tag' -> counterexample
+                      (show $ Text.decodeUtf8 bs)
+                      (projectTagAddress tag === tag')
+  where
+    projectTagAddress :: Tag -> Tag
+    projectTagAddress t@Tag {tagAddr = TagLineCol line _} =
+      t { tagAddr = TagLine line }
+    projectTagAddress t = t
