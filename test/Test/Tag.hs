@@ -288,9 +288,9 @@ combineTags_order (ArbTagsFromFile _ as) (ArbTagList bs) =
 -- which have the same address: `TagLine` or `TagLineCol` but not mixed.
 --
 -- The reason for that is that the piped `combineTagsPipe` needs to compare
--- tags, and the `Eq` instance cannot distinquishes a tag with address `TagLine
--- 10` with `TagLine 10 3`, even if they are the same tags.  The problem is
--- that `ctags` have no way to represent column number.
+-- tags, and the `Eq` instance cannot distinquishes a tag with address
+-- `TagLine 10` with `TagLine 10 3`, even if they are the same tags.  The crux
+-- of the problem is that `ctags` have no way to represent column number.
 --
 data ArbTagsFromFileAndTagList = ArbTagsFromFileAndTagList [Tag] [Tag]
   deriving (Eq, Show)
@@ -299,15 +299,31 @@ instance Arbitrary ArbTagsFromFileAndTagList where
     arbitrary = do
         filePath <- genSmallFilePath
         bool     <- arbitrary
-        let tagGen = if bool then genTagAddrLine else genTagAddrLineCol
-        tagsFromFile <- map (fixFile filePath) . nub . sortBy compareTags <$> listOf tagGen
-        tags <- nub . sortBy compareTags <$> listOf tagGen
+        let tagGen =
+              if bool
+                then genTagAddrLine
+                else genTagAddrLineCol
+        tagsFromFile <-
+                map (fixFile filePath)
+              . nub
+              . sortBy compareTags
+          <$> listOf tagGen
+        tags <- nub
+              . sortBy compareTags
+          <$> listOf tagGen
         pure $ ArbTagsFromFileAndTagList tagsFromFile tags
       where
         fixFile p t = t { tagFile = TagFile p, tagFields = [] }
 
-    -- TODO shrink
-
+    -- A very basic shrinker
+    shrink (ArbTagsFromFileAndTagList as bs) =
+      [ ArbTagsFromFileAndTagList as' bs
+      | as' <- shrinkList (const []) as
+      ]
+      ++
+      [ ArbTagsFromFileAndTagList as bs'
+      | bs' <- shrinkList (const []) bs
+      ]
 
 
 -- | Check, that the `combineTagsPipe` and agree with it's non-stream version
@@ -316,8 +332,8 @@ instance Arbitrary ArbTagsFromFileAndTagList where
 -- This is an example of a model test (where `combineTags` is regarded a model
 -- of `combeinTagsPipe`).
 --
-combineTagsPipeProp :: ArbTagsFromFile -> ArbTagList -> Property
-combineTagsPipeProp (ArbTagsFromFile _ as) (ArbTagList bs) =
+combineTagsPipeProp :: ArbTagsFromFileAndTagList -> Property
+combineTagsPipeProp (ArbTagsFromFileAndTagList as bs) =
         as `combineTags` bs
     ===
         case
@@ -330,5 +346,3 @@ combineTagsPipeProp (ArbTagsFromFile _ as) (ArbTagList bs) =
             -- take 'as' a state
             as of
         Identity (tags, rest) -> tags ++ rest
-
-
