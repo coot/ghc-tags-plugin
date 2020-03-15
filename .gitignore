@@ -3,3 +3,4 @@ test-porject/tags
 /dist.tar.gz
 TODO.md
 benchmarks.*
+.ghc-tags-plugin.env

@@ -3,6 +3,10 @@
 #
 
 PACKAGE_DB = ${HOME}/.cabal/store/ghc-$(shell ghc --numeric-version)/package.db
+# this avoids changing the default environment:
+# ~/.ghc/x86_64-linux-8.6.5/environments/default
+# file; Unfortunatelly `/dev/null` is not accepted.
+ENV=.ghc-tags-plugin.env
 
 uninstall:
 	ghc-pkg unregister \
@@ -12,7 +16,11 @@ uninstall:
 	  ghc-tags-plugin
 
 install:
-	cabal install --package-db=${PACKAGE_DB} --lib ghc-tags-plugin
+	# avoid changing the default environment
+	cabal install --package-db=${PACKAGE_DB} \
+	  	      --package-env=${ENV} \
+		      --lib \
+		      ghc-tags-plugin
 
 reinstall: uninstall install
 
