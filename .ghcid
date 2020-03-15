@@ -1,1 +1,1 @@
---restart ghc-tags-plugin.cabal --command "cabal repl lib:ghc-tags-plugin"
+--allow-eval --restart ghc-tags-plugin.cabal --command "cabal repl lib:ghc-tags-plugin"
