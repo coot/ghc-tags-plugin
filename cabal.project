@@ -3,5 +3,5 @@ packages: ./ghc-tags-plugin.cabal
 
 source-repository-package
   type: git
-  location: /home/coot/repos/haskell/text-pipes
-  tag: b84e87a10b507ff70da22878344c6c9f446cb10e
+  location: https://github.com/coot/text-pipes
+  tag: 1e8bd919a8b5b3ec20351340f2495dd65047839c
