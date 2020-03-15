@@ -3,7 +3,8 @@ with builtins;
 let
   sources = import ./sources.nix {};
   config =
-    { packageOverrides = super:
+    { allowBroken = true;
+      packageOverrides = super:
       let self = super.pkgs;
           lib = super.haskell.lib;
       in {
@@ -11,7 +12,14 @@ let
           packages = super.haskell.packages // {
             ghc865 = super.haskell.packages.ghc865.override {
               overrides = self: super: {
-                base-compat = super.callPackage ./base-compat-0.10.5.nix {};
+                pipes-text  = super.callPackage ./pipes-text.nix {};
+                time-compat = super.callPackage ./time-compat-1.9.3.nix {};
+              };
+            };
+            ghc883 = super.haskell.packages.ghc865.override {
+              overrides = self: super: {
+                pipes-text  = super.callPackage ./pipes-text.nix {};
+                time-compat = super.callPackage ./time-compat-1.9.3.nix {};
               };
             };
           };

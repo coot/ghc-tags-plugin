@@ -27,9 +27,10 @@ let
   srcFilter = src: path: type:
     let relPath = nixpkgs.lib.removePrefix (toString src + "/") (toString path);
     in
-       nixpkgs.lib.hasPrefix "src" relPath
-    || nixpkgs.lib.hasPrefix "lib" relPath
-    || nixpkgs.lib.hasPrefix "test" relPath
+       nixpkgs.lib.hasPrefix "src"   relPath
+    || nixpkgs.lib.hasPrefix "lib"   relPath
+    || nixpkgs.lib.hasPrefix "test"  relPath
+    || nixpkgs.lib.hasPrefix "bench" relPath
     || nixpkgs.lib.any
         (a: a == relPath)
         [ "Setup.hs" "cabal.project" "ChangeLog.md" "ghc-tags-plugin.cabal" "LICENSE"];
