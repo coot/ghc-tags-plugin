@@ -21,7 +21,7 @@ let
     then lib.doBenchmark
     else nixpkgs.lib.id;
   doDev = if dev
-    then drv: lib.appendConfigureFlag drv "--ghc-option -Werror --ghc-option -Wall"
+    then drv: lib.appendConfigureFlag drv "--ghc-option -Werror --ghc-option -Wall -f+gtp-check"
     else nixpkgs.lib.id;
   docNoSeprateOutput = drv: lib.overrideCabal drv (drv: { enableSeparateDocOutput = false; });
   srcFilter = src: path: type:
@@ -31,6 +31,7 @@ let
     || nixpkgs.lib.hasPrefix "lib"   relPath
     || nixpkgs.lib.hasPrefix "test"  relPath
     || nixpkgs.lib.hasPrefix "bench" relPath
+    || nixpkgs.lib.hasPrefix "app"   relPath
     || nixpkgs.lib.any
         (a: a == relPath)
         [ "Setup.hs" "cabal.project" "ChangeLog.md" "ghc-tags-plugin.cabal" "LICENSE"];

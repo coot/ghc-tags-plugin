@@ -5,10 +5,8 @@
 --
 module Main where
 
-import           Control.Exception
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
-import           System.Directory
 import           System.FilePath
 import           System.IO
 import           System.Environment
@@ -21,7 +19,7 @@ main :: IO ()
 main = do
     file :_ <- getArgs
     withFileLock (lockFile file) ExclusiveLock AppendMode $ \h -> do
-      numOfLines <- length . BSC.lines <$> BS.readFile file
+      numOfLines <- length . BSC.lines <$> BS.hGetContents h
       putStrLn (show numOfLines)
   where
     lockFile file = case splitFileName file of
