@@ -22,8 +22,6 @@ import           Data.Text (Text)
 import           System.Directory
 import           System.FilePath
 import           System.IO
-import           System.FileLock  ( SharedExclusive (..)
-                                  , withFileLock)
 
 import qualified Pipes as Pipes
 import qualified Pipes.ByteString as Pipes.BS
@@ -46,6 +44,7 @@ import           Plugin.GhcTags.Generate
 import           Plugin.GhcTags.Tag
 import           Plugin.GhcTags.Stream
 import qualified Plugin.GhcTags.Vim as Vim
+import           Plugin.GhcTags.Utils
 
 
 -- | The GhcTags plugin.  It will run for every compiled module and have access
@@ -112,19 +111,20 @@ updateTags :: ModSummary
            -> IO ()
 updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags} tagsFile lmodule =
     -- wrap 'IOException's
-    handle (throwIO . GhcTagsPluginIOExceptino) $
+    handle (\ioerr -> do
+           putDocLn (errorDoc (displayException ioerr))
+           throwIO $ GhcTagsPluginIOExceptino ioerr) $
     flip finally (void $ try @IOException $ removeFile sourceFile) $
       -- Take advisory exclusive lock (a BSD lock using `flock`) on the tags
       -- file.  This is needed when `cabal` compiles in parallel.
       -- We take the lock on the copy, otherwise the lock would be removed when
       -- we move the file.
-      withFileLock tagsFile Exclusive $ \_ -> do
+      withFileLock lockFile ExclusiveLock WriteMode $ \_ -> do
         tagsFileExists <- doesFileExist tagsFile
         when tagsFileExists
           $ renameFile tagsFile sourceFile
-        withFile tagsFile ReadWriteMode $ \writeHandle ->
-          withFile sourceFile ReadMode $ \readHandle -> do
-
+        withFile tagsFile WriteMode  $ \writeHandle ->
+          withFile sourceFile ReadWriteMode $ \readHandle -> do
             let -- text parser
                 producer :: Pipes.Producer Text IO ()
                 producer
@@ -164,6 +164,7 @@ updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags} tagsFile lmodule =
 
     sourceFile = case splitFileName tagsFile of
       (dir, name) -> dir </> "." ++ name
+    lockFile = sourceFile ++ ".lock"
 
     fixFileName :: FilePath -> FilePath -> Tag -> Tag
     fixFileName cwd tagsDir tag@Tag { tagFile = TagFile path } =

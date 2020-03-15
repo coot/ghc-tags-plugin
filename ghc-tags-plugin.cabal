@@ -34,7 +34,6 @@ library
   build-depends:       base              >=4.12.0.0 && <4.14,
                        bytestring       ^>=0.10,
                        directory        ^>=1.3,
-                       filelock         ^>=0.1.1,
                        filepath         ^>=1.4,
                        ghc               >=8.4 && <8.9,
                        mtl              ^>=2.2,
@@ -58,6 +57,7 @@ library ghc-tags-library
                        Plugin.GhcTags.Vim
                        Plugin.GhcTags.Vim.Parser
                        Plugin.GhcTags.Vim.Formatter
+                       Plugin.GhcTags.Utils
                        Paths_ghc_tags_plugin
   autogen-modules:     Paths_ghc_tags_plugin
   build-depends:       attoparsec       ^>=0.13.0.0,
@@ -123,4 +123,7 @@ executable gtp-check
   main-is:             check.hs
   build-depends:       base
                      , bytestring
-                     , filelock
+                     , directory
+                     , filepath
+
+                     , ghc-tags-library
