@@ -48,6 +48,8 @@ combineTagsPipe
     => Tag   -- ^ tag read from disc
     -> [Tag] -- ^ new tags
     -> Pipes.Producer Tag m [Tag]
+-- TODO: if a module has no tags, we will not remove any of the pre-exisiting
+-- ones.
 combineTagsPipe tag0 []         = Pipes.yield tag0 $> []
 combineTagsPipe tag0 ts@(t : _) = go tag0 ts
   where

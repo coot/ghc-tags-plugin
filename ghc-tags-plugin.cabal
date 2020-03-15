@@ -91,6 +91,8 @@ test-suite ghc-tags-tests
                        base,
                        bytestring,
                        lattices,
+                       mtl,
+                       pipes,
                        QuickCheck,
                        quickcheck-instances,
                        tasty,

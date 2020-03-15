@@ -1,11 +1,17 @@
 {-# LANGUAGE MultiWayIf        #-}
-{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE UnicodeSyntax     #-}
 
 module Test.Tag (tests) where
 
+import           Control.Monad.State.Strict
 import           Data.Function (on)
+import           Data.Functor.Identity
+import           Data.Foldable (traverse_)
 import           Data.List (nub, sortBy)
 
 import           Test.Tasty (TestTree, testGroup)
@@ -13,9 +19,15 @@ import           Test.Tasty.QuickCheck (testProperty)
 import           Test.QuickCheck
 import           Test.QuickCheck.Instances.Text ()
 
+import qualified Pipes
+import qualified Pipes.Prelude as Pipes
+import qualified Pipes.Lift as Pipes
+
 import           Plugin.GhcTags.Tag
+import           Plugin.GhcTags.Stream
 
 import           Test.Tag.Generators
+
 
 tests :: TestTree
 tests = testGroup "Tag"
@@ -37,6 +49,9 @@ tests = testGroup "Tag"
     , testProperty "preserve"     combineTags_preserve
     , testProperty "substitution" combineTags_substitution
     , testProperty "order"        combineTags_order
+    ]
+  , testGroup "combineTagsPipe"
+    [ testProperty "model test"   combineTagsPipeProp
     ]
   ]
 
@@ -244,3 +259,31 @@ combineTags_order :: ArbTagsFromFile -> ArbTagList -> Bool
 combineTags_order (ArbTagsFromFile _ as) (ArbTagList bs) =
     let cs = as `combineTags` bs
     in sortBy compareTags cs == cs
+
+
+--
+-- combineTagsPipe model test
+--
+
+-- | Check, that the `combineTagsPipe` and agree with it's non-stream version
+-- 'combineTags'
+--
+-- This is an example of a model test (where `combineTags` is regarded a model
+-- of `combeinTagsPipe`).
+--
+combineTagsPipeProp :: ArbTagsFromFile -> ArbTagList -> Property
+combineTagsPipeProp (ArbTagsFromFile _ as) (ArbTagList bs) =
+        as `combineTags` bs
+    ===
+        case
+          runStateT
+            (Pipes.toListM @(StateT [Tag] Identity)
+              (Pipes.for
+                 -- yield all `bs`
+                (traverse_ Pipes.yield bs)
+                (\tag -> Pipes.stateP $ fmap ((),) . combineTagsPipe tag)))
+            -- take 'as' a state
+            as of
+        Identity (tags, rest) -> tags ++ rest
+
+
