@@ -99,20 +99,23 @@ test-suite ghc-tags-tests
                        ghc-tags-library
   ghc-options:         -Wall
 
-benchmark benchmark-ghc-tags-plugin
+benchmark benchmarks
   hs-source-dirs:      bench
   main-is:             Main.hs
   type:                exitcode-stdio-1.0
+  default-language:    Haskell2010
   build-depends:       base
                      , bytestring
                      , criterion
+                     , deepseq
                      , ghc-tags-library
+                     , mtl
                      , pipes
                      , pipes-attoparsec
                      , pipes-bytestring
+                     , pipes-text
                      , text
   ghc-options:         -rtsopts
-  default-language:    Haskell2010
 
 executable gtp-check
   if flag(gtp-check)
@@ -121,6 +124,7 @@ executable gtp-check
     buildable:         False
   hs-source-dirs:      app
   main-is:             check.hs
+  default-language:    Haskell2010
   build-depends:       base
                      , bytestring
                      , directory
