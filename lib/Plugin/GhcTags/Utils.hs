@@ -5,7 +5,6 @@ module Plugin.GhcTags.Utils
 
 import           Control.Exception
 import           System.IO
-import           System.Directory
 import           GHC.IO.Handle
 import           GHC.IO.Handle.Lock
 
@@ -16,8 +15,7 @@ withFileLock :: FilePath -> LockMode -> IOMode -> (Handle -> IO x) -> IO x
 withFileLock path mode iomode k =
     bracket
       (openFile path iomode)
-      (\h -> do hClose h
-                removeFile path)
+      (\h -> hClose h)
       $ \h ->
         bracket
           (hLock h mode)
