@@ -18,8 +18,8 @@ import           Plugin.GhcTags.Utils
 main :: IO ()
 main = do
     file :_ <- getArgs
-    withFileLock (lockFile file) ExclusiveLock AppendMode $ \h -> do
-      numOfLines <- length . BSC.lines <$> BS.hGetContents h
+    withFileLock (lockFile file) ExclusiveLock ReadWriteMode $ \h -> do
+      numOfLines <- length . BSC.lines <$> BS.readFile file
       putStrLn (show numOfLines)
   where
     lockFile file = case splitFileName file of
