@@ -1,9 +1,9 @@
-name: "Windows"
+name: "Windows GHC-8.6.5"
 on: [push]
 
 jobs:
   test-windows-8_6_5:
-    name: "Win32 GHC-8.6.5"
+    name: "ghc-tags-plugin"
     runs-on: windows-latest
     steps:
       - name: Configure Chocolatey
