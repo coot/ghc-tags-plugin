@@ -1,7 +1,7 @@
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Test.Vim (tests) where
+module Test.CTags (tests) where
 
 import qualified Data.Attoparsec.Text as AT
 import qualified Data.ByteString.Builder as BB
@@ -15,13 +15,13 @@ import           Test.QuickCheck
 import           Test.QuickCheck.Instances.Text ()
 
 import           Plugin.GhcTags.Tag
-import qualified Plugin.GhcTags.Vim as Vim
+import qualified Plugin.GhcTags.CTags as CTags
 
 import           Test.Tag.Generators
 
 
 tests :: TestTree
-tests = testGroup "Vim"
+tests = testGroup "CTags"
   [ testProperty "round-trip" (roundTrip . getArbTag)
   ]
 
@@ -52,9 +52,9 @@ roundTrip :: Tag -> Property
 roundTrip tag =
     let bs   = BL.toStrict
              . BB.toLazyByteString
-             . Vim.formatTag
+             . CTags.formatTag
              $ tag
-        mtag = AT.parseOnly Vim.parseTag
+        mtag = AT.parseOnly CTags.parseTag
              . Text.decodeUtf8
              $ bs
     in case mtag of

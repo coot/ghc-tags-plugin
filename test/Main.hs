@@ -4,7 +4,7 @@ import           Test.Tasty
 
 import qualified Test.Golden.Parser (tests)
 import qualified Test.Tag           (tests)
-import qualified Test.Vim           (tests)
+import qualified Test.CTags         (tests)
 
 
 main ::IO ()
@@ -15,5 +15,5 @@ tests =
     testGroup "Plugin.GhcTags"
     [ Test.Golden.Parser.tests
     , Test.Tag.tests
-    , Test.Vim.tests
+    , Test.CTags.tests
     ]

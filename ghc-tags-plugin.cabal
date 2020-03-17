@@ -55,9 +55,9 @@ library ghc-tags-library
   exposed-modules:     Plugin.GhcTags.Generate
                        Plugin.GhcTags.Tag
                        Plugin.GhcTags.Stream
-                       Plugin.GhcTags.Vim
-                       Plugin.GhcTags.Vim.Parser
-                       Plugin.GhcTags.Vim.Formatter
+                       Plugin.GhcTags.CTags
+                       Plugin.GhcTags.CTags.Parser
+                       Plugin.GhcTags.CTags.Formatter
                        Plugin.GhcTags.Utils
                        Paths_ghc_tags_plugin
   autogen-modules:     Paths_ghc_tags_plugin
@@ -85,7 +85,7 @@ test-suite ghc-tags-tests
   other-modules:       Test.Golden.Parser
                        Test.Tag
                        Test.Tag.Generators
-                       Test.Vim
+                       Test.CTags
   default-language:    Haskell2010      
   build-depends:       attoparsec,
                        base,

@@ -8,7 +8,7 @@ import qualified Data.ByteString.Builder as BS
 import qualified Data.Text.Encoding as Text
 import           System.IO
 
-import qualified Plugin.GhcTags.Vim as Vim
+import qualified Plugin.GhcTags.CTags as CTags
 
 import           Test.Tasty (TestTree, testGroup)
 import           Test.Tasty.Golden
@@ -71,9 +71,9 @@ parseGoldenFile :: FilePath -- input file
                 -> IO ()
 parseGoldenFile input output = do
     res <- withBinaryFile input ReadMode
-      (BS.hGetContents >=> Vim.parseTagsFile . Text.decodeUtf8)
+      (BS.hGetContents >=> CTags.parseTagsFile . Text.decodeUtf8)
     case res of
       Left  err  -> throwIO (userError err)
       Right tags ->
         withBinaryFile output WriteMode
-          $ flip BS.hPutBuilder (foldMap Vim.formatTag tags)
+          $ flip BS.hPutBuilder (foldMap CTags.formatTag tags)

@@ -45,7 +45,7 @@ import qualified PprColour
 import           Plugin.GhcTags.Generate
 import           Plugin.GhcTags.Tag
 import           Plugin.GhcTags.Stream
-import qualified Plugin.GhcTags.Vim as Vim
+import qualified Plugin.GhcTags.CTags as CTags
 import           Plugin.GhcTags.Utils
 
 
@@ -155,7 +155,7 @@ updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags} tagsFile lmodule =
                 pipe :: Pipes.Effect (StateT [Tag] (SafeT IO)) ()
                 pipe =
                   Pipes.for
-                    (Pipes.hoist Pipes.lift (tagParser Vim.parseTagLine producer)
+                    (Pipes.hoist Pipes.lift (tagParser CTags.parseTagLine producer)
                       `Pipes.Safe.catchP` \(e :: IOException) ->
                         Pipes.lift $ Pipes.liftIO $
                           -- don't re-throw; this would kill `ghc`, error
@@ -163,7 +163,7 @@ updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags} tagsFile lmodule =
                           putDocLn $ errorDoc ParserExectpion (displayException e)
                     )
                     (\tag ->
-                      runCombineTagsPipe writeHandle Vim.formatTag tag
+                      runCombineTagsPipe writeHandle CTags.formatTag tag
                         `Pipes.Safe.catchP` \(e :: IOException) ->
                           Pipes.lift $ Pipes.liftIO $
                             -- don't re-throw; this would kill `ghc`, error
@@ -185,11 +185,11 @@ updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags} tagsFile lmodule =
                      $ lmodule
 
             -- Write header
-            BSL.hPut writeHandle (BB.toLazyByteString (Vim.formatHeaders))
+            BSL.hPut writeHandle (BB.toLazyByteString (CTags.formatHeaders))
             -- update tags file / run 'pipe'
             tags' <- Pipes.Safe.runSafeT $ execStateT ((Pipes.runEffect pipe)) tags
             -- write the remaining tags'
-            traverse_ (BSL.hPut writeHandle . BB.toLazyByteString . Vim.formatTag) tags'
+            traverse_ (BSL.hPut writeHandle . BB.toLazyByteString . CTags.formatTag) tags'
 
   where
 

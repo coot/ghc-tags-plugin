@@ -8,7 +8,7 @@
 
 -- | Parser combinators for vim style tags
 --
-module Plugin.GhcTags.Vim.Parser
+module Plugin.GhcTags.CTags.Parser
   ( parseTagsFile
   , parseTagLine
   , parseTags

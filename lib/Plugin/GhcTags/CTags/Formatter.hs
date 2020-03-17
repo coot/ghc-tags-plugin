@@ -2,7 +2,7 @@
 
 -- | 'bytestring''s 'Builder' for a 'Tag'
 --
-module Plugin.GhcTags.Vim.Formatter
+module Plugin.GhcTags.CTags.Formatter
   ( formatTagsFile
   , formatTag
   , formatHeaders
