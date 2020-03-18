@@ -30,6 +30,9 @@ jobs:
           key: cabal-store-8.6.5
       - name: Update Hackage index
         run: cabal v2-update
+      - name: set git crlf
+        run: |
+          git config --global core.eol "native"
       - uses: actions/checkout@v2
       - name: Build dependencies
         run: cabal v2-build ghc-tags-plugin --only-dependencies

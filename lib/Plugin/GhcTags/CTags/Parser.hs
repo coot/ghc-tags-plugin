@@ -26,6 +26,7 @@ import           Data.Text          (Text)
 import qualified Data.Text          as Text
 
 import           Plugin.GhcTags.Tag
+import qualified Plugin.GhcTags.Utils as Utils
 
 
 -- | Parser for a single line of a vim-style tag file.
@@ -45,28 +46,28 @@ parseTag =
 
     <*> (  -- kind field followed by list of fields or end of line.
               ((,) <$> ( separator *> parseKindField )
-                   <*> ( separator *> parseFields <* AT.endOfLine
+                   <*> ( separator *> parseFields <* endOfLine
                          <|>
-                         AT.endOfLine $> [])
+                         endOfLine $> [])
                        )
 
           -- list of fields (kind field might be later, but don't check it, we
           -- always format it as the first field) or end of line.
           <|> curry id NoKind
-                <$> ( separator *> parseFields <* AT.endOfLine
+                <$> ( separator *> parseFields <* endOfLine
                       <|>
-                      AT.endOfLine $> []
+                      endOfLine $> []
                     )
 
           -- kind encoded as a single letter, followed by a list
           -- of fields or end of line.
           <|> curry (charToTagKind *** id)
                   <$> ( separator *> AT.satisfy notTabOrNewLine )
-                  <*> ( separator *> parseFields <* AT.endOfLine
+                  <*> ( separator *> parseFields <* endOfLine
                         <|>
-                        AT.endOfLine $> []
+                        endOfLine $> []
                       )
-          <|> AT.endOfLine $> (NoKind, [])
+          <|> endOfLine $> (NoKind, [])
         )
 
   where
@@ -88,10 +89,17 @@ parseTag =
                  <$> AT.scan "" go
                  <*  AT.anyChar
       where
-        -- go until either '\n' or ';"' sequence is found.
+        -- go until either eol or ';"' sequence is found.
         go :: String -> Char -> Maybe String
-        go _ '\n'             = Nothing
-        go !s c  | l == "\";" = Nothing
+
+        go !s c  | -- eol
+                   take (length Utils.endOfLine) (c : s)
+                     == reverse Utils.endOfLine
+                              = Nothing
+
+                 | -- ';"' sequence
+                   l == "\";" = Nothing
+
                  | otherwise  = Just l
           where
             l = take 2 (c : s)
@@ -99,7 +107,7 @@ parseTag =
     -- We only parse `TagLine` or `TagCommand`.
     parseTagAddress :: Parser TagAddress
     parseTagAddress =
-          TagLine <$> AT.decimal <* (AT.endOfLine <|> (void $ AT.string ";\""))
+          TagLine <$> AT.decimal <* (endOfLine <|> (void $ AT.string ";\""))
       <|>
           TagCommand <$> parseExCommand
 
@@ -161,3 +169,12 @@ parseTagsFile :: Text
 parseTagsFile =
       fmap AT.eitherResult
     . AT.parseWith (pure mempty) parseTags
+
+
+-- | Unlike 'AT.endOfLine', it also matches for a single '\r' characters (which
+-- marks enf of lines on darwin).
+--
+endOfLine :: Parser ()
+endOfLine = AT.string "\r\n" $> ()
+        <|> AT.char '\r' $> ()
+        <|> AT.char '\n' $> ()

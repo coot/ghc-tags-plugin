@@ -21,25 +21,33 @@ import           Paths_ghc_tags_plugin (version)
 
 import           Plugin.GhcTags.Generate
 import           Plugin.GhcTags.Tag
+import           Plugin.GhcTags.Utils (endOfLine)
 
 
 -- | 'ByteString' 'Builder' for a single line.
 --
 formatTag :: Tag -> Builder
 formatTag Tag { tagName, tagFile, tagAddr, tagKind, tagFields} =
+
        (BS.byteString . Text.encodeUtf8 . getTagName $ tagName)
     <> BS.charUtf8 '\t'
+
     <> (BS.byteString . Text.encodeUtf8 . Text.pack . getTagFile $ tagFile)
     <> BS.charUtf8 '\t'
+
     <> formatTagAddress tagAddr
     -- we are using extended format: '_TAG_FILE_FROMAT	2'
     <> BS.stringUtf8 ";\""
+
     -- tag kind: we are encoding them using field syntax: this is because vim
     -- is using them in the right way: https://github.com/vim/vim/issues/5724
     <> formatKindChar tagKind
+
     -- tag fields
     <> foldMap ((BS.charUtf8 '\t' <>) . formatField) tagFields 
-    <> BS.charUtf8 '\n'
+
+    <> BS.stringUtf8 endOfLine
+
   where
 
     formatTagAddress :: TagAddress -> Builder
@@ -71,7 +79,7 @@ formatField TagField { fieldName, fieldValue } =
 
 
 formatHeader :: String -> String -> String
-formatHeader header arg = printf ("!_" ++ header ++ "\t%s\t\n") arg
+formatHeader header arg = printf ("!_" ++ header ++ "\t%s\t" ++ endOfLine) arg
 
 formatHeaders :: Builder
 formatHeaders =
