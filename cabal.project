@@ -1,5 +1,4 @@
-packages: ./ghc-tags-plugin.cabal
-          ./test-project/test-project.cabal
+packages: .
 
 source-repository-package
   type: git
