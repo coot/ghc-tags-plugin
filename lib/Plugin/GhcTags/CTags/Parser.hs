@@ -26,6 +26,7 @@ import           Data.Text          (Text)
 import qualified Data.Text          as Text
 
 import           Plugin.GhcTags.Tag
+import qualified Plugin.GhcTags.Utils as Utils
 
 
 -- | Parser for a single line of a vim-style tag file.
@@ -45,36 +46,33 @@ parseTag =
 
     <*> (  -- kind field followed by list of fields or end of line.
               ((,) <$> ( separator *> parseKindField )
-                   <*> ( separator *> parseFields <* AT.endOfLine
+                   <*> ( separator *> parseFields <* endOfLine
                          <|>
-                         AT.endOfLine $> [])
+                         endOfLine $> [])
                        )
 
           -- list of fields (kind field might be later, but don't check it, we
           -- always format it as the first field) or end of line.
           <|> curry id NoKind
-                <$> ( separator *> parseFields <* AT.endOfLine
+                <$> ( separator *> parseFields <* endOfLine
                       <|>
-                      AT.endOfLine $> []
+                      endOfLine $> []
                     )
 
           -- kind encoded as a single letter, followed by a list
           -- of fields or end of line.
           <|> curry (charToTagKind *** id)
                   <$> ( separator *> AT.satisfy notTabOrNewLine )
-                  <*> ( separator *> parseFields <* AT.endOfLine
+                  <*> ( separator *> parseFields <* endOfLine
                         <|>
-                        AT.endOfLine $> []
+                        endOfLine $> []
                       )
-          <|> AT.endOfLine $> (NoKind, [])
+          <|> endOfLine $> (NoKind, [])
         )
 
   where
     separator :: Parser Char
     separator = AT.char '\t'
-
-    notTabOrNewLine :: Char -> Bool
-    notTabOrNewLine = \x -> x /= '\t' && x /= '\n' 
 
     parseTagName :: Parser TagName
     parseTagName = TagName <$> AT.takeWhile (/= '\t')
@@ -88,10 +86,17 @@ parseTag =
                  <$> AT.scan "" go
                  <*  AT.anyChar
       where
-        -- go until either '\n' or ';"' sequence is found.
+        -- go until either eol or ';"' sequence is found.
         go :: String -> Char -> Maybe String
-        go _ '\n'             = Nothing
-        go !s c  | l == "\";" = Nothing
+
+        go !s c  | -- eol
+                   take (length Utils.endOfLine) (c : s)
+                     == reverse Utils.endOfLine
+                              = Nothing
+
+                 | -- ';"' sequence
+                   l == "\";" = Nothing
+
                  | otherwise  = Just l
           where
             l = take 2 (c : s)
@@ -99,7 +104,7 @@ parseTag =
     -- We only parse `TagLine` or `TagCommand`.
     parseTagAddress :: Parser TagAddress
     parseTagAddress =
-          TagLine <$> AT.decimal <* (AT.endOfLine <|> (void $ AT.string ";\""))
+          TagLine <$> AT.decimal <* (endOfLine <|> void (AT.string ";\""))
       <|>
           TagCommand <$> parseExCommand
 
@@ -121,9 +126,9 @@ charToTagKind c = case charToGhcKind c of
 parseField :: Parser TagField
 parseField =
          TagField
-     <$> AT.takeWhile (\x -> x /= ':' && x /= '\n' && x /= '\t')
+     <$> AT.takeWhile (\x -> x /= ':' && notTabOrNewLine x)
      <*  AT.char ':'
-     <*> AT.takeWhile (\x -> x /= '\t' && x /= '\n')
+     <*> AT.takeWhile notTabOrNewLine
 
 
 -- | A vim-style tag file parser.
@@ -151,7 +156,7 @@ parseHeader = AT.choice
     , AT.string (Text.pack "!_TAG_PROGRAM_VERSION") *> params
     ]
   where
-    params = void $ AT.char '\t' *> AT.skipWhile (/= '\n') *> AT.char '\n'
+    params = void $ AT.char '\t' *> AT.skipWhile notNewLine *> endOfLine
 
 
 -- | Parse a vim-style tag file.
@@ -161,3 +166,25 @@ parseTagsFile :: Text
 parseTagsFile =
       fmap AT.eitherResult
     . AT.parseWith (pure mempty) parseTags
+
+
+--
+-- Utils
+--
+
+
+-- | Unlike 'AT.endOfLine', it also matches for a single '\r' characters (which
+-- marks enf of lines on darwin).
+--
+endOfLine :: Parser ()
+endOfLine = AT.string "\r\n" $> ()
+        <|> AT.char '\r' $> ()
+        <|> AT.char '\n' $> ()
+
+
+notTabOrNewLine :: Char -> Bool
+notTabOrNewLine = \x -> x /= '\t' && x /= '\n' && x /= '\r'
+
+
+notNewLine :: Char -> Bool
+notNewLine = \x -> x /= '\n' && x /= '\r'
