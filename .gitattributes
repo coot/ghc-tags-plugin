@@ -1,1 +1,1 @@
-test/golden/*.tags -text
+test/golden/*.tags text eol="native"
