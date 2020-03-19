@@ -39,4 +39,7 @@ recache:
 check:
 	ghc-pkg check --package-db=${PACKAGE_DB} 2>&1 | grep ghc-tags
 
+describe:
+	ghc-pkg describe --package-db=${PACKAGE_DB} ghc-tags-plugin
+
 .PHONY: install, uninstall, reinstall, latest, check
