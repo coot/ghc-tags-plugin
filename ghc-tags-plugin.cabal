@@ -119,7 +119,7 @@ benchmark benchmarks
                      , pipes-bytestring
                      , pipes-text
                      , text
-  ghc-options:         -rtsopts
+  ghc-options:         -Wall -rtsopts
 
 executable gtp-check
   if flag(gtp-check)
