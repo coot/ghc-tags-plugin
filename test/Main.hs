@@ -5,6 +5,7 @@ import           Test.Tasty
 import qualified Test.Golden.Parser (tests)
 import qualified Test.Tag           (tests)
 import qualified Test.CTags         (tests)
+import qualified Test.ETags         (tests)
 
 
 main ::IO ()
@@ -16,4 +17,5 @@ tests =
     [ Test.Golden.Parser.tests
     , Test.Tag.tests
     , Test.CTags.tests
+    , Test.ETags.tests
     ]

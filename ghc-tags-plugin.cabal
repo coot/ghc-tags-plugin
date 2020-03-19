@@ -58,6 +58,7 @@ library ghc-tags-library
                        Plugin.GhcTags.CTags
                        Plugin.GhcTags.CTags.Parser
                        Plugin.GhcTags.CTags.Formatter
+                       Plugin.GhcTags.ETags.Formatter
                        Plugin.GhcTags.Utils
                        Paths_ghc_tags_plugin
   autogen-modules:     Paths_ghc_tags_plugin
@@ -86,6 +87,7 @@ test-suite ghc-tags-tests
                        Test.Tag
                        Test.Tag.Generators
                        Test.CTags
+                       Test.ETags
   default-language:    Haskell2010      
   build-depends:       attoparsec,
                        base,
