@@ -22,34 +22,37 @@ import           Test.Tag.Generators
 
 tests :: TestTree
 tests = testGroup "CTags"
-  [ testProperty "round-trip" (roundTrip . getArbTag)
+  [ testProperty "round-trip" roundTripProp
   ]
 
 --
 -- Generators
 --
 
-newtype ArbTag = ArbTag { getArbTag :: Tag }
+newtype ArbCTag = ArbCTag { getArbCTag :: Tag }
   deriving Show
 
-instance Arbitrary ArbTag where
-    arbitrary = fmap ArbTag $
+instance Arbitrary ArbCTag where
+    arbitrary = fmap ArbCTag $
           Tag
       <$> (TagName <$> genTextNonEmpty)
       <*> genTagKind
       <*> (TagFile  <$> genFilePath)
       <*> frequency
             [ (2, TagLine . getPositive <$> arbitrary)
+            -- we are generating `TagLineCol` even though they are not present;
+            -- The roundTrip property will check if the address was projected
+            -- to `TagLine`.
             , (2, TagLineCol <$> (getPositive <$> arbitrary) <*> (getPositive <$> arbitrary))
             , (1, TagCommand . ExCommand . (wrap '/' . fixAddr) <$> genTextNonEmpty)
             , (1, TagCommand . ExCommand . (wrap '?' . fixAddr) <$> genTextNonEmpty)
             ]
       <*> listOf genField
-    shrink = map ArbTag . shrinkTag . getArbTag
+    shrink = map ArbCTag . shrinkTag . getArbCTag
 
 
-roundTrip :: Tag -> Property
-roundTrip tag =
+roundTripProp :: ArbCTag -> Property
+roundTripProp (ArbCTag tag) =
     let bs   = BL.toStrict
              . BB.toLazyByteString
              . CTags.formatTag
