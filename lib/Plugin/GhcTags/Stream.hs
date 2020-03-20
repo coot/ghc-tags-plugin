@@ -1,4 +1,7 @@
+{-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 
@@ -26,11 +29,11 @@ import           Plugin.GhcTags.Tag
 
 
 tagParser :: MonadIO m
-          => Parser (Maybe Tag)
+          => Parser (Maybe (Tag tk))
           -- ^ Parse a single tag.  For Vim this returns should parse a single
           -- line and return the tag, e.g  'parseTagLine'.
           -> Pipes.Producer Text m ()
-          -> Pipes.Producer Tag m ()
+          -> Pipes.Producer (Tag tk) m ()
 tagParser parser producer = void $
   Pipes.for
     (Pipes.AP.parsed parser producer)
@@ -43,11 +46,13 @@ tagParser parser producer = void $
 --  | 'Pipe' version of 'combineTags'.
 --
 combineTagsPipe
-    :: forall m.
-       Applicative m
-    => Tag   -- ^ tag read from disc
-    -> [Tag] -- ^ new tags
-    -> Pipes.Producer Tag m [Tag]
+    :: forall m (tk :: TAG_KIND).
+       ( Applicative m
+       , Ord (TagAddress tk)
+       )
+    => Tag tk   -- ^ tag read from disc
+    -> [Tag tk] -- ^ new tags
+    -> Pipes.Producer (Tag tk) m [Tag tk]
 -- TODO: if a module has no tags, we will not remove any of the pre-exisiting
 -- ones.
 combineTagsPipe tag0 []         = Pipes.yield tag0 $> []
@@ -69,11 +74,13 @@ combineTagsPipe tag0 ts@(t : _) = go tag0 ts
 -- | run 'combineTagsPipe' taking care of the state.
 --
 runCombineTagsPipe
-    :: MonadIO m
+    :: ( MonadIO m
+       , Ord (TagAddress tk)
+       )
     => Handle
-    -> (Tag -> Builder)
-    -> Tag
-    -> Pipes.Effect (StateT [Tag] m) ()
+    -> (Tag tk -> Builder)
+    -> Tag tk
+    -> Pipes.Effect (StateT [Tag tk] m) ()
 runCombineTagsPipe writeHandle formatTag =
       (\tag -> Pipes.stateP $ fmap ((),) . combineTagsPipe tag)
     ~> Pipes.yield . BS.toLazyByteString . formatTag 

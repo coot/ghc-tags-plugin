@@ -29,14 +29,14 @@ tests = testGroup "CTags"
 -- Generators
 --
 
-newtype ArbCTag = ArbCTag { getArbCTag :: Tag }
+newtype ArbCTag = ArbCTag { getArbCTag :: CTag }
   deriving Show
 
 instance Arbitrary ArbCTag where
     arbitrary = fmap ArbCTag $
           Tag
       <$> (TagName <$> genTextNonEmpty)
-      <*> genTagKind
+      <*> genTagKind SingCTag
       <*> (TagFile  <$> genFilePath)
       <*> frequency
             [ (2, TagLine . getPositive <$> arbitrary)
@@ -47,8 +47,9 @@ instance Arbitrary ArbCTag where
             , (1, TagCommand . ExCommand . (wrap '/' . fixAddr) <$> genTextNonEmpty)
             , (1, TagCommand . ExCommand . (wrap '?' . fixAddr) <$> genTextNonEmpty)
             ]
+      <*> pure NoTagDefinition
       <*> listOf genField
-    shrink = map ArbCTag . shrinkTag . getArbCTag
+    shrink = map ArbCTag . shrinkTag SingCTag . getArbCTag
 
 
 roundTripProp :: ArbCTag -> Property
@@ -68,7 +69,7 @@ roundTripProp (ArbCTag tag) =
                       (show $ Text.decodeUtf8 bs)
                       (projectTagAddress tag === tag')
   where
-    projectTagAddress :: Tag -> Tag
+    projectTagAddress :: CTag -> CTag
     projectTagAddress t@Tag {tagAddr = TagLineCol line _} =
       t { tagAddr = TagLine line }
     projectTagAddress t = t

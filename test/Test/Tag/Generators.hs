@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs             #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -89,8 +90,9 @@ genGhcKind = elements
   , TkForeignExport
   ]
 
-genTagKind :: Gen TagKind
-genTagKind = oneof
+genTagKind :: SingTagKind tk -> Gen (TagKind tk)
+genTagKind SingETag = pure NoKind
+genTagKind SingCTag = oneof
     [ pure NoKind
     , CharKind <$> genChar
     , GhcKind <$> genGhcKind
@@ -102,8 +104,8 @@ genTagKind = oneof
                          /\ (isNothing . charToGhcKind)
                        )
 
-shrinkTag' :: Tag -> [Tag]
-shrinkTag' tag@Tag {tagName, tagAddr, tagFields} =
+shrinkTag' :: SingTagKind tk -> Tag tk -> [Tag tk]
+shrinkTag' _sing tag@Tag {tagName, tagAddr, tagFields} =
       [ tag { tagName = TagName x }
       | x <- fixText `map` shrink (getTagName tagName)
       , not (Text.null x)
@@ -137,9 +139,9 @@ shrinkTag' tag@Tag {tagName, tagAddr, tagFields} =
           Just (addr'', _) -> addr''
 
 
-shrinkTag :: Tag -> [Tag]
-shrinkTag tag@Tag {tagFile} =
-      shrinkTag' tag
+shrinkTag :: SingTagKind tk -> Tag tk -> [Tag tk]
+shrinkTag sing tag@Tag {tagFile} =
+      shrinkTag' sing tag
    ++ [ tag { tagFile = TagFile x }
       | x <- fixFilePath `map` shrink (getTagFile tagFile)
       , not (null x)

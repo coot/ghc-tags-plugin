@@ -2,6 +2,7 @@
 
 module Plugin.GhcTags.Utils
   ( endOfLine
+  , notNewLine
 
   , withFileLock
   , LockMode (..)
@@ -27,6 +28,10 @@ endOfLine = "\r"
 #else
 endOfLine = "\n"
 #endif
+
+
+notNewLine :: Char -> Bool
+notNewLine = \x -> x /= '\n' && x /= '\r'
 
 
 -- | 'flock' base lock (on posix) or `LockFileEx` on Windows.
