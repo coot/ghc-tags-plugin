@@ -1,4 +1,5 @@
-{-# LANGUAGE NamedFieldPuns  #-}
+{-# LANGUAGE GADTs          #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 -- | 'bytestring''s 'Builder' for a 'Tag'
 --
@@ -26,7 +27,7 @@ import           Plugin.GhcTags.Utils (endOfLine)
 
 -- | 'ByteString' 'Builder' for a single line.
 --
-formatTag :: Tag -> Builder
+formatTag :: CTag -> Builder
 formatTag Tag { tagName, tagFile, tagAddr, tagKind, tagFields} =
 
        (BS.byteString . Text.encodeUtf8 . getTagName $ tagName)
@@ -50,7 +51,7 @@ formatTag Tag { tagName, tagFile, tagAddr, tagKind, tagFields} =
 
   where
 
-    formatTagAddress :: TagAddress -> Builder
+    formatTagAddress :: CTagAddress -> Builder
     formatTagAddress (TagLineCol lineNo _colNo) =
       BS.intDec lineNo -- Vim only allows to use ranges; there's no way to
                        -- specify column (`c|` command is not allowed)
@@ -59,7 +60,7 @@ formatTag Tag { tagName, tagFile, tagAddr, tagKind, tagFields} =
     formatTagAddress (TagCommand exCommand) =
       BS.byteString . Text.encodeUtf8 . getExCommand $ exCommand     
 
-    formatKindChar :: TagKind -> Builder
+    formatKindChar :: CTagKind -> Builder
     formatKindChar NoKind = mempty
     formatKindChar (CharKind c)
                      | isAscii c = BS.charUtf8 '\t' <> BS.charUtf8 c
@@ -97,7 +98,7 @@ formatHeaders =
 
 -- | 'ByteString' 'Builder' for vim 'Tag' file.
 --
-formatTagsFile :: [Tag] -> Builder
+formatTagsFile :: [CTag] -> Builder
 formatTagsFile tags =
        formatHeaders
     <> foldMap formatTag tags

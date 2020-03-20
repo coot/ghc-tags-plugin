@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -58,33 +59,35 @@ tests = testGroup "Tag"
 
 -- | 'Tag' generator
 --
-newtype ArbTag = ArbTag { getArbTag :: Tag }
+newtype ArbTag = ArbTag { getArbTag :: CTag }
   deriving Show
 
-genTagAddrLine :: Gen Tag
+genTagAddrLine :: Gen CTag
 genTagAddrLine =
           Tag
       <$> (TagName <$> resize 5 genTextNonEmpty)
-      <*> genTagKind
+      <*> genTagKind SingCTag
       <*> (TagFile <$> genSmallFilePath)
       <*> frequency
             [ (8, TagLine . getPositive <$> arbitrary)
             , (1, TagCommand . ExCommand . (wrap '/' . fixAddr) <$> genTextNonEmpty)
             , (1, TagCommand . ExCommand . (wrap '?' . fixAddr) <$> genTextNonEmpty)
             ]
+      <*> pure NoTagDefinition
       <*> listOf genField
 
-genTagAddrLineCol :: Gen Tag
+genTagAddrLineCol :: Gen CTag
 genTagAddrLineCol =
           Tag
       <$> (TagName <$> resize 5 genTextNonEmpty)
-      <*> genTagKind
+      <*> genTagKind SingCTag
       <*> (TagFile <$> genSmallFilePath)
       <*> frequency
             [ (8, TagLineCol <$> (getPositive <$> arbitrary) <*> (getPositive <$> arbitrary))
             , (1, TagCommand . ExCommand . (wrap '/' . fixAddr) <$> genTextNonEmpty)
             , (1, TagCommand . ExCommand . (wrap '?' . fixAddr) <$> genTextNonEmpty)
             ]
+      <*> pure NoTagDefinition
       <*> listOf genField
 
 instance Arbitrary ArbTag where
@@ -93,12 +96,12 @@ instance Arbitrary ArbTag where
       , ArbTag <$> genTagAddrLineCol
       ]
 
-    shrink = map ArbTag . shrinkTag . getArbTag
+    shrink = map ArbTag . shrinkTag SingCTag . getArbTag
 
 
 -- | Arbitrary instance with a high probability of gettings the same tags or files.
 --
-newtype ArbOrdTag = ArbOrdTag { getArbOrdTag :: Tag }
+newtype ArbOrdTag = ArbOrdTag { getArbOrdTag :: CTag }
   deriving Show
 
 
@@ -111,7 +114,7 @@ instance Arbitrary ArbOrdTag where
                      , "Ord"
                      , "Eq"
                      ])
-             <*> genTagKind
+             <*> genTagKind SingCTag
              <*> elements
                    (TagFile `map`
                      [ "Main.hs"
@@ -122,14 +125,15 @@ instance Arbitrary ArbOrdTag where
                    , (1, TagCommand . ExCommand . (wrap '/' . fixAddr) <$> genTextNonEmpty)
                    , (1, TagCommand . ExCommand . (wrap '?' . fixAddr) <$> genTextNonEmpty)
                    ]
+             <*> pure NoTagDefinition
              <*> pure []
 
-    shrink = map ArbOrdTag . shrinkTag . getArbOrdTag
+    shrink = map ArbOrdTag . shrinkTag SingCTag . getArbOrdTag
 
 
 -- | Generate pairs of tags which are equal in the sense of `compare`.
 --
-data EqTags = EqTags Tag Tag
+data EqTags = EqTags CTag CTag
   deriving Show
 
 instance Arbitrary EqTags where
@@ -151,14 +155,14 @@ ordAntiSymmetryProp (EqTags a b) = a `compareTags` b == EQ
 -- We don't provide 'Ord' instance, since it's not compatible with 'compare',
 -- see 'weakConsistency'.
 --
-(≤), (≥) :: Tag -> Tag -> Bool
+(≤), (≥) :: Ord (TagAddress tk) => Tag tk -> Tag tk -> Bool
 a ≤ b = a `compareTags` b /= GT
 a ≥ b = a `compareTags` b /= LT
 
-ordReflexivityyProp :: Tag -> Tag -> Bool
+ordReflexivityyProp :: Ord (TagAddress tk) => Tag tk -> Tag tk -> Bool
 ordReflexivityyProp a b = a ≤ b || a ≥ b
 
-ordTransitiveProp :: Tag -> Tag -> Tag -> Property
+ordTransitiveProp :: Ord (TagAddress tk) => Tag tk -> Tag tk -> Tag tk -> Property
 ordTransitiveProp a b c =
        a ≤ b && b ≤ c
     || a ≥ b && b ≥ c ==>
@@ -179,7 +183,7 @@ sortIdempotentProp ts =
 -- prop> a == b ==> a `compare` b == EQ`
 --
 -- But since 'Tag' is using derived 'Eq' instance, it is equivalent to
-weakConsistency :: Tag -> Bool
+weakConsistency :: Ord (TagAddress tk) => Tag tk -> Bool
 weakConsistency a = a `compareTags` a == EQ
 
 
@@ -192,19 +196,19 @@ genSmallFilePath = suchThat (resize 3 arbitrary) (not . null)
 
 
 -- | sorted list of Tags
-newtype ArbTagList = ArbTagList { getArbTagList :: [Tag] }
+newtype ArbTagList = ArbTagList { getArbTagList :: [CTag] }
     deriving Show
 
 instance Arbitrary ArbTagList where
     arbitrary = (ArbTagList . nub . sortBy compareTags . map getArbTag)
             <$> listOf arbitrary
     shrink (ArbTagList ts) =
-      (ArbTagList . sortBy compareTags) `map` shrinkList shrinkTag ts
+      (ArbTagList . sortBy compareTags) `map` shrinkList (shrinkTag SingCTag) ts
 
 
 -- | List of tags from the same file
 --
-data ArbTagsFromFile = ArbTagsFromFile FilePath [Tag]
+data ArbTagsFromFile = ArbTagsFromFile FilePath [CTag]
     deriving Show
 
 instance Arbitrary ArbTagsFromFile where
@@ -217,7 +221,7 @@ instance Arbitrary ArbTagsFromFile where
     shrink (ArbTagsFromFile fp tags) =
       [ ArbTagsFromFile fp (sortBy compareTags tags')
       -- Don't shrink file name!
-      | tags' <- shrinkList shrinkTag' tags
+      | tags' <- shrinkList (shrinkTag' SingCTag) tags
       ]
       ++
       [ ArbTagsFromFile fp' ((\t -> t { tagFile = TagFile fp' }) `map` tags)
@@ -292,7 +296,7 @@ combineTags_order (ArbTagsFromFile _ as) (ArbTagList bs) =
 -- `TagLine 10` with `TagLine 10 3`, even if they are the same tags.  The crux
 -- of the problem is that `ctags` have no way to represent column number.
 --
-data ArbTagsFromFileAndTagList = ArbTagsFromFileAndTagList [Tag] [Tag]
+data ArbTagsFromFileAndTagList = ArbTagsFromFileAndTagList [CTag] [CTag]
   deriving (Eq, Show)
 
 instance Arbitrary ArbTagsFromFileAndTagList where
@@ -338,7 +342,7 @@ combineTagsPipeProp (ArbTagsFromFileAndTagList as bs) =
     ===
         case
           runStateT
-            (Pipes.toListM @(StateT [Tag] Identity)
+            (Pipes.toListM @(StateT [CTag] Identity)
               (Pipes.for
                  -- yield all `bs`
                 (traverse_ Pipes.yield bs)

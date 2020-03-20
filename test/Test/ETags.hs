@@ -29,24 +29,19 @@ tests = testGroup "ETags"
 --
 
 
-newtype ArbETag = ArbETag { getArbETag :: Tag }
+newtype ArbETag = ArbETag { getArbETag :: ETag }
   deriving Show
 
 instance Arbitrary ArbETag where
     arbitrary = fmap ArbETag $
           Tag
       <$> (TagName <$> genTextNonEmpty)
-      <*> genTagKind
+      <*> genTagKind SingETag
       <*> (TagFile  <$> genFilePath)
-      <*> oneof
-            [ TagLine . getPositive <$> arbitrary
-            -- we are generating `TagLineCol` even though they are not present;
-            -- The roundTrip property will check if the address was projected
-            -- to `TagLine`.
-            , TagLineCol <$> (getPositive <$> arbitrary) <*> (getPositive <$> arbitrary)
-            ]
+      <*> (TagLineCol <$> (getPositive <$> arbitrary) <*> (getPositive <$> arbitrary))
+      <*> pure NoTagDefinition
       <*> listOf genField
-    shrink = map ArbETag . shrinkTag . getArbETag
+    shrink = map ArbETag . shrinkTag SingETag . getArbETag
 
 
 --

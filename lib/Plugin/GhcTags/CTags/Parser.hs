@@ -6,7 +6,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 
--- | Parser combinators for vim style tags
+-- | Parser combinators for vim style tags (ctags)
 --
 module Plugin.GhcTags.CTags.Parser
   ( parseTagsFile
@@ -31,10 +31,10 @@ import qualified Plugin.GhcTags.Utils as Utils
 
 -- | Parser for a single line of a vim-style tag file.
 --
-parseTag :: Parser Tag
+parseTag :: Parser CTag
 parseTag =
       (\tagName tagFile tagAddr (tagKind, tagFields)
-        -> Tag { tagName, tagFile, tagAddr, tagKind, tagFields })
+        -> Tag { tagName, tagFile, tagAddr, tagKind, tagFields, tagDefinition = NoTagDefinition })
     <$> parseTagName
     <*  separator
 
@@ -102,13 +102,13 @@ parseTag =
             l = take 2 (c : s)
 
     -- We only parse `TagLine` or `TagCommand`.
-    parseTagAddress :: Parser TagAddress
+    parseTagAddress :: Parser CTagAddress
     parseTagAddress =
           TagLine <$> AT.decimal <* (endOfLine <|> void (AT.string ";\""))
       <|>
           TagCommand <$> parseExCommand
 
-    parseKindField :: Parser TagKind
+    parseKindField :: Parser CTagKind
     parseKindField =
       charToTagKind <$>
         (AT.string "kind:" *> AT.satisfy notTabOrNewLine)
@@ -117,7 +117,7 @@ parseTag =
     parseFields = AT.sepBy parseField separator
 
 
-charToTagKind :: Char -> TagKind
+charToTagKind :: Char -> CTagKind
 charToTagKind c = case charToGhcKind c of
     Nothing      -> CharKind c
     Just ghcTag  -> GhcKind  ghcTag
@@ -133,11 +133,11 @@ parseField =
 
 -- | A vim-style tag file parser.
 --
-parseTags :: Parser [Tag]
+parseTags :: Parser [CTag]
 parseTags = catMaybes <$> many parseTagLine
 
 
-parseTagLine :: Parser (Maybe Tag)
+parseTagLine :: Parser (Maybe CTag)
 parseTagLine =
     either (const Nothing) Just
       <$> AT.eitherP
@@ -156,13 +156,13 @@ parseHeader = AT.choice
     , AT.string (Text.pack "!_TAG_PROGRAM_VERSION") *> params
     ]
   where
-    params = void $ AT.char '\t' *> AT.skipWhile notNewLine *> endOfLine
+    params = void $ AT.char '\t' *> AT.skipWhile Utils.notNewLine *> endOfLine
 
 
 -- | Parse a vim-style tag file.
 --
 parseTagsFile :: Text
-              -> IO (Either String [Tag])
+              -> IO (Either String [CTag])
 parseTagsFile =
       fmap AT.eitherResult
     . AT.parseWith (pure mempty) parseTags
@@ -184,7 +184,3 @@ endOfLine = AT.string "\r\n" $> ()
 
 notTabOrNewLine :: Char -> Bool
 notTabOrNewLine = \x -> x /= '\t' && x /= '\n' && x /= '\r'
-
-
-notNewLine :: Char -> Bool
-notNewLine = \x -> x /= '\n' && x /= '\r'
