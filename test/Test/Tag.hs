@@ -26,10 +26,12 @@ import qualified Pipes.Lift as Pipes
 
 import           Plugin.GhcTags.Tag
 import           Plugin.GhcTags.Stream
+import qualified Plugin.GhcTags.CTags as CTags
 
 import           Test.Tag.Generators
 
 
+-- TODO add ETags test
 tests :: TestTree
 tests = testGroup "Tag"
   [ testGroup "compareTags"
@@ -238,7 +240,7 @@ combineTags_subset :: ArbTagsFromFile
                    -> Bool
 combineTags_subset (ArbTagsFromFile _ as) bs =
     let bs' = getArbTag `map` bs
-        cs = as `combineTags` bs'
+        cs = combineTags CTags.compareTags as bs'
     in all (`elem` cs) as
 
 
@@ -248,7 +250,9 @@ combineTags_idempotent :: ArbTagList
                        -> ArbTagList
                        -> Bool
 combineTags_idempotent (ArbTagList as) (ArbTagList bs) =
-    combineTags as bs == combineTags as (combineTags as bs)
+    combineTags CTags.compareTags as bs
+    == combineTags CTags.compareTags as
+         (combineTags CTags.compareTags as bs)
 
 
 -- | The tag list cannot connot contain duplicates for this property to hold.
@@ -256,14 +260,14 @@ combineTags_idempotent (ArbTagList as) (ArbTagList bs) =
 combineTags_identity :: ArbTagList
                      -> Bool
 combineTags_identity (ArbTagList as) =
-    combineTags as as == as
+    combineTags CTags.compareTags as as == as
 
 
 -- | Does not modify tags outside of the module.
 --
 combineTags_preserve :: ArbTagsFromFile -> ArbTagList -> Bool
 combineTags_preserve (ArbTagsFromFile fp as) (ArbTagList bs) =
-       filter (\t -> tagFilePath t /= fp) (as `combineTags` bs)
+       filter (\t -> tagFilePath t /= fp) (combineTags CTags.compareTags as bs)
     == 
        filter (\t -> tagFilePath t /= fp) bs
 
@@ -272,7 +276,7 @@ combineTags_preserve (ArbTagsFromFile fp as) (ArbTagList bs) =
 --
 combineTags_substitution :: ArbTagsFromFile -> ArbTagList -> Bool
 combineTags_substitution (ArbTagsFromFile fp as) (ArbTagList bs) =
-       filter (\t -> tagFilePath t == fp) (as `combineTags` bs)
+       filter (\t -> tagFilePath t == fp) (combineTags CTags.compareTags as bs)
     == 
        as
 
@@ -280,7 +284,7 @@ combineTags_substitution (ArbTagsFromFile fp as) (ArbTagList bs) =
 --
 combineTags_order :: ArbTagsFromFile -> ArbTagList -> Bool
 combineTags_order (ArbTagsFromFile _ as) (ArbTagList bs) =
-    let cs = as `combineTags` bs
+    let cs = combineTags CTags.compareTags as bs
     in sortBy compareTags cs == cs
 
 
@@ -338,7 +342,7 @@ instance Arbitrary ArbTagsFromFileAndTagList where
 --
 combineTagsPipeProp :: ArbTagsFromFileAndTagList -> Property
 combineTagsPipeProp (ArbTagsFromFileAndTagList as bs) =
-        as `combineTags` bs
+        combineTags CTags.compareTags as bs
     ===
         case
           runStateT
@@ -346,7 +350,7 @@ combineTagsPipeProp (ArbTagsFromFileAndTagList as bs) =
               (Pipes.for
                  -- yield all `bs`
                 (traverse_ Pipes.yield bs)
-                (\tag -> Pipes.stateP $ fmap ((),) . combineTagsPipe tag)))
+                (\tag -> Pipes.stateP $ fmap ((),) . combineTagsPipe CTags.compareTags tag)))
             -- take 'as' a state
             as of
         Identity (tags, rest) -> tags ++ rest

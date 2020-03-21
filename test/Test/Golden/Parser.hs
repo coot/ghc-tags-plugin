@@ -13,7 +13,7 @@ import qualified Plugin.GhcTags.ETags as ETags
 
 import           Test.Tasty (TestTree, testGroup)
 import           Test.Tasty.Golden
-import           Debug.Trace
+
 
 tests :: TestTree
 tests =
