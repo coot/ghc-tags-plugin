@@ -5,7 +5,6 @@
 --
 module Plugin.GhcTags.ETags.Formatter where
 
-import           Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import           Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as BB
@@ -33,31 +32,39 @@ instance Semigroup BuilderWithSize where
 instance Monoid BuilderWithSize where
     mempty = BuilderWithSize mempty 0
 
-getByteOffset
-    :: [ByteString]
-    -> Int -- ^ line
-    -> Int -- ^ column
-    -> Int -- ^ byteoffset
-getByteOffset linesBS line col =
-    foldl' (\len l -> len + fromIntegral (BS.length l) + 1) 0 (take line linesBS) + col
+computeByteOffset
+    :: [Int]
+    -- ^ lengths of lines
+    -> ETagAddress
+    -> ETagAddress
+computeByteOffset ll (TagLineCol line col) = TagLineCol line byteOffset
+  where
+    byteOffset =
+        foldl' (+) 0 (take (pred line) ll)
+      + col
+
+withByteOffset :: [Int] -> ETag -> ETag
+withByteOffset ll tag@Tag { tagAddr } = tag { tagAddr = computeByteOffset ll tagAddr }
 
 formatTag :: ETag -> BuilderWithSize
-formatTag Tag {tagName, tagAddr, tagDefinition} =
+formatTag Tag {tagName, tagAddr = TagLineCol lineNr byteOffset, tagDefinition} =
            flip BuilderWithSize tagSize $
         -- TODO: get access to the original line or pretty print original
         -- declaration
-           BB.byteString tagDefinitionBS
+           case tagDefinition of
+              NoTagDefinition   -> BB.byteString tagNameBS
+              TagDefinition def -> BB.byteString (Text.encodeUtf8 def)
         <> BB.charUtf8 '\DEL' -- or '\x7f'
-        <> BB.byteString tagNameBS
-        <> BB.charUtf8 '\SOH' -- or '\x01'
-        <> BB.intDec lineNo
+        <> case tagDefinition of
+             NoTagDefinition -> mempty
+             TagDefinition _ ->
+                   BB.byteString tagNameBS
+                <> BB.charUtf8 '\SOH' -- or '\x01'
+        <> BB.intDec lineNr
         <> BB.charUtf8 ','
-        <> BB.intDec (succ lineNo)
+        <> BB.intDec byteOffset
         <> BB.stringUtf8 endOfLine
   where
-    lineNo = case tagAddr of
-      TagLineCol l _ -> l
-
     tagNameBS = Text.encodeUtf8 . getTagName $ tagName
     tagNameSize = BS.length tagNameBS
 
@@ -70,8 +77,8 @@ formatTag Tag {tagName, tagAddr, tagDefinition} =
         3 -- delimiters: '\DEL', '\SOH', ','
       + tagNameSize
       + tagDefinitionSize
-      + (length $ show lineNo)
-      + (length $ show (succ lineNo))
+      + (length $ show lineNr)
+      + (length $ show byteOffset)
       + (length $ endOfLine)
 
 
@@ -83,8 +90,7 @@ formatTagsFile ts@(Tag {tagFile} : _) =
     case foldMap formatTag ts of
       BuilderWithSize {builder, builderSize} ->
         if builderSize > 0
-          then
-               BB.charUtf8 '\x0c'
+          then BB.charUtf8 '\x0c'
             <> BB.stringUtf8 endOfLine
             <> (BB.byteString . Text.encodeUtf8 . Text.pack . getTagFile $ tagFile)
             <> BB.charUtf8 ','

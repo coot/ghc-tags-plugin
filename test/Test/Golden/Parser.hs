@@ -13,7 +13,7 @@ import qualified Plugin.GhcTags.ETags as ETags
 
 import           Test.Tasty (TestTree, testGroup)
 import           Test.Tasty.Golden
-
+import           Debug.Trace
 
 tests :: TestTree
 tests =
@@ -69,15 +69,17 @@ tests =
           ]
 
       , testGroup "ETags"
-          [ let input  = "test/golden/io-sim-classes.TAGS"
-                output = "test/golden/io-sim-classes.TAGS.out"
-            in goldenVsFile 
-                "io-sim-classes TAGS"
-                 input
-                 output
-                 (parseGoldenETagsFile input output)
+          {--
+            - [ let input  = "test/golden/io-sim-classes.TAGS"
+            -       output = "test/golden/io-sim-classes.TAGS.out"
+            -   in goldenVsFile 
+            -       "io-sim-classes TAGS"
+            -        input
+            -        output
+            -        (parseGoldenETagsFile input output)
+            --}
 
-          , let input  = "test/golden/vim.TAGS"
+          [ let input  = "test/golden/vim.TAGS"
                 output = "test/golden/vim.TAGS.out"
             in goldenVsFile 
                 "vim tags"
@@ -103,8 +105,8 @@ parseGoldenCTagsFile input output = do
 
 
 parseGoldenETagsFile
-    :: FilePath -- input file
-    -> FilePath -- output file
+    :: FilePath -- ^ input file
+    -> FilePath -- ^ output file
     -> IO ()
 parseGoldenETagsFile input output = do
     res <- withBinaryFile input ReadMode

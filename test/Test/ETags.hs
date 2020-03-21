@@ -39,7 +39,7 @@ instance Arbitrary ArbETag where
       <*> genTagKind SingETag
       <*> (TagFile  <$> genFilePath)
       <*> (TagLineCol <$> (getPositive <$> arbitrary) <*> (getPositive <$> arbitrary))
-      <*> pure NoTagDefinition
+      <*> (TagDefinition <$> genTextNonEmpty)
       <*> listOf genField
     shrink = map ArbETag . shrinkTag SingETag . getArbETag
 
