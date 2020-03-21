@@ -6,7 +6,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 
-module Plugin.GhcTags ( plugin ) where
+module Plugin.GhcTags ( plugin, Options (..) ) where
 
 import           Control.Exception
 import           Control.Monad.State.Strict
@@ -137,7 +137,7 @@ updateTags :: Options Identity
            -> ModSummary
            -> Located (HsModule GhcPs)
            -> IO ()
-updateTags Options { etags, filepath = Identity tagsFile }
+updateTags Options { etags, filePath = Identity tagsFile }
            ModSummary {ms_mod, ms_location, ms_hspp_opts = dynFlags}
            lmodule =
     -- wrap 'IOException's
