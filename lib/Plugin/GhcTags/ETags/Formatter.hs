@@ -3,7 +3,13 @@
 
 -- | Simple etags formatter. See <https://en.wikipedia.org/wiki/Ctags#Etags>
 --
-module Plugin.GhcTags.ETags.Formatter where
+module Plugin.GhcTags.ETags.Formatter
+  ( withByteOffset
+  , formatETagsFile 
+  , formatTagsFile
+  , formatTag
+  , BuilderWithSize (..)
+  ) where
 
 import qualified Data.ByteString as BS
 import           Data.ByteString.Builder (Builder)
@@ -15,7 +21,6 @@ import qualified Data.Text          as Text
 import qualified Data.Text.Encoding as Text
 
 import           Plugin.GhcTags.Tag
-import           Plugin.GhcTags.Utils (endOfLine)
 
 
 -- | A product of two monoids: 'Builder' and 'Sum'.
@@ -107,3 +112,7 @@ formatETagsFile :: [ETag] -> Builder
 formatETagsFile =
       foldMap formatTagsFile 
     . groupBy (on (==) tagFile)
+
+
+endOfLine :: String
+endOfLine = "\n"

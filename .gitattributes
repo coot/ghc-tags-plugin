@@ -1,2 +1,2 @@
 test/golden/*.tags text eol="native"
-test/golden/*.TAGS text eol="native"
+test/golden/*.TAGS -text
