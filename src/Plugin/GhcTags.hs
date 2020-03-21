@@ -73,18 +73,18 @@ import           Plugin.GhcTags.Utils
 -- 
 -- The tags file will contain location information about:
 --
---  * top level terms
---  * data types
---  * record fields
---  * type synonyms
---  * type classes
---  * type class members
---  * type class instances
---  * type families                           /(standalone and associated)/
---  * type family instances                   /(standalone and associated)/
---  * data type families                      /(standalone and associated)/
---  * data type families instances            /(standalone and associated)/
---  * data type family instances constructors /(standalone and associated)/
+--  * /top level terms/
+--  * /data types/
+--  * /record fields/
+--  * /type synonyms/
+--  * /type classes/
+--  * /type class members/
+--  * /type class instances/
+--  * /type families/                           /(standalone and associated)/
+--  * /type family instances/                   /(standalone and associated)/
+--  * /data type families/                      /(standalone and associated)/
+--  * /data type families instances/            /(standalone and associated)/
+--  * /data type family instances constructors/ /(standalone and associated)/
 --
 plugin :: Plugin
 plugin = GhcPlugins.defaultPlugin {
