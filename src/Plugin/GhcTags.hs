@@ -152,7 +152,7 @@ updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags} tagsFile lmodule =
                   | otherwise      = pure ()
 
                 -- gags pipe
-                pipe :: Pipes.Effect (StateT [Tag] (SafeT IO)) ()
+                pipe :: Pipes.Effect (StateT [CTag] (SafeT IO)) ()
                 pipe =
                   Pipes.for
                     (Pipes.hoist Pipes.lift (tagParser CTags.parseTagLine producer)
@@ -176,11 +176,12 @@ updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags} tagsFile lmodule =
             -- (without ".." and ".") to make 'makeRelative' works.
             tagsDir <- canonicalizePath (fst $ splitFileName tagsFile)
 
-            let tags :: [Tag]
+            let tags :: [CTag]
                 tags = map (fixFileName cwd tagsDir)
                                             -- fix file names
                      . sortBy compareTags   -- sort
-                     . mapMaybe ghcTagToTag -- translate 'GhcTag' to 'Tag'
+                     . mapMaybe (ghcTagToTag SingCTag)
+                                            -- translate 'GhcTag' to 'Tag'
                      . getGhcTags           -- generate 'GhcTag's
                      $ lmodule
 
@@ -197,7 +198,7 @@ updateTags ModSummary {ms_mod, ms_hspp_opts = dynFlags} tagsFile lmodule =
       (dir, name) -> dir </> "." ++ name
     lockFile = sourceFile ++ ".lock"
 
-    fixFileName :: FilePath -> FilePath -> Tag -> Tag
+    fixFileName :: FilePath -> FilePath -> Tag tk -> Tag tk
     fixFileName cwd tagsDir tag@Tag { tagFile = TagFile path } =
       tag { tagFile = TagFile (makeRelative tagsDir (cwd </> path)) }
 
