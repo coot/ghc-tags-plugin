@@ -80,7 +80,7 @@ formatField TagField { fieldName, fieldValue } =
 
 
 formatHeader :: String -> String -> String
-formatHeader header arg = printf ("!_" ++ header ++ "\t%s\t" ++ endOfLine) arg
+formatHeader header arg = printf ("!_" ++ header ++ "\t%s\t//" ++ endOfLine) arg
 
 formatHeaders :: Builder
 formatHeaders =
