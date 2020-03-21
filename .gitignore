@@ -1,4 +1,7 @@
 tags
+TAGS
+.tags.lock
+.TAGS.lock
 test-porject/tags
 /dist.tar.gz
 TODO.md
