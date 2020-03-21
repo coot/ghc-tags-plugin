@@ -29,9 +29,15 @@ filePathParser =
       <|> pure Nothing
 
 
+-- | /ghc-tags-plugin/ options
+--
 data Options f = Options
   { etags    :: Bool
-  , filepath :: f FilePath
+    -- ^ if 'True' use emacs tags file format, the default is 'False'.
+
+  , filePath :: f FilePath
+    -- ^ file path to the tags file (relative to the @*.cabal@ file).  The
+    -- default is either 'tags' (if 'etags' if 'False') or 'TAGS' otherwise.
   }
 
 deriving instance Show (Options Maybe)
@@ -54,7 +60,7 @@ runOptionParser :: [String]
 runOptionParser = fmap defaultOptions . execParserPure defaultPrefs parserInfo
   where
     defaultOptions :: Options Maybe -> Options Identity
-    defaultOptions Options { etags, filepath } =
-      case filepath of
-        Nothing -> Options { etags, filepath = Identity (bool "tags" "TAGS" etags) }
-        Just fp -> Options { etags, filepath = Identity fp }
+    defaultOptions Options { etags, filePath } =
+      case filePath of
+        Nothing -> Options { etags, filePath = Identity (bool "tags" "TAGS" etags) }
+        Just fp -> Options { etags, filePath = Identity fp }
