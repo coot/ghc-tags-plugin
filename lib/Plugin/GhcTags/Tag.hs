@@ -272,15 +272,15 @@ ghcTagToTag sing GhcTag { gtSrcSpan, gtTag, gtKind, gtFields } =
 -- assumeed to be from the same file.
 --
 -- complexity: /O(max n m)/
-combineTags :: Ord (TagAddress tk) => [Tag tk] -> [Tag tk] -> [Tag tk]
-combineTags []          ts1 = ts1
-combineTags ts0@(t : _) ts1 = go ts0 ts1
+combineTags :: (Tag tk -> Tag tk -> Ordering) -> [Tag tk] -> [Tag tk] -> [Tag tk]
+combineTags _        []          ts1 = ts1
+combineTags compare_ ts0@(t : _) ts1 = go ts0 ts1
   where
     modPath = tagFilePath t
 
     go as@(a : as') bs@(b : bs')
       | tagFilePath b == modPath = go as bs'
-      | otherwise = case a `compareTags` b of
+      | otherwise = case a `compare_` b of
           LT -> a : go as' bs
           EQ -> a : go as' bs'
           GT -> b : go as  bs'
