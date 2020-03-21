@@ -1,3 +1,5 @@
+{-# OPTIONS -Wno-orphans #-}
+
 module Main (main) where
 
 import           Control.Exception
@@ -27,14 +29,16 @@ evalList :: [a] -> ()
 evalList [] = ()
 evalList (a : as) = a `seq` evalList as `seq` ()
 
-evalTags :: Either String [Tag] -> ()
+evalTags :: Either String [CTag] -> ()
 evalTags = either (`seq` ()) evalList
 
-newtype TagsNF = TagsNF [Tag]
+newtype TagsNF = TagsNF [CTag]
 
 instance NFData TagsNF where
     rnf (TagsNF tags) = evalList tags
 
+instance NFData TagFile where
+    rnf (TagFile p) = rnf p
 
 main :: IO ()
 main = defaultMain
@@ -84,25 +88,25 @@ main = defaultMain
           (do
             text <- Text.decodeUtf8 <$> BS.readFile "test/golden/io-sim-classes.tags"
             Right tags  <- CTags.parseTagsFile text
-            return (TagsNF tags)
+            return (tagFile (head tags), TagsNF tags)
           )
-          $ \ ~(TagsNF tags) ->
+          $ \ ~(modPath, TagsNF tags) ->
             bgroup "small"
-              [ bench "streamTags" (whnfAppIO (benchStreamTags "test/golden/vim.tags") tags)
+              [ bench "streamTags" (whnfAppIO (benchStreamTags "test/golden/vim.tags" modPath) tags)
 
-              , bench "readTags" (whnfAppIO (benchReadTags "test/golden/vim.tags") tags)
+              , bench "readTags" (whnfAppIO (benchReadTags "test/golden/vim.tags" modPath) tags)
               ]
       , env
           (do
             text <- Text.decodeUtf8 <$> BS.readFile "test/golden/ouroboros-network.tags"
             Right tags  <- CTags.parseTagsFile text
-            return (TagsNF tags)
+            return (tagFile (head tags), TagsNF tags)
           )
-          $ \ ~(TagsNF tags) ->
+          $ \ ~(modPath, TagsNF tags) ->
             bgroup "medium"
-              [ bench "streamTags" (whnfAppIO (benchStreamTags "test/golden/vim.tags") tags)
+              [ bench "streamTags" (whnfAppIO (benchStreamTags "test/golden/vim.tags" modPath) tags)
 
-              , bench "readTags" (whnfAppIO (benchReadTags "test/golden/vim.tags") tags)
+              , bench "readTags" (whnfAppIO (benchReadTags "test/golden/vim.tags" modPath) tags)
               ]
       ]
 
@@ -132,8 +136,9 @@ benchStreamParseFormat fp =
             Pipes.>->
             Pipes.BS.toHandle devNull)
 
-benchStreamTags :: FilePath -> [Tag] -> IO ()
-benchStreamTags filePath tags =
+
+benchStreamTags :: FilePath -> TagFile -> [CTag] -> IO ()
+benchStreamTags filePath modPath tags =
     withFile filePath ReadMode $ \readHandle -> 
       withFile "/tmp/bench.stream.tags" WriteMode $ \writeHandle -> do
         let producer :: Pipes.Producer Text IO ()
@@ -142,20 +147,21 @@ benchStreamTags filePath tags =
                            (Pipes.BS.fromHandle readHandle)
 
             -- gags pipe
-            pipe :: Pipes.Effect (StateT [Tag] IO) ()
+            pipe :: Pipes.Effect (StateT [CTag] IO) ()
             pipe =
               Pipes.for
                 (Pipes.hoist Pipes.lift $ tagParser CTags.parseTagLine producer)
-                (runCombineTagsPipe writeHandle CTags.formatTag)
+                (runCombineTagsPipe writeHandle CTags.compareTags CTags.formatTag modPath)
         tags' <- execStateT (Pipes.runEffect pipe) tags
         traverse_ (BSL.hPut writeHandle . BB.toLazyByteString . CTags.formatTag) tags'
 
-benchReadTags :: FilePath -> [Tag] -> IO ()
-benchReadTags filePath tags = do
+
+benchReadTags :: FilePath -> TagFile -> [CTag] -> IO ()
+benchReadTags filePath modPath tags = do
      withFile filePath ReadMode $ \readHandle -> 
        withFile "/tmp/bench.stream.tags" WriteMode $ \writeHandle -> do
          Right tags' <-
            Text.decodeUtf8 <$> BS.hGetContents readHandle
            >>= CTags.parseTagsFile
-         let tags'' = tags `combineTags` tags'
+         let tags'' = combineTags CTags.compareTags modPath tags tags'
          BB.hPutBuilder writeHandle (CTags.formatTagsFile tags'')
