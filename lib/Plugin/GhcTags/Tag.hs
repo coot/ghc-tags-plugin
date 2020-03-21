@@ -223,22 +223,17 @@ type ETag = Tag ETAG
 -- instances before other kinds.
 --
 compareTags :: forall (tk :: TAG_KIND). Ord (TagAddress tk) => Tag tk -> Tag tk -> Ordering
-compareTags t0 t1 | on (/=) tagName t0 t1 = on compare tagName t0 t1
+compareTags t0 t1 = on compare tagName t0 t1
+                    -- sort type classes / type families before their instances,
+                    -- and take precendence over a file where they are defined.
+                    -- 
+                    -- This will also sort type classes and instances before any
+                    -- other terms.
+                 <> on compare getTkClass t0 t1
+                 <> on compare tagFile t0 t1
+                 <> on compare tagAddr t0 t1
+                 <> on compare tagKind t0 t1
 
-                  -- sort type classes / type families before their instances,
-                  -- and take precendence over a file where they are defined.
-                  -- 
-                  -- This will also sort type classes and instances before any
-                  -- other terms.
-                  | on (/=) getTkClass t0 t1 = on compare getTkClass t0 t1
-
-                  | on (/=) tagFile t0 t1 = on compare tagFile t0 t1
-                  | on (/=) tagAddr t0 t1 = on compare tagAddr t0 t1
-                  | on (/=) tagKind t0 t1 = on compare tagKind t0 t1
-
-                  -- this is not compatible with 'Eq' intsance, but we are not
-                  -- defining a 'Ord' instance!
-                  | otherwise             = EQ
     where
       getTkClass :: Tag tk -> Maybe GhcKind
       getTkClass t = case tagKind t of
