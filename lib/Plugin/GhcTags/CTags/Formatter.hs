@@ -28,12 +28,12 @@ import           Plugin.GhcTags.Utils (endOfLine)
 -- | 'ByteString' 'Builder' for a single line.
 --
 formatTag :: CTag -> Builder
-formatTag Tag { tagName, tagFile, tagAddr, tagKind, tagFields} =
+formatTag Tag { tagName, tagFilePath, tagAddr, tagKind, tagFields} =
 
        (BS.byteString . Text.encodeUtf8 . getTagName $ tagName)
     <> BS.charUtf8 '\t'
 
-    <> (BS.byteString . Text.encodeUtf8 . Text.pack . getTagFile $ tagFile)
+    <> (BS.byteString . Text.encodeUtf8 . Text.pack $ tagFilePath)
     <> BS.charUtf8 '\t'
 
     <> formatTagAddress tagAddr

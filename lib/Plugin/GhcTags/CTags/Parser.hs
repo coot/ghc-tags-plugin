@@ -24,6 +24,7 @@ import           Data.Functor (void, ($>))
 import           Data.Maybe (catMaybes)
 import           Data.Text          (Text)
 import qualified Data.Text          as Text
+import           System.IO (FilePath)
 
 import           Plugin.GhcTags.Tag
 import qualified Plugin.GhcTags.Utils as Utils
@@ -33,8 +34,8 @@ import qualified Plugin.GhcTags.Utils as Utils
 --
 parseTag :: Parser CTag
 parseTag =
-      (\tagName tagFile tagAddr (tagKind, tagFields)
-        -> Tag { tagName, tagFile, tagAddr, tagKind, tagFields, tagDefinition = NoTagDefinition })
+      (\tagName tagFilePath tagAddr (tagKind, tagFields)
+        -> Tag { tagName, tagFilePath, tagAddr, tagKind, tagFields, tagDefinition = NoTagDefinition })
     <$> parseTagName
     <*  separator
 
@@ -78,8 +79,8 @@ parseTag =
     parseTagName = TagName <$> AT.takeWhile (/= '\t')
                            <?> "parsing tag name failed"
 
-    parseFileName :: Parser TagFile
-    parseFileName = TagFile . Text.unpack <$> AT.takeWhile (/= '\t')
+    parseFileName :: Parser FilePath
+    parseFileName = Text.unpack <$> AT.takeWhile (/= '\t')
 
     parseExCommand :: Parser ExCommand
     parseExCommand = (\x -> ExCommand $ Text.take (Text.length x - 1) x)

@@ -17,6 +17,7 @@ import qualified Data.Attoparsec.Text  as AT
 import           Data.Functor (($>))
 import           Data.Text (Text)
 import qualified Data.Text as Text
+import           System.IO (FilePath)
 
 import           Plugin.GhcTags.Tag
 import qualified Plugin.GhcTags.Utils as Utils
@@ -41,9 +42,9 @@ parseTagFileSection = do
                        *> parseTagFile
       many (parseTag tagFile)
 
-parseTagFile :: Parser TagFile
+parseTagFile :: Parser FilePath
 parseTagFile =
-      TagFile . Text.unpack
+      Text.unpack
   <$> AT.takeWhile (\x -> x /= ',' && Utils.notNewLine x)
   <*  AT.char ','
   <*  (AT.decimal :: Parser Int)
@@ -51,8 +52,8 @@ parseTagFile =
   <?> "parsing tag file name failed"
 
 
-parseTag :: TagFile -> Parser (ETag)
-parseTag tagFile =
+parseTag :: FilePath -> Parser (ETag)
+parseTag tagFilePath =
           mkTag
       <$> parseTagDefinition
       <*> ((Just <$> parseTagName) <|> pure Nothing)
@@ -68,7 +69,7 @@ parseTag tagFile =
                               Nothing   -> TagName tagDefinition
                               Just name -> name
           , tagKind       = NoKind
-          , tagFile
+          , tagFilePath
           , tagAddr       = TagLineCol lineNo byteOffset
           , tagDefinition = case mTagName of
                               Nothing -> NoTagDefinition

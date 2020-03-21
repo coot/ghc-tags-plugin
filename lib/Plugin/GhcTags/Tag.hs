@@ -18,9 +18,7 @@ module Plugin.GhcTags.Tag
   , ETag
   , CTag
   , compareTags
-  , tagFilePath
   , TagName (..)
-  , TagFile (..)
   , ExCommand (..)
   , TagAddress (..)
   , CTagAddress
@@ -76,17 +74,6 @@ data SingTagKind (tk :: TAG_KIND) where
 --
 newtype TagName = TagName { getTagName :: Text }
   deriving (Eq, Ord, Show)
-
-
--- | 'ByteString' which encodes a tag file.
---
--- TODO: rename to 'TagFileName', the name is confusing.
---
-newtype TagFile = TagFile { getTagFile :: String }
-  deriving (Eq, Ord, Show)
-
-tagFilePath :: Tag tk -> FilePath
-tagFilePath = getTagFile . tagFile
 
 
 -- | When we parse a `tags` file we can eithera find no kind or recognize the
@@ -202,7 +189,7 @@ data TagDefinition =
 data Tag (tk :: TAG_KIND) = Tag
   { tagName       :: !TagName
   , tagKind       :: !(TagKind tk)
-  , tagFile       :: !TagFile
+  , tagFilePath   :: !FilePath
   , tagAddr       :: !(TagAddress tk)
   , tagDefinition :: !TagDefinition
   , tagFields     :: ![TagField]
@@ -229,10 +216,10 @@ compareTags t0 t1 = on compare tagName t0 t1
                     -- 
                     -- This will also sort type classes and instances before any
                     -- other terms.
-                 <> on compare getTkClass t0 t1
-                 <> on compare tagFile t0 t1
-                 <> on compare tagAddr t0 t1
-                 <> on compare tagKind t0 t1
+                 <> on compare getTkClass  t0 t1
+                 <> on compare tagFilePath t0 t1
+                 <> on compare tagAddr     t0 t1
+                 <> on compare tagKind     t0 t1
 
     where
       getTkClass :: Tag tk -> Maybe GhcKind
@@ -252,7 +239,7 @@ ghcTagToTag sing GhcTag { gtSrcSpan, gtTag, gtKind, gtFields } =
       UnhelpfulSpan {} -> Nothing
       RealSrcSpan realSrcSpan ->
         Just $ Tag { tagName       = TagName (Text.decodeUtf8 $ fs_bs gtTag)
-                   , tagFile       = TagFile (Text.unpack $ Text.decodeUtf8 $ fs_bs (srcSpanFile realSrcSpan))
+                   , tagFilePath   = Text.unpack $ Text.decodeUtf8 $ fs_bs (srcSpanFile realSrcSpan)
                    , tagAddr       = TagLineCol (srcSpanStartLine realSrcSpan)
                                                 (srcSpanStartCol realSrcSpan)
                    , tagKind       = case sing of
@@ -268,16 +255,16 @@ ghcTagToTag sing GhcTag { gtSrcSpan, gtTag, gtKind, gtFields } =
 --
 -- complexity: /O(max n m)/
 combineTags :: (Tag tk -> Tag tk -> Ordering)
-            -> TagFile
+            -> FilePath
             -> [Tag tk] -> [Tag tk] -> [Tag tk]
 combineTags compare_ modPath ts0 ts1 = go ts0 ts1
   where
     go as@(a : as') bs@(b : bs')
-      | tagFile b == modPath = go as bs'
+      | tagFilePath b == modPath = go as bs'
       | otherwise = case a `compare_` b of
           LT -> a : go as' bs
           EQ -> a : go as' bs'
           GT -> b : go as  bs'
-    go [] bs = filter (\b -> tagFile b /= modPath) bs
+    go [] bs = filter (\b -> tagFilePath b /= modPath) bs
     go as [] = as
     {-# INLINE go #-}

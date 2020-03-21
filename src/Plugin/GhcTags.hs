@@ -187,7 +187,7 @@ updateTags Options { etags, filepath = Identity tagsFile }
                                 putDocLn dynFlags $ errorDoc ParserException ms_mod (displayException e)
                           )
                           (\tag ->
-                            runCombineTagsPipe writeHandle CTags.compareTags CTags.formatTag  (TagFile sourcePath) tag
+                            runCombineTagsPipe writeHandle CTags.compareTags CTags.formatTag  sourcePath tag
                               `Pipes.Safe.catchP` \(e :: IOException) ->
                                 Pipes.lift $ Pipes.liftIO $
                                   -- don't re-throw; this would kill `ghc`, error
@@ -243,7 +243,7 @@ updateTags Options { etags, filepath = Identity tagsFile }
                             tagsDir <- canonicalizePath (fst $ splitFileName tagsFile)
 
                             let tags' :: [ETag]
-                                tags' = combineTags ETags.compareTags (TagFile sourcePath)
+                                tags' = combineTags ETags.compareTags sourcePath
                                           ( sortBy ETags.compareTags
                                           . map (ETags.withByteOffset ll . fixFileName cwd tagsDir)
                                           . mapMaybe (ghcTagToTag SingETag)
@@ -261,8 +261,8 @@ updateTags Options { etags, filepath = Identity tagsFile }
     lockFile = sourceFile ++ ".lock"
 
     fixFileName :: FilePath -> FilePath -> Tag tk -> Tag tk
-    fixFileName cwd tagsDir tag@Tag { tagFile = TagFile path } =
-      tag { tagFile = TagFile (makeRelative tagsDir (cwd </> path)) }
+    fixFileName cwd tagsDir tag@Tag { tagFilePath = path } =
+      tag { tagFilePath = makeRelative tagsDir (cwd </> path) }
 
 
 --

@@ -37,7 +37,7 @@ instance Arbitrary ArbETag where
           Tag
       <$> (TagName <$> genTextNonEmpty)
       <*> genTagKind SingETag
-      <*> (TagFile  <$> genFilePath)
+      <*> genFilePath
       <*> (TagLineCol <$> (getPositive <$> arbitrary) <*> (getPositive <$> arbitrary))
       <*> (TagDefinition <$> genTextNonEmpty)
       <*> listOf genField
