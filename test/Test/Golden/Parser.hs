@@ -69,16 +69,16 @@ tests =
           ]
 
       , testGroup "ETags"
-          [ let input  = "test/golden/ouroboros-consensus.TAGS"
-                output = "test/golden/ouroboros-consensus.TAGS.out"
+          [ let input  = "test/golden/ouroboros-consensus.ETAGS"
+                output = "test/golden/ouroboros-consensus.ETAGS.out"
             in goldenVsFile 
                 "ouroboros-consensus TAGS"
                  input
                  output
                  (parseGoldenETagsFile input output)
 
-          , let input  = "test/golden/vim.TAGS"
-                output = "test/golden/vim.TAGS.out"
+          , let input  = "test/golden/vim.ETAGS"
+                output = "test/golden/vim.ETAGS.out"
             in goldenVsFile 
                 "vim tags"
                  input
