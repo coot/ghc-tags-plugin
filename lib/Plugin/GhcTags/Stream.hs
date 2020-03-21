@@ -48,25 +48,23 @@ tagParser parser producer = void $
 combineTagsPipe
     :: forall m (tk :: TAG_KIND).  Applicative m
     => (Tag tk -> Tag tk -> Ordering)
+    -> TagFile
     -> Tag tk   -- ^ tag read from disc
     -> [Tag tk] -- ^ new tags
     -> Pipes.Producer (Tag tk) m [Tag tk]
 -- TODO: if a module has no tags, we will not remove any of the pre-exisiting
 -- ones.
-combineTagsPipe _compareFn tag0 []         = Pipes.yield tag0 $> []
-combineTagsPipe compareFn  tag0 ts@(t : _) = go tag0 ts
+combineTagsPipe compareFn modPath tag0 ts = go tag0 ts
   where
-    modPath = tagFilePath t
 
+    go tag as
+      | tagFile tag == modPath = pure as
     go tag as@(a : as')
-      | tagFilePath tag == modPath = pure as
       | otherwise = case a `compareFn` tag of
           LT -> Pipes.yield a >> go tag as'
-          EQ -> Pipes.yield a >> go tag as'
+          EQ -> Pipes.yield a $> as'
           GT -> Pipes.yield tag $> as
-    go tag []
-      | tagFilePath tag == modPath = pure []
-      | otherwise                  = Pipes.yield tag $> []
+    go tag [] = Pipes.yield tag $> []
 
 
 -- | run 'combineTagsPipe' taking care of the state.
@@ -76,10 +74,11 @@ runCombineTagsPipe
     => Handle
     -> (Tag tk -> Tag tk -> Ordering)
     -> (Tag tk -> Builder)
+    -> TagFile
     -> Tag tk
     -> Pipes.Effect (StateT [Tag tk] m) ()
-runCombineTagsPipe writeHandle compareFn formatTag =
-      (\tag -> Pipes.stateP $ fmap ((),) . combineTagsPipe compareFn tag)
+runCombineTagsPipe writeHandle compareFn formatTag modPath =
+      (\tag -> Pipes.stateP $ fmap ((),) . combineTagsPipe compareFn modPath tag)
     ~> Pipes.yield . BS.toLazyByteString . formatTag 
     ~> Pipes.BS.fromLazy
     ~> \bs -> Pipes.yield bs >-> Pipes.BS.toHandle writeHandle

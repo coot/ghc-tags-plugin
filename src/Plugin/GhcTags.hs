@@ -160,7 +160,8 @@ updateTags Options { etags, filepath = Identity tagsFile }
                 --
                 -- ctags
                 --
-                (False, _) -> do
+                (False, Nothing)          -> pure ()
+                (False, Just sourcePath) -> do
                   let -- text parser
                       producer :: Pipes.Producer Text (SafeT IO) ()
                       producer
@@ -186,7 +187,7 @@ updateTags Options { etags, filepath = Identity tagsFile }
                                 putDocLn dynFlags $ errorDoc ParserException ms_mod (displayException e)
                           )
                           (\tag ->
-                            runCombineTagsPipe writeHandle CTags.compareTags CTags.formatTag tag
+                            runCombineTagsPipe writeHandle CTags.compareTags CTags.formatTag  (TagFile sourcePath) tag
                               `Pipes.Safe.catchP` \(e :: IOException) ->
                                 Pipes.lift $ Pipes.liftIO $
                                   -- don't re-throw; this would kill `ghc`, error
