@@ -202,7 +202,7 @@ newtype ArbTagList = ArbTagList { getArbTagList :: [CTag] }
     deriving Show
 
 instance Arbitrary ArbTagList where
-    arbitrary = (ArbTagList . nub . sortBy compareTags . map getArbTag)
+    arbitrary = (ArbTagList . nub . sortBy CTags.compareTags . map getArbTag)
             <$> listOf arbitrary
     shrink (ArbTagList ts) =
       (ArbTagList . sortBy compareTags) `map` shrinkList (shrinkTag SingCTag) ts
@@ -296,9 +296,9 @@ combineTags_order (ArbTagsFromFile _ as) (ArbTagList bs) =
 -- which have the same address: `TagLine` or `TagLineCol` but not mixed.
 --
 -- The reason for that is that the piped `combineTagsPipe` needs to compare
--- tags, and the `Eq` instance cannot distinquishes a tag with address
+-- tags, and the `Eq` instance cannot distinquishe a tag with address
 -- `TagLine 10` with `TagLine 10 3`, even if they are the same tags.  The crux
--- of the problem is that `ctags` have no way to represent column number.
+-- of the problem is that `ctags` have no way of representing a column number.
 --
 data ArbTagsFromFileAndTagList = ArbTagsFromFileAndTagList [CTag] [CTag]
   deriving (Eq, Show)
