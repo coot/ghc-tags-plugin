@@ -243,7 +243,7 @@ updateTags Options { etags, filepath = Identity tagsFile }
                             tagsDir <- canonicalizePath (fst $ splitFileName tagsFile)
 
                             let tags' :: [ETag]
-                                tags' = combineTags ETags.compareTags
+                                tags' = combineTags ETags.compareTags (TagFile sourcePath)
                                           ( sortBy ETags.compareTags
                                           . map (ETags.withByteOffset ll . fixFileName cwd tagsDir)
                                           . mapMaybe (ghcTagToTag SingETag)
