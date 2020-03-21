@@ -66,6 +66,14 @@ tests =
                  input
                  output
                  (parseGoldenCTagsFile input output)
+
+          , let input  = "test/golden/ghc.tags"
+                output = "test/golden/ghc.tags.out"
+            in goldenVsFile 
+                "ghc tags"
+                 input
+                 output
+                 (parseGoldenCTagsFile input output)
           ]
 
       , testGroup "ETags"
@@ -81,6 +89,14 @@ tests =
                 output = "test/golden/vim.ETAGS.out"
             in goldenVsFile 
                 "vim tags"
+                 input
+                 output
+                 (parseGoldenETagsFile input output)
+
+          , let input  = "test/golden/ghc.ETAGS"
+                output = "test/golden/ghc.ETAGS.out"
+            in goldenVsFile 
+                "ghc tags"
                  input
                  output
                  (parseGoldenETagsFile input output)
