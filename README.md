@@ -19,8 +19,35 @@ which generates tags for each compiled module or component.
 ghc >= 8.6
 ```
 
-● Vim configuration
--------------------
+
+● Plugin options
+----------------
+
+```
+Usage: <program> [-e|--etags] [file_path]
+  write tags from ghc abstract syntax tree
+
+Available options:
+  -e,--etags               produce emacs etags file
+  file_path                tags file: default tags or TAGS (when --etags is
+                           specified)
+```
+
+It can be an absolute path or relative (to the `*.cabal` package file rather
+than `cabal.project` file), for example:
+```
+-fplugin-opt=Plugin.GhcTags:../tags
+```
+This is useful if for *cabal packages* which are located in subdirectories.
+
+## ● Emacs support
+
+To produce `etags` file you will need to pass the follwing option
+```
+-fplugin-opt=Plugin.GhcTags:--etags
+```
+
+## ● Editor configuration
 
 By default each generated tags file is put next to the corresponding `*.cabal`
 package file.  If you just have a repo with a cabal file in the main directory
@@ -30,19 +57,6 @@ subdirectories you will either need to set:
 :set tags+=*/tags
 ```
 or pass an option to modify where tags are written, see below.
-
-
-● Plugin options
-----------------
-
-The plugin accepts an only one option, which is a file path to the tags file.
-It can be an absolute path or relative (to the `*.cabal` package file rather
-than `cabal.project` file), for example:
-```
--fplugin-opt=Plugin.GhcTags:../tags
-```
-This is useful if for *cabal packages* which are located in subdirectories.
-
 
 ● Configuration: Ghc / Cabal / Stack
 ------------------------------------

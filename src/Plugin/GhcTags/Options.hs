@@ -22,7 +22,10 @@ etagsParser = switch $
 
 filePathParser :: Parser (Maybe FilePath)
 filePathParser =
-          (Just <$> strArgument (help "tags file: default tags or TAGS (when --etags is specified)"))
+          (Just <$> strArgument
+                      (help "tags file: default tags or TAGS (when --etags is specified)"
+                       <> metavar "file_path"
+                      ))
       <|> pure Nothing
 
 
