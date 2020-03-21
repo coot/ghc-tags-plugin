@@ -90,7 +90,7 @@ formatHeaders =
     <> BS.stringUtf8 (formatHeader "TAG_FILE_SORTED"    "1")
     <> BS.stringUtf8 (formatHeader "TAG_FILE_ENCODING"  "utf-8")
     <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_AUTHOR" "Marcin Szamotulski")
-    <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_NAME"   "ghc-tags-pluginn")
+    <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_NAME"   "ghc-tags-plugin")
     <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_URL"
                                    "https://hackage.haskell.org/package/ghc-tags-plugin")
        -- version number with git revision
