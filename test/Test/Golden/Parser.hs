@@ -69,17 +69,15 @@ tests =
           ]
 
       , testGroup "ETags"
-          {--
-            - [ let input  = "test/golden/io-sim-classes.TAGS"
-            -       output = "test/golden/io-sim-classes.TAGS.out"
-            -   in goldenVsFile 
-            -       "io-sim-classes TAGS"
-            -        input
-            -        output
-            -        (parseGoldenETagsFile input output)
-            --}
+          [ let input  = "test/golden/ouroboros-consensus.TAGS"
+                output = "test/golden/ouroboros-consensus.TAGS.out"
+            in goldenVsFile 
+                "ouroboros-consensus TAGS"
+                 input
+                 output
+                 (parseGoldenETagsFile input output)
 
-          [ let input  = "test/golden/vim.TAGS"
+          , let input  = "test/golden/vim.TAGS"
                 output = "test/golden/vim.TAGS.out"
             in goldenVsFile 
                 "vim tags"
