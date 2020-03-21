@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE GADTs             #-}
 {-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -210,7 +211,7 @@ instance Arbitrary ArbTagList where
 
 -- | List of tags from the same file
 --
-data ArbTagsFromFile = ArbTagsFromFile FilePath [CTag]
+data ArbTagsFromFile = ArbTagsFromFile TagFile [CTag]
     deriving Show
 
 instance Arbitrary ArbTagsFromFile where
@@ -218,7 +219,7 @@ instance Arbitrary ArbTagsFromFile where
       filePath <- genSmallFilePath
       ArbTagList tags <- arbitrary
       let tags' = (\t -> t { tagFile = TagFile filePath, tagFields = [] }) `map` tags
-      pure $ ArbTagsFromFile filePath (sortBy compareTags tags')
+      pure $ ArbTagsFromFile (TagFile filePath) (sortBy compareTags tags')
 
     shrink (ArbTagsFromFile fp tags) =
       [ ArbTagsFromFile fp (sortBy compareTags tags')
@@ -226,9 +227,9 @@ instance Arbitrary ArbTagsFromFile where
       | tags' <- shrinkList (shrinkTag' SingCTag) tags
       ]
       ++
-      [ ArbTagsFromFile fp' ((\t -> t { tagFile = TagFile fp' }) `map` tags)
-      | fp' <- shrinkList (const []) fp
-      , not (null fp')
+      [ ArbTagsFromFile fp' ((\t -> t { tagFile = fp' }) `map` tags)
+      | fp' <- TagFile `map` shrinkList (const []) (getTagFile fp)
+      , not (null $ getTagFile fp')
       ]
 
 
@@ -238,53 +239,53 @@ instance Arbitrary ArbTagsFromFile where
 combineTags_subset :: ArbTagsFromFile
                    -> [ArbTag]
                    -> Bool
-combineTags_subset (ArbTagsFromFile _ as) bs =
+combineTags_subset (ArbTagsFromFile fp as) bs =
     let bs' = getArbTag `map` bs
-        cs = combineTags CTags.compareTags as bs'
+        cs = combineTags CTags.compareTags fp as bs'
     in all (`elem` cs) as
 
 
 -- | The tag list be ordered for this property to hold.
 --
-combineTags_idempotent :: ArbTagList
+combineTags_idempotent :: ArbTagsFromFile
                        -> ArbTagList
                        -> Bool
-combineTags_idempotent (ArbTagList as) (ArbTagList bs) =
-    combineTags CTags.compareTags as bs
-    == combineTags CTags.compareTags as
-         (combineTags CTags.compareTags as bs)
+combineTags_idempotent (ArbTagsFromFile fp as) (ArbTagList bs) =
+    combineTags CTags.compareTags fp as bs
+    == combineTags CTags.compareTags fp as
+         (combineTags CTags.compareTags fp as bs)
 
 
 -- | The tag list cannot connot contain duplicates for this property to hold.
 --
-combineTags_identity :: ArbTagList
+combineTags_identity :: ArbTagsFromFile
                      -> Bool
-combineTags_identity (ArbTagList as) =
-    combineTags CTags.compareTags as as == as
+combineTags_identity (ArbTagsFromFile fp as) =
+    combineTags CTags.compareTags fp as as == as
 
 
 -- | Does not modify tags outside of the module.
 --
 combineTags_preserve :: ArbTagsFromFile -> ArbTagList -> Bool
 combineTags_preserve (ArbTagsFromFile fp as) (ArbTagList bs) =
-       filter (\t -> tagFilePath t /= fp) (combineTags CTags.compareTags as bs)
+       filter (\t -> tagFile t /= fp) (combineTags CTags.compareTags fp as bs)
     == 
-       filter (\t -> tagFilePath t /= fp) bs
+       filter (\t -> tagFile t /= fp) bs
 
 
 -- | Substitutes all tags of the current file.
 --
 combineTags_substitution :: ArbTagsFromFile -> ArbTagList -> Bool
 combineTags_substitution (ArbTagsFromFile fp as) (ArbTagList bs) =
-       filter (\t -> tagFilePath t == fp) (combineTags CTags.compareTags as bs)
+       filter (\t -> tagFile t == fp) (combineTags CTags.compareTags fp as bs)
     == 
        as
 
 -- | 'combineTags' must preserver order of tags.
 --
 combineTags_order :: ArbTagsFromFile -> ArbTagList -> Bool
-combineTags_order (ArbTagsFromFile _ as) (ArbTagList bs) =
-    let cs = combineTags CTags.compareTags as bs
+combineTags_order (ArbTagsFromFile fp as) (ArbTagList bs) =
+    let cs = combineTags CTags.compareTags fp as bs
     in sortBy compareTags cs == cs
 
 
@@ -300,8 +301,25 @@ combineTags_order (ArbTagsFromFile _ as) (ArbTagList bs) =
 -- `TagLine 10` with `TagLine 10 3`, even if they are the same tags.  The crux
 -- of the problem is that `ctags` have no way of representing a column number.
 --
-data ArbTagsFromFileAndTagList = ArbTagsFromFileAndTagList [CTag] [CTag]
+data ArbTagsFromFileAndTagList = ArbTagsFromFileAndTagList TagFile [CTag] [CTag]
   deriving (Eq, Show)
+
+-- | Make addresses monotonic
+--
+fixAddresses :: [CTag] -> [CTag]
+fixAddresses = snd . foldr f (TagLineCol 0 0, [])
+  where
+    next :: CTagAddress -> CTagAddress
+    next (TagLineCol l c) = TagLineCol l (succ c)
+    next (TagLine l)      = TagLine (succ l)
+    next addr             = addr
+
+    f :: CTag -> (CTagAddress, [CTag]) -> (CTagAddress, [CTag])
+    f tag@Tag {tagAddr} (addr, ts) | tagAddr > addr = (tagAddr, tag : ts)
+                                   | otherwise      =
+                                      let nextAddr = next addr
+                                      in (nextAddr, tag { tagAddr = nextAddr } : ts)
+
 
 instance Arbitrary ArbTagsFromFileAndTagList where
     arbitrary = do
@@ -312,25 +330,35 @@ instance Arbitrary ArbTagsFromFileAndTagList where
                 then genTagAddrLine
                 else genTagAddrLineCol
         tagsFromFile <-
-                map (fixFile filePath)
+                fixAddresses
+              . map (fixFile filePath)
               . nub
               . sortBy compareTags
           <$> listOf tagGen
         tags <- nub
               . sortBy compareTags
           <$> listOf tagGen
-        pure $ ArbTagsFromFileAndTagList tagsFromFile tags
+        pure $ ArbTagsFromFileAndTagList (TagFile filePath) tagsFromFile tags
       where
         fixFile p t = t { tagFile = TagFile p, tagFields = [] }
 
     -- A very basic shrinker
-    shrink (ArbTagsFromFileAndTagList as bs) =
-      [ ArbTagsFromFileAndTagList as' bs
-      | as' <- shrinkList (const []) as
+    shrink (ArbTagsFromFileAndTagList filePath as bs) =
+      [ ArbTagsFromFileAndTagList (TagFile filePath')
+                                  ((\t -> t { tagFile = TagFile filePath' }) `map` as)
+                                  bs
+      | filePath' <- shrink (getTagFile filePath) 
+      , not (null filePath')
       ]
       ++
-      [ ArbTagsFromFileAndTagList as bs'
-      | bs' <- shrinkList (const []) bs
+      [ ArbTagsFromFileAndTagList filePath
+                                  ((\t -> t { tagFile = filePath }) `map` as')
+                                  bs
+      | as' <- shrinkList (shrinkTag SingCTag) as
+      ]
+      ++
+      [ ArbTagsFromFileAndTagList filePath as bs'
+      | bs' <- shrinkList (shrinkTag SingCTag) bs
       ]
 
 
@@ -341,8 +369,8 @@ instance Arbitrary ArbTagsFromFileAndTagList where
 -- of `combeinTagsPipe`).
 --
 combineTagsPipeProp :: ArbTagsFromFileAndTagList -> Property
-combineTagsPipeProp (ArbTagsFromFileAndTagList as bs) =
-        combineTags CTags.compareTags as bs
+combineTagsPipeProp (ArbTagsFromFileAndTagList modPath as bs) =
+        combineTags CTags.compareTags modPath as bs
     ===
         case
           runStateT
@@ -350,7 +378,7 @@ combineTagsPipeProp (ArbTagsFromFileAndTagList as bs) =
               (Pipes.for
                  -- yield all `bs`
                 (traverse_ Pipes.yield bs)
-                (\tag -> Pipes.stateP $ fmap ((),) . combineTagsPipe CTags.compareTags tag)))
+                (\tag -> Pipes.stateP $ fmap ((),) . combineTagsPipe CTags.compareTags modPath tag)))
             -- take 'as' a state
             as of
         Identity (tags, rest) -> tags ++ rest
