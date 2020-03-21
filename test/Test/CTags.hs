@@ -37,7 +37,7 @@ instance Arbitrary ArbCTag where
           Tag
       <$> (TagName <$> genTextNonEmpty)
       <*> genTagKind SingCTag
-      <*> (TagFile  <$> genFilePath)
+      <*> genFilePath
       <*> frequency
             [ (2, TagLine . getPositive <$> arbitrary)
             -- we are generating `TagLineCol` even though they are not present;

@@ -37,9 +37,6 @@ newtype TagsNF = TagsNF [CTag]
 instance NFData TagsNF where
     rnf (TagsNF tags) = evalList tags
 
-instance NFData TagFile where
-    rnf (TagFile p) = rnf p
-
 main :: IO ()
 main = defaultMain
   [ bgroup "Parse tags"
@@ -88,7 +85,7 @@ main = defaultMain
           (do
             text <- Text.decodeUtf8 <$> BS.readFile "test/golden/io-sim-classes.tags"
             Right tags  <- CTags.parseTagsFile text
-            return (tagFile (head tags), TagsNF tags)
+            return (tagFilePath (head tags), TagsNF tags)
           )
           $ \ ~(modPath, TagsNF tags) ->
             bgroup "small"
@@ -100,7 +97,7 @@ main = defaultMain
           (do
             text <- Text.decodeUtf8 <$> BS.readFile "test/golden/ouroboros-network.tags"
             Right tags  <- CTags.parseTagsFile text
-            return (tagFile (head tags), TagsNF tags)
+            return (tagFilePath (head tags), TagsNF tags)
           )
           $ \ ~(modPath, TagsNF tags) ->
             bgroup "medium"
@@ -137,7 +134,7 @@ benchStreamParseFormat fp =
             Pipes.BS.toHandle devNull)
 
 
-benchStreamTags :: FilePath -> TagFile -> [CTag] -> IO ()
+benchStreamTags :: FilePath -> FilePath -> [CTag] -> IO ()
 benchStreamTags filePath modPath tags =
     withFile filePath ReadMode $ \readHandle -> 
       withFile "/tmp/bench.stream.tags" WriteMode $ \writeHandle -> do
@@ -156,7 +153,7 @@ benchStreamTags filePath modPath tags =
         traverse_ (BSL.hPut writeHandle . BB.toLazyByteString . CTags.formatTag) tags'
 
 
-benchReadTags :: FilePath -> TagFile -> [CTag] -> IO ()
+benchReadTags :: FilePath -> FilePath -> [CTag] -> IO ()
 benchReadTags filePath modPath tags = do
      withFile filePath ReadMode $ \readHandle -> 
        withFile "/tmp/bench.stream.tags" WriteMode $ \writeHandle -> do

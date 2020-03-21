@@ -140,9 +140,9 @@ shrinkTag' _sing tag@Tag {tagName, tagAddr, tagFields} =
 
 
 shrinkTag :: SingTagKind tk -> Tag tk -> [Tag tk]
-shrinkTag sing tag@Tag {tagFile} =
+shrinkTag sing tag@Tag {tagFilePath} =
       shrinkTag' sing tag
-   ++ [ tag { tagFile = TagFile x }
-      | x <- fixFilePath `map` shrink (getTagFile tagFile)
-      , not (null x)
+   ++ [ tag { tagFilePath = tagFilePath' }
+      | tagFilePath' <- fixFilePath `map` shrink tagFilePath
+      , not (null tagFilePath')
       ]

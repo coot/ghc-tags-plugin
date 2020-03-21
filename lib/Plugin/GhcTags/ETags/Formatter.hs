@@ -91,13 +91,13 @@ formatTag Tag {tagName, tagAddr = TagLineCol lineNr byteOffset, tagDefinition} =
 --
 formatTagsFile :: [ETag] -> Builder
 formatTagsFile [] = mempty
-formatTagsFile ts@(Tag {tagFile} : _) =
+formatTagsFile ts@(Tag {tagFilePath} : _) =
     case foldMap formatTag ts of
       BuilderWithSize {builder, builderSize} ->
         if builderSize > 0
           then BB.charUtf8 '\x0c'
             <> BB.stringUtf8 endOfLine
-            <> (BB.byteString . Text.encodeUtf8 . Text.pack . getTagFile $ tagFile)
+            <> (BB.byteString . Text.encodeUtf8 . Text.pack $ tagFilePath)
             <> BB.charUtf8 ','
             <> BB.intDec builderSize
             <> BB.stringUtf8 endOfLine
@@ -111,7 +111,7 @@ formatTagsFile ts@(Tag {tagFile} : _) =
 formatETagsFile :: [ETag] -> Builder
 formatETagsFile =
       foldMap formatTagsFile 
-    . groupBy (on (==) tagFile)
+    . groupBy (on (==) tagFilePath)
 
 
 endOfLine :: String

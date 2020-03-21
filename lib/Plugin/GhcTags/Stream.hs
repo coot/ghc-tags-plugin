@@ -48,7 +48,7 @@ tagParser parser producer = void $
 combineTagsPipe
     :: forall m (tk :: TAG_KIND).  Applicative m
     => (Tag tk -> Tag tk -> Ordering)
-    -> TagFile
+    -> FilePath
     -> Tag tk   -- ^ tag read from disc
     -> [Tag tk] -- ^ new tags
     -> Pipes.Producer (Tag tk) m [Tag tk]
@@ -58,7 +58,7 @@ combineTagsPipe compareFn modPath tag0 ts = go tag0 ts
   where
 
     go tag as
-      | tagFile tag == modPath = pure as
+      | tagFilePath tag == modPath = pure as
     go tag as@(a : as')
       | otherwise = case a `compareFn` tag of
           LT -> Pipes.yield a >> go tag as'
@@ -74,7 +74,7 @@ runCombineTagsPipe
     => Handle
     -> (Tag tk -> Tag tk -> Ordering)
     -> (Tag tk -> Builder)
-    -> TagFile
+    -> FilePath
     -> Tag tk
     -> Pipes.Effect (StateT [Tag tk] m) ()
 runCombineTagsPipe writeHandle compareFn formatTag modPath =
