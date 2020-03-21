@@ -123,12 +123,14 @@ data TagAddress (tk :: TAG_KIND) where
       -- | Precise addres: line and column.  This is what we infer from Haskell
       -- AST.
       --
-      -- TODO: rename to 'TagLineOffset' (the second argument is a byte offset)
+      -- The two arguments are line number and either column number or offset
+      -- from the begining of the file.
       --
       TagLineCol :: !Int -> !Int -> TagAddress tk
 
-      -- | vim can only encode a column as an ex-command; This is what we can
-      -- parse from a tag file.
+      -- | ctags can only use range ex-commands as an address (or a sequence of
+      -- them separated by `;`). We parse line number specifically, since they
+      -- are useful for ordering tags.
       --
       TagLine :: !Int -> TagAddress CTAG
 
@@ -137,9 +139,14 @@ data TagAddress (tk :: TAG_KIND) where
       TagCommand :: !ExCommand -> TagAddress CTAG
 
 
+-- | 'CTag' addresses.
+--
 type CTagAddress = TagAddress CTAG
 
+-- | 'ETag' addresses.
+--
 type ETagAddress = TagAddress ETAG
+
 
 instance Eq (TagAddress tk) where
     TagLineCol l0 c0 == TagLineCol l1 c1 = l0 == l1 && c0 == c1
@@ -173,7 +180,8 @@ instance Show (TagAddress tk) where
     show (TagLine    l)   = "TagLine " ++ show l
     show (TagCommand c)   = "TagCommand " ++ show c
 
--- | This is etags specific field.
+
+-- | Emacs tags specific field.
 --
 data TagDefinition =
       TagDefinition !Text
@@ -181,10 +189,8 @@ data TagDefinition =
   deriving (Eq, Show)
 
 
--- | Simple Tag record.  For the moment on tag name, tag file and line numbers
--- are supported.
---
--- TODO: expand to support column numbers and extra information.
+-- | Tag record.  For either ctags or etags formats.  It is either filled with
+-- information parsed from a tags file or from *GHC* ast.
 --
 data Tag (tk :: TAG_KIND) = Tag
   { tagName       :: !TagName
@@ -250,6 +256,8 @@ ghcTagToTag sing GhcTag { gtSrcSpan, gtTag, gtKind, gtFields } =
                    }
 
 
+-- | Combine tags from a tags file with tags from *GHC* ast.
+--
 -- This is crtitical function for perfomance.  Tags from the first list are
 -- assumeed to be from the same file.
 --
