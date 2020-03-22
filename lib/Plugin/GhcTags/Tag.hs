@@ -18,7 +18,7 @@ module Plugin.GhcTags.Tag
   , Tag (..)
   , ETag
   , CTag
-  , compareTags
+    -- ** Tag fields
   , TagName (..)
   , ExCommand (..)
   , TagAddress (..)
@@ -31,13 +31,16 @@ module Plugin.GhcTags.Tag
   , TagFields (..)
   , CTagFields
   , ETagFields
-  , ETagFields
   , GhcKind (..)
+  , TagField (..)
+    -- ** Ordering and combining tags
+  , compareTags
+  , combineTags
+
+  -- * GHC inteface
+  , ghcTagToTag
   , charToGhcKind
   , ghcKindToChar
-  , TagField (..)
-  , ghcTagToTag
-  , combineTags
   ) where
 
 import           Data.Function (on)
@@ -202,6 +205,15 @@ type ETag = Tag ETAG
 -- effect of keeping transitivity property) it will put type classes and their
 -- instances before other kinds.
 --
+-- It satisfies the following properties:
+--
+-- * anti-symmetry
+-- * reflexivity
+-- * transitivity
+-- * partial consistency with 'Eq' instance: 
+--
+--   prop> a == b => compareTags a b == EQ
+--
 compareTags :: forall (tk :: TAG_KIND). Ord (TagAddress tk) => Tag tk -> Tag tk -> Ordering
 compareTags t0 t1 = on compare tagName t0 t1
                     -- sort type classes / type families before their instances,
@@ -226,24 +238,6 @@ compareTags t0 t1 = on compare tagName t0 t1
         _                                -> Nothing
 
 
-ghcTagToTag :: SingTagKind tk -> GhcTag -> Maybe (Tag tk)
-ghcTagToTag sing GhcTag { gtSrcSpan, gtTag, gtKind, gtFields } =
-    case gtSrcSpan of
-      UnhelpfulSpan {} -> Nothing
-      RealSrcSpan realSrcSpan ->
-        Just $ Tag { tagName       = TagName (Text.decodeUtf8 $ fs_bs gtTag)
-                   , tagFilePath   = Text.unpack $ Text.decodeUtf8 $ fs_bs (srcSpanFile realSrcSpan)
-                   , tagAddr       = TagLineCol (srcSpanStartLine realSrcSpan)
-                                                (srcSpanStartCol realSrcSpan)
-                   , tagKind       = case sing of
-                                       SingCTag -> GhcKind gtKind
-                                       SingETag -> NoKind
-                   , tagDefinition = NoTagDefinition
-                   , tagFields     = case sing of
-                                       SingCTag -> TagFields gtFields
-                                       SingETag -> NoTagFields
-                   }
-
 
 -- | Combine tags from a tags file with tags from *GHC* ast.
 --
@@ -266,3 +260,28 @@ combineTags compareFn modPath = go
     go [] bs = filter (\b -> tagFilePath b /= modPath) bs
     go as [] = as
     {-# INLINE go #-}
+
+
+--
+--  GHC interface
+--
+
+--  | Create a 'Tag' from 'GhcTag'
+--
+ghcTagToTag :: SingTagKind tk -> GhcTag -> Maybe (Tag tk)
+ghcTagToTag sing GhcTag { gtSrcSpan, gtTag, gtKind, gtFields } =
+    case gtSrcSpan of
+      UnhelpfulSpan {} -> Nothing
+      RealSrcSpan realSrcSpan ->
+        Just $ Tag { tagName       = TagName (Text.decodeUtf8 $ fs_bs gtTag)
+                   , tagFilePath   = Text.unpack $ Text.decodeUtf8 $ fs_bs (srcSpanFile realSrcSpan)
+                   , tagAddr       = TagLineCol (srcSpanStartLine realSrcSpan)
+                                                (srcSpanStartCol realSrcSpan)
+                   , tagKind       = case sing of
+                                       SingCTag -> GhcKind gtKind
+                                       SingETag -> NoKind
+                   , tagDefinition = NoTagDefinition
+                   , tagFields     = case sing of
+                                       SingCTag -> TagFields gtFields
+                                       SingETag -> NoTagFields
+                   }
