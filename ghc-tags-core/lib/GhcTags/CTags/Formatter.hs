@@ -6,19 +6,15 @@
 module GhcTags.CTags.Formatter
   ( formatTagsFile
   , formatTag
-  , formatHeaders
   , formatHeader
   ) where
 
 import           Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as BS
 import           Data.Char (isAscii)
-import           Data.Version (showVersion)
 import qualified Data.Text          as Text
 import qualified Data.Text.Encoding as Text
 import           Text.Printf (printf)
-
-import           Paths_ghc_tags_core (version)
 
 import           GhcTags.Tag
 import           GhcTags.Utils (endOfLine)
@@ -79,26 +75,14 @@ formatField TagField { fieldName, fieldValue } =
    <> BS.byteString (Text.encodeUtf8 fieldValue)
 
 
-formatHeader :: String -> String -> String
-formatHeader header arg = printf ("!_" ++ header ++ "\t%s\t//" ++ endOfLine) arg
-
-formatHeaders :: Builder
-formatHeaders =
-       -- format 1 does not append ';"' to lines
-       BS.stringUtf8 (formatHeader "TAG_FILE_FORMAT"    "2")
-       -- allows for  binary search
-    <> BS.stringUtf8 (formatHeader "TAG_FILE_SORTED"    "1")
-    <> BS.stringUtf8 (formatHeader "TAG_FILE_ENCODING"  "utf-8")
-    <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_AUTHOR" "Marcin Szamotulski")
-    <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_NAME"   "ghc-tags-plugin")
-    <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_URL"
-                                   "https://hackage.haskell.org/package/ghc-tags-plugin")
-       -- version number with git revision
-    <> BS.stringUtf8 (formatHeader "TAG_PROGRAM_VERSION" (showVersion version))
+formatHeader :: (String, String) -> Builder
+formatHeader (header, arg) = BS.stringUtf8 $ printf ("!_" ++ header ++ "\t%s\t//" ++ endOfLine) arg
 
 -- | 'ByteString' 'Builder' for vim 'Tag' file.
 --
-formatTagsFile :: [CTag] -> Builder
-formatTagsFile tags =
-       formatHeaders
+formatTagsFile :: [(String, String)] -- ^ list of headers
+               -> [CTag]             -- ^ 'CTag's
+               -> Builder
+formatTagsFile headers tags =
+       foldMap formatHeader headers
     <> foldMap formatTag tags

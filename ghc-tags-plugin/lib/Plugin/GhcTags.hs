@@ -57,6 +57,7 @@ import qualified GhcTags.ETags as ETags
 
 import           Plugin.GhcTags.Options
 import           Plugin.GhcTags.FileLock
+import qualified Plugin.GhcTags.CTags as CTags
 
 
 -- | The GhcTags plugin.  It will run for every compiled module and have access
@@ -210,7 +211,7 @@ updateTags Options { etags, filePath = Identity tagsFile }
                            $ lmodule
 
                   -- Write header
-                  BSL.hPut writeHandle (BB.toLazyByteString (CTags.formatHeaders))
+                  BSL.hPut writeHandle (BB.toLazyByteString (foldMap CTags.formatHeader CTags.headers))
                   -- update tags file / run 'pipe'
                   tags' <- Pipes.Safe.runSafeT $ execStateT ((Pipes.runEffect pipe)) tags
                   -- write the remaining tags'

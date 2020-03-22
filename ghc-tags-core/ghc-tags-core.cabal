@@ -18,7 +18,8 @@ tested-with:         GHC==8.6.3, GHC==8.8.3
 
 library
   hs-source-dirs:      lib
-  exposed-modules:     GhcTags.Ghc
+  exposed-modules:     GhcTags
+                       GhcTags.Ghc
                        GhcTags.Tag
                        GhcTags.Stream
                        GhcTags.CTags
@@ -28,10 +29,7 @@ library
                        GhcTags.ETags
                        GhcTags.ETags.Parser
                        GhcTags.ETags.Formatter
-                       Paths_ghc_tags_core
-  other-modules:
-                       GhcTags.Utils
-  autogen-modules:     Paths_ghc_tags_core
+  other-modules:       GhcTags.Utils
   build-depends:       attoparsec       ^>=0.13.0.0,
                        base              >=4.12.0.0 && <4.14,
                        bytestring       ^>=0.10,
