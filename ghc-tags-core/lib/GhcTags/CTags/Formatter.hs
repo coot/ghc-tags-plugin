@@ -3,7 +3,7 @@
 
 -- | 'bytestring''s 'Builder' for a 'Tag'
 --
-module Plugin.GhcTags.CTags.Formatter
+module GhcTags.CTags.Formatter
   ( formatTagsFile
   , formatTag
   , formatHeaders
@@ -20,9 +20,9 @@ import           Text.Printf (printf)
 
 import           Paths_ghc_tags_core (version)
 
-import           Plugin.GhcTags.Generate
-import           Plugin.GhcTags.Tag
-import           Plugin.GhcTags.Utils (endOfLine)
+import           GhcTags.Generate
+import           GhcTags.Tag
+import           GhcTags.Utils (endOfLine)
 
 
 -- | 'ByteString' 'Builder' for a single line.

@@ -9,7 +9,7 @@
 
 -- | Parser combinators for etags file format
 --
-module Plugin.GhcTags.ETags.Parser where
+module GhcTags.ETags.Parser where
 
 import           Control.Applicative (many, (<|>))
 import           Data.Attoparsec.Text  (Parser, (<?>))
@@ -19,8 +19,8 @@ import           Data.Text (Text)
 import qualified Data.Text as Text
 import           System.IO (FilePath)
 
-import           Plugin.GhcTags.Tag
-import qualified Plugin.GhcTags.Utils as Utils
+import           GhcTags.Tag
+import qualified GhcTags.Utils as Utils
 
 
 -- | Parse whole etags file
