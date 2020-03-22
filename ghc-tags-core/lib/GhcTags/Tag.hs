@@ -59,7 +59,6 @@ import           SrcLoc       ( SrcSpan (..)
 
 import           GhcTags.Ghc  ( GhcTag (..)
                               , GhcKind (..)
-                              , TagField (..)
                               , charToGhcKind
                               , ghcKindToChar
                               )
@@ -150,6 +149,22 @@ data TagDefinition (tk :: TAG_KIND) where
 deriving instance Show (TagDefinition tk)
 deriving instance Eq   (TagDefinition tk)
 
+-- | Unit of data associated with a tag.  Vim natively supports `file:` and
+-- `kind:` tags but it can display any other tags too.
+--
+data TagField = TagField {
+      fieldName  :: Text,
+      fieldValue :: Text
+    }
+  deriving (Eq, Ord, Show)
+
+
+-- | File field; tags which contain 'fileFields' are called static (aka static
+-- in 'C'), such tags are only visible in the current file)
+--
+fileField :: TagField
+fileField = TagField { fieldName = "file", fieldValue = "" }
+
 
 -- | Ctags specific list of fields.
 --
@@ -171,6 +186,10 @@ instance Monoid (TagFields ETAG) where
 
 type CTagFields = TagFields CTAG
 type ETagFields = TagFields ETAG
+
+
+-- appendField :: TagField -> GhcTag -> GhcTag
+-- appendField f gt = gt { gtFields = f : gtFields gt }
 
 
 -- | Tag record.  For either ctags or etags formats.  It is either filled with
@@ -268,7 +287,7 @@ combineTags compareFn modPath = go
 --  | Create a 'Tag' from 'GhcTag'
 --
 ghcTagToTag :: SingTagKind tk -> GhcTag -> Maybe (Tag tk)
-ghcTagToTag sing GhcTag { gtSrcSpan, gtTag, gtKind, gtFields } =
+ghcTagToTag sing GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI } =
     case gtSrcSpan of
       UnhelpfulSpan {} -> Nothing
       RealSrcSpan realSrcSpan ->
@@ -281,6 +300,12 @@ ghcTagToTag sing GhcTag { gtSrcSpan, gtTag, gtKind, gtFields } =
                                        SingETag -> NoKind
                    , tagDefinition = NoTagDefinition
                    , tagFields     = case sing of
-                                       SingCTag -> TagFields gtFields
+                                       SingCTag -> TagFields $
+                                                        if gtIsExported
+                                                          then mempty
+                                                          else [fileField]
+                                                     <> case gtFFI of
+                                                          Nothing  -> mempty
+                                                          Just ffi -> [TagField "ffi" ffi]
                                        SingETag -> NoTagFields
                    }
