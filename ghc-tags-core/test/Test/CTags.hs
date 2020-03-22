@@ -8,6 +8,7 @@ import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
+import           System.FilePath (normalise)
 
 import           Test.Tasty (TestTree, testGroup)
 import           Test.Tasty.QuickCheck (testProperty)
@@ -37,12 +38,13 @@ instance Arbitrary ArbCTag where
           Tag
       <$> (TagName <$> genTextNonEmpty)
       <*> genTagKind SingCTag
-      <*> genFilePath
+      -- the 'roundTripProp' property holds only for normalised paths
+      <*> (normalise <$> genFilePath)
       <*> frequency
             [ (2, TagLine . getPositive <$> arbitrary)
-            -- we are generating `TagLineCol` even though they are not present;
-            -- The roundTrip property will check if the address was projected
-            -- to `TagLine`.
+            -- we are generating `TagLineCol` even though they are not present
+            -- in ctag files; The roundTrip property will check if the address
+            -- was projected to `TagLine`.
             , (2, TagLineCol <$> (getPositive <$> arbitrary) <*> (getPositive <$> arbitrary))
             , (1, TagCommand . ExCommand . (wrap '/' . fixAddr) <$> genTextNonEmpty)
             , (1, TagCommand . ExCommand . (wrap '?' . fixAddr) <$> genTextNonEmpty)

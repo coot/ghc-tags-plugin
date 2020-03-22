@@ -196,7 +196,8 @@ data Tag (tk :: TAG_KIND) = Tag
   , tagKind       :: !(TagKind tk)
     -- ^ ctags specifc field, which classifies tags
   , tagFilePath   :: !FilePath
-    -- ^ source file path
+    -- ^ source file path; for tags parsed with 'GhcTags.CTags.parseTag' or
+    -- 'GhcTags.ETags.parseTag' this is a normalised path.
   , tagAddr       :: !(TagAddress tk)
     -- ^ address in source file
   , tagDefinition :: !(TagDefinition tk)
@@ -206,6 +207,7 @@ data Tag (tk :: TAG_KIND) = Tag
     -- ^ ctags specific field
   }
   deriving (Eq, Show)
+            
 
 type CTag = Tag CTAG
 type ETag = Tag ETAG

@@ -22,7 +22,7 @@ import           Data.Functor (void, ($>))
 import           Data.Maybe (catMaybes)
 import           Data.Text          (Text)
 import qualified Data.Text          as Text
-import           System.IO (FilePath)
+import           System.FilePath (FilePath, normalise)
 
 import           GhcTags.Tag
 import qualified GhcTags.Utils as Utils
@@ -34,8 +34,13 @@ import           GhcTags.CTags.Utils
 parseTag :: Parser CTag
 parseTag =
       (\tagName tagFilePath tagAddr (tagKind, tagFields)
-        -> Tag { tagName, tagFilePath, tagAddr, tagKind
-               , tagFields, tagDefinition = NoTagDefinition })
+        -> Tag { tagName
+               , tagFilePath = normalise tagFilePath
+               , tagAddr
+               , tagKind
+               , tagFields
+               , tagDefinition = NoTagDefinition
+               })
     <$> parseTagName
     <*  separator
 
