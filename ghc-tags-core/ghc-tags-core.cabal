@@ -28,8 +28,9 @@ library
                        GhcTags.ETags
                        GhcTags.ETags.Parser
                        GhcTags.ETags.Formatter
-                       GhcTags.Utils
                        Paths_ghc_tags_core
+  other-modules:
+                       GhcTags.Utils
   autogen-modules:     Paths_ghc_tags_core
   build-depends:       attoparsec       ^>=0.13.0.0,
                        base              >=4.12.0.0 && <4.14,
