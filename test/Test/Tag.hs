@@ -99,7 +99,7 @@ instance Arbitrary ArbTag where
       , ArbTag <$> genTagAddrLineCol
       ]
 
-    shrink = map ArbTag . shrinkTag SingCTag . getArbTag
+    shrink = map ArbTag . shrinkTag . getArbTag
 
 
 -- | Arbitrary instance with a high probability of gettings the same tags or files.
@@ -130,7 +130,7 @@ instance Arbitrary ArbOrdTag where
              <*> pure NoTagDefinition
              <*> pure (TagFields [])
 
-    shrink = map ArbOrdTag . shrinkTag SingCTag . getArbOrdTag
+    shrink = map ArbOrdTag . shrinkTag . getArbOrdTag
 
 
 -- | Generate pairs of tags which are equal in the sense of `compare`.
@@ -205,7 +205,7 @@ instance Arbitrary ArbTagList where
     arbitrary = (ArbTagList . nub . sortBy CTags.compareTags . map getArbTag)
             <$> listOf arbitrary
     shrink (ArbTagList ts) =
-      (ArbTagList . sortBy compareTags) `map` shrinkList (shrinkTag SingCTag) ts
+      (ArbTagList . sortBy compareTags) `map` shrinkList shrinkTag ts
 
 
 -- | List of tags from the same file
@@ -223,7 +223,7 @@ instance Arbitrary ArbTagsFromFile where
     shrink (ArbTagsFromFile fp tags) =
       [ ArbTagsFromFile fp (sortBy compareTags tags')
       -- Don't shrink file name!
-      | tags' <- shrinkList (shrinkTag' SingCTag) tags
+      | tags' <- shrinkList shrinkTag' tags
       ]
       ++
       [ ArbTagsFromFile fp' ((\t -> t { tagFilePath = fp' }) `map` tags)
@@ -355,11 +355,11 @@ instance Arbitrary ArbTagsFromFileAndTagList where
       [ ArbTagsFromFileAndTagList filePath
                                   ((\t -> t { tagFilePath = filePath }) `map` as')
                                   bs
-      | as' <- shrinkList (shrinkTag SingCTag) as
+      | as' <- shrinkList shrinkTag as
       ]
       ++
       [ ArbTagsFromFileAndTagList filePath as bs'
-      | bs' <- shrinkList (shrinkTag SingCTag) bs
+      | bs' <- shrinkList shrinkTag bs
       ]
 
 

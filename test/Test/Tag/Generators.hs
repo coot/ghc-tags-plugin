@@ -104,8 +104,8 @@ genTagKind SingCTag = oneof
                          /\ (isNothing . charToGhcKind)
                        )
 
-shrinkTag' :: SingTagKind tk -> Tag tk -> [Tag tk]
-shrinkTag' sing tag@Tag {tagName, tagAddr, tagFields} =
+shrinkTag' :: Tag tk -> [Tag tk]
+shrinkTag' tag@Tag {tagName, tagAddr, tagFields} =
       [ tag { tagName = TagName x }
       | x <- fixText `map` shrink (getTagName tagName)
       , not (Text.null x)
@@ -143,9 +143,9 @@ shrinkTag' sing tag@Tag {tagName, tagAddr, tagFields} =
           Just (addr'', _) -> addr''
 
 
-shrinkTag :: SingTagKind tk -> Tag tk -> [Tag tk]
-shrinkTag sing tag@Tag {tagFilePath} =
-      shrinkTag' sing tag
+shrinkTag :: Tag tk -> [Tag tk]
+shrinkTag tag@Tag {tagFilePath} =
+      shrinkTag' tag
    ++ [ tag { tagFilePath = tagFilePath' }
       | tagFilePath' <- fixFilePath `map` shrink tagFilePath
       , not (null tagFilePath')
