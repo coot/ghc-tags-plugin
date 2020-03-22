@@ -48,7 +48,7 @@ instance Arbitrary ArbCTag where
             , (1, TagCommand . ExCommand . (wrap '?' . fixAddr) <$> genTextNonEmpty)
             ]
       <*> pure NoTagDefinition
-      <*> listOf genField
+      <*> (TagFields <$> listOf genField)
     shrink = map ArbCTag . shrinkTag SingCTag . getArbCTag
 
 

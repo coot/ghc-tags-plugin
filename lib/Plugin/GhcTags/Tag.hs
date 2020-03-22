@@ -28,6 +28,10 @@ module Plugin.GhcTags.Tag
   , CTagKind
   , ETagKind
   , TagDefinition (..)
+  , TagFields (..)
+  , CTagFields
+  , ETagFields
+  , ETagFields
   , GhcKind (..)
   , charToGhcKind
   , ghcKindToChar
@@ -145,6 +149,28 @@ deriving instance Show (TagDefinition tk)
 deriving instance Eq   (TagDefinition tk)
 
 
+-- | Ctags specific list of fields.
+--
+data TagFields (tk :: TAG_KIND) where
+    NoTagFields :: TagFields ETAG
+
+    TagFields   :: ![TagField]
+                -> TagFields CTAG
+
+deriving instance Show (TagFields tk)
+deriving instance Eq   (TagFields tk)
+instance Semigroup (TagFields tk) where
+    NoTagFields   <> NoTagFields   = NoTagFields
+    (TagFields a) <> (TagFields b) = TagFields (a ++ b)
+instance Monoid (TagFields CTAG) where
+    mempty = TagFields mempty
+instance Monoid (TagFields ETAG) where
+    mempty = NoTagFields
+
+type CTagFields = TagFields CTAG
+type ETagFields = TagFields ETAG
+
+
 -- | Tag record.  For either ctags or etags formats.  It is either filled with
 -- information parsed from a tags file or from *GHC* ast.
 --
@@ -159,7 +185,7 @@ data Tag (tk :: TAG_KIND) = Tag
     -- ^ address in source file
   , tagDefinition :: !(TagDefinition tk)
     -- ^ etags specific field
-  , tagFields     :: ![TagField]
+  , tagFields     :: !(TagFields tk)
     -- ^ ctags specific field
   }
   deriving (Eq, Show)
@@ -213,7 +239,9 @@ ghcTagToTag sing GhcTag { gtSrcSpan, gtTag, gtKind, gtFields } =
                                        SingCTag -> GhcKind gtKind
                                        SingETag -> NoKind
                    , tagDefinition = NoTagDefinition
-                   , tagFields     = gtFields
+                   , tagFields     = case sing of
+                                       SingCTag -> TagFields gtFields
+                                       SingETag -> NoTagFields
                    }
 
 
