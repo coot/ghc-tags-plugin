@@ -1,10 +1,8 @@
 cabal-version:       2.4
-name:                ghc-tags-plugin
+name:                ghc-tags-core
 version:             0.1.6.0
-synopsis:            A compiler plugin which generates tags file from GHC syntax tree.
+synopsis:            A suite to create and work with tags created from Haskell parsed tree.
 description:
-  A compiler source plugin which takes parsed Haskell syntax tree and saves
-  tags file to disk, leaving the parsed tree untouched.
 license:             MPL-2.0
 license-file:        LICENSE
 author:              Marcin Szamotulski
@@ -13,47 +11,12 @@ copyright:           (c) 2020, Marcin Szamotulski
 category:            Development
 extra-source-files:  CHANGELOG.md
                      README.md
-                     Makefile
 homepage:            https://github.com/coot/ghc-tags-plugin#readme
 bug-reports:         https://github.com/coot/ghc-tags-plugin/issues
 tested-with:         GHC==8.6.3, GHC==8.8.3
 
--- Don't build gtp-check command by default
-flag gtp-check
-  default: False
-  manual:  False
-
-source-repository head
-  type:     git
-  location: https://github.com/coot/ghc-tags-plugin
-
 
 library
-  hs-source-dirs:      src
-  exposed-modules:     Plugin.GhcTags
-                       Plugin.GhcTags.Options
-  build-depends:       base              >=4.12.0.0 && <4.14,
-                       bytestring       ^>=0.10,
-                       directory        ^>=1.3,
-                       filepath         ^>=1.4,
-                       ghc               >=8.4 && <8.9,
-                       mtl              ^>=2.2,
-                       optparse-applicative
-                                        ^>=0.15.1,
-                       pipes            ^>=4.3,
-                       pipes-attoparsec ^>=0.5,
-                       pipes-bytestring ^>=2.1,
-                       pipes-text        >=0.0.2 && <0.0.3 ,
-                       pipes-safe       ^>=2.3,
-                       text             ^>=1.2,
-
-                       ghc-tags-library
-
-  default-language:    Haskell2010
-  ghc-options:         -Wall
-
-
-library ghc-tags-library
   hs-source-dirs:      lib
   exposed-modules:     Plugin.GhcTags.Generate
                        Plugin.GhcTags.Tag
@@ -65,8 +28,8 @@ library ghc-tags-library
                        Plugin.GhcTags.ETags.Parser
                        Plugin.GhcTags.ETags.Formatter
                        Plugin.GhcTags.Utils
-                       Paths_ghc_tags_plugin
-  autogen-modules:     Paths_ghc_tags_plugin
+                       Paths_ghc_tags_core
+  autogen-modules:     Paths_ghc_tags_core
   build-depends:       attoparsec       ^>=0.13.0.0,
                        base              >=4.12.0.0 && <4.14,
                        bytestring       ^>=0.10,
@@ -129,17 +92,3 @@ benchmark benchmarks
                      , text
   ghc-options:         -Wall -rtsopts
 
-executable gtp-check
-  if flag(gtp-check)
-    buildable:         True
-  else
-    buildable:         False
-  hs-source-dirs:      app
-  main-is:             check.hs
-  default-language:    Haskell2010
-  build-depends:       base
-                     , bytestring
-                     , directory
-                     , filepath
-
-                     , ghc-tags-library
