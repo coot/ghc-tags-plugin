@@ -18,7 +18,7 @@ import qualified Data.Text          as Text
 import qualified Data.Text.Encoding as Text
 import           Text.Printf (printf)
 
-import           Paths_ghc_tags_plugin (version)
+import           Paths_ghc_tags_core (version)
 
 import           Plugin.GhcTags.Generate
 import           Plugin.GhcTags.Tag
