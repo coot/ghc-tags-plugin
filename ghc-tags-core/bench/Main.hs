@@ -117,7 +117,7 @@ benchReadParseFormat path = do
     res  <- CTags.parseTagsFile text
     case res of
       Left err   -> throwIO (userError err)
-      Right tags -> pure $ BB.toLazyByteString (CTags.formatTagsFile tags)
+      Right tags -> pure $ BB.toLazyByteString (CTags.formatTagsFile [] tags)
 
 
 benchStreamParseFormat :: FilePath -> IO ()
@@ -161,4 +161,4 @@ benchReadTags filePath modPath tags = do
            Text.decodeUtf8 <$> BS.hGetContents readHandle
            >>= CTags.parseTagsFile
          let tags'' = combineTags CTags.compareTags modPath tags tags'
-         BB.hPutBuilder writeHandle (CTags.formatTagsFile tags'')
+         BB.hPutBuilder writeHandle (CTags.formatTagsFile [] tags'')

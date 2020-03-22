@@ -31,8 +31,10 @@ source-repository head
 library
   hs-source-dirs:      lib
   exposed-modules:     Plugin.GhcTags
-                       Plugin.GhcTags.Options
+                       Plugin.GhcTags.CTags
                        Plugin.GhcTags.FileLock
+                       Plugin.GhcTags.Options
+  other-modules:       Paths_ghc_tags_plugin
   build-depends:       base              >=4.12.0.0 && <4.14,
                        bytestring       ^>=0.10,
                        directory        ^>=1.3,
