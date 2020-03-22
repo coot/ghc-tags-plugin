@@ -32,6 +32,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Plugin.GhcTags
                        Plugin.GhcTags.Options
+                       Plugin.GhcTags.FileLock
   build-depends:       base              >=4.12.0.0 && <4.14,
                        bytestring       ^>=0.10,
                        directory        ^>=1.3,
@@ -66,4 +67,4 @@ executable gtp-check
                      , directory
                      , filepath
 
-                     , ghc-tags-core
+                     , ghc-tags-plugin

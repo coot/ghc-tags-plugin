@@ -50,13 +50,13 @@ import qualified Outputable as Out
 import qualified PprColour
 
 import           Plugin.GhcTags.Options
+import           Plugin.GhcTags.FileLock
 
 import           Plugin.GhcTags.Generate
 import           Plugin.GhcTags.Tag
 import           Plugin.GhcTags.Stream
 import qualified Plugin.GhcTags.CTags as CTags
 import qualified Plugin.GhcTags.ETags as ETags
-import           Plugin.GhcTags.Utils
 
 
 -- | The GhcTags plugin.  It will run for every compiled module and have access
