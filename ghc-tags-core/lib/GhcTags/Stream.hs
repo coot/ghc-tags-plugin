@@ -5,6 +5,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 
+-- | Parse and combine a stream of tags.
+--
 module GhcTags.Stream
     ( tagParser
     , combineTagsPipe
@@ -28,6 +30,8 @@ import qualified Pipes.ByteString as Pipes.BS
 import           GhcTags.Tag
 
 
+-- | Parse a stream of tags, coming from a 'Text' producer.
+--
 tagParser :: MonadIO m
           => Parser (Maybe (Tag tk))
           -- ^ Parse a single tag.  For Vim this returns should parse a single
@@ -43,12 +47,12 @@ tagParser parser producer = void $
       Nothing  -> pure ()
 
 
---  | 'Pipe' version of 'combineTags'.
+-- | Streaming version of 'GhcTags.Tag.combineTags'.
 --
 combineTagsPipe
     :: forall m (tk :: TAG_KIND).  Applicative m
     => (Tag tk -> Tag tk -> Ordering)
-    -> FilePath
+    -> FilePath -- ^ file path from which the new tags were obtained
     -> Tag tk   -- ^ tag read from disc
     -> [Tag tk] -- ^ new tags
     -> Pipes.Producer (Tag tk) m [Tag tk]
