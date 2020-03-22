@@ -88,7 +88,6 @@ data TagKind (tk :: TAG_KIND) where
     NoKind   :: TagKind tk
 
 type CTagKind = TagKind CTAG
-
 type ETagKind = TagKind ETAG
 
 deriving instance Eq   (TagKind tk)
@@ -138,10 +137,12 @@ deriving instance Show (TagAddress tk)
 
 -- | Emacs tags specific field.
 --
-data TagDefinition =
-      TagDefinition !Text
-    | NoTagDefinition
-  deriving (Eq, Show)
+data TagDefinition (tk :: TAG_KIND) where
+      TagDefinition   :: !Text -> TagDefinition ETAG
+      NoTagDefinition :: TagDefinition tk
+
+deriving instance Show (TagDefinition tk)
+deriving instance Eq   (TagDefinition tk)
 
 
 -- | Tag record.  For either ctags or etags formats.  It is either filled with
@@ -149,16 +150,21 @@ data TagDefinition =
 --
 data Tag (tk :: TAG_KIND) = Tag
   { tagName       :: !TagName
+    -- ^ name of the tag
   , tagKind       :: !(TagKind tk)
+    -- ^ ctags specifc field, which classifies tags
   , tagFilePath   :: !FilePath
+    -- ^ source file path
   , tagAddr       :: !(TagAddress tk)
-  , tagDefinition :: !TagDefinition
+    -- ^ address in source file
+  , tagDefinition :: !(TagDefinition tk)
+    -- ^ etags specific field
   , tagFields     :: ![TagField]
+    -- ^ ctags specific field
   }
   deriving (Eq, Show)
 
 type CTag = Tag CTAG
-
 type ETag = Tag ETAG
 
 
