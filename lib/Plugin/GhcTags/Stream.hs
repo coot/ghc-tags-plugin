@@ -52,18 +52,21 @@ combineTagsPipe
     -> Tag tk   -- ^ tag read from disc
     -> [Tag tk] -- ^ new tags
     -> Pipes.Producer (Tag tk) m [Tag tk]
--- TODO: if a module has no tags, we will not remove any of the pre-exisiting
--- ones.
-combineTagsPipe compareFn modPath tag0 ts = go tag0 ts
+combineTagsPipe compareFn modPath = go
   where
+
+    go :: Tag tk -> [Tag tk]
+       -> Pipes.Producer (Tag tk) m [Tag tk]
 
     go tag as
       | tagFilePath tag == modPath = pure as
+
     go tag as@(a : as')
       | otherwise = case a `compareFn` tag of
           LT -> Pipes.yield a >> go tag as'
           EQ -> Pipes.yield a $> as'
           GT -> Pipes.yield tag $> as
+
     go tag [] = Pipes.yield tag $> []
 
 
