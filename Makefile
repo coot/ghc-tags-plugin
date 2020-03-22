@@ -14,7 +14,6 @@ uninstall:
 	ghc-pkg unregister \
 	  --package-db=${PACKAGE_DB} \
 	  --force \
-	  z-ghc-tags-plugin-z-ghc-tags-library \
 	  ghc-tags-plugin
 
 install:
