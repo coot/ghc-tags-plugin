@@ -37,7 +37,7 @@ main = do
 
 tests :: FilePath -> TestTree
 tests goldenTestDir =
-    testGroup "Plugin.GhcTags"
+    testGroup "GhcTags"
     [ Test.Golden.Parser.tests goldenTestDir
     , Test.Tag.tests
     , Test.CTags.tests
