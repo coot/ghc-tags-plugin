@@ -75,26 +75,44 @@ import           Name         ( nameOccName
                               )
 
 
--- | `ctags` can generate tags kinds, so do we.
+-- | Kind of the term.
 --
 data GhcKind = TkTerm
+             -- ^  '`'
              | TkFunction
+             -- ^ 'λ'
              | TkTypeConstructor
+             -- ^ 'Λ'
              | TkDataConstructor
+             -- ^ 'c'
              | TkGADTConstructor
+             -- ^ 'g'
              | TkRecordField
+             -- ^ 'r'
              | TkTypeSynonym
+             -- ^ '≡'
              | TkTypeSignature
+             -- ^ '⊢'
              | TkPatternSynonym
+             -- ^ 'p'
              | TkTypeClass
+             -- ^ 'C'
              | TkTypeClassMember
+             -- ^ 'm'
              | TkTypeClassInstance
+             -- ^ 'i'
              | TkTypeFamily
+             -- ^ 'f'
              | TkTypeFamilyInstance
+             -- ^ 'F'
              | TkDataTypeFamily
+             -- ^ 'd'
              | TkDataTypeFamilyInstance
+             -- ^ 'D'
              | TkForeignImport
+             -- ^ 'I'
              | TkForeignExport
+             -- ^ 'E'
   deriving (Ord, Eq, Show)
 
 
@@ -103,8 +121,11 @@ data GhcKind = TkTerm
 --
 data GhcTag = GhcTag {
     gtSrcSpan    :: !SrcSpan
+    -- ^ term location
   , gtTag        :: !FastString
+    -- ^ tag's name
   , gtKind       :: !GhcKind
+    -- ^ tag's kind
   , gtIsExported :: !Bool
     -- ^ 'True' iff the term is exported
   , gtFFI        :: !(Maybe Text)
@@ -212,18 +233,19 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
 -- | Generate tags for a module - simple walk over the syntax tree.
 --
 -- Supported identifiers:
---  * top level terms
---  * data types
---  * record fields
---  * type synonyms
---  * type classes
---  * type class members
---  * type class instances
---  * type families
---  * type family instances
---  * data type families
---  * data type families instances
---  * data type family instances constructors
+--
+--  * /top level terms/
+--  * /data types/
+--  * /record fields/
+--  * /type synonyms/
+--  * /type classes/
+--  * /type class members/
+--  * /type class instances/
+--  * /type families/
+--  * /type family instances/
+--  * /data type families/
+--  * /data type families instances/
+--  * /data type family instances constructors/
 --
 getGhcTags ::Located (HsModule GhcPs)
            -> GhcTags
