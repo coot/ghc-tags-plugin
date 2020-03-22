@@ -4,20 +4,19 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
--- | Interface for generating tags for a parsed module.
+-- | Generate tags from @'HsModule' 'GhcPs'@ representation.
 --
 module GhcTags.Ghc
   ( GhcTag (..)
   , GhcTags
   , GhcKind (..)
-  , TagField (..)
   , ghcKindToChar
   , charToGhcKind
   , getGhcTags
   ) where
 
 
-import           Data.Maybe    (mapMaybe, maybeToList)
+import           Data.Maybe    (mapMaybe)
 import           Data.Foldable (foldl')
 import           Data.Text   (Text)
 import qualified Data.Text as Text
@@ -146,38 +145,19 @@ charToGhcKind c = case c of
      _   -> Nothing
 
 
-
--- | Unit of data associated with a tag.  Vim natively supports `file:` and
--- `kind:` tags but it can display any other tags too.
---
-data TagField = TagField {
-      fieldName  :: Text,
-      fieldValue :: Text
-    }
-  deriving (Eq, Ord, Show)
-
-
--- | File field; tags which contain 'fileFields' are called static (aka static
--- in 'C'), such tags are only visible in the current file)
---
-fileField :: TagField
-fileField = TagField { fieldName = "file", fieldValue = "" }
-
-
 -- | We can read names from using fields of type 'GHC.Hs.Extensions.IdP' (a type
 -- family) which for @'Parsed@ resolved to 'RdrName'
 --
 data GhcTag = GhcTag {
-    gtSrcSpan  :: !SrcSpan
-  , gtTag      :: !FastString
-  , gtKind     :: !GhcKind
-  , gtFields   :: ![TagField]
+    gtSrcSpan    :: !SrcSpan
+  , gtTag        :: !FastString
+  , gtKind       :: !GhcKind
+  , gtIsExported :: !Bool
+    -- ^ 'True' iff the term is exported
+  , gtFFI        :: !(Maybe Text)
+    -- ^ 'ffi' import
   }
   deriving Show
-
-
-appendField :: TagField -> GhcTag -> GhcTag
-appendField f gt = gt { gtFields = f : gtFields gt }
 
 
 type GhcTags = [GhcTag]
@@ -185,12 +165,10 @@ type GhcTags = [GhcTag]
 
 -- | Check if an identifier is exported, if it is not return 'fileField'.
 --
-getFileTagField :: Maybe [IE GhcPs] -> Located RdrName -> Maybe TagField
-getFileTagField Nothing   _name = Nothing
+getFileTagField :: Maybe [IE GhcPs] -> Located RdrName -> Bool
+getFileTagField Nothing   _name = True
 getFileTagField (Just ies) (L _ name) =
-    if any (\ie -> ieName ie == Just name) ies
-      then Nothing
-      else Just fileField
+    any (\ie -> ieName ie == Just name) ies
   where
     -- TODO: the GHC's one is partial, and I got a panic error.
     ieName :: IE GhcPs -> Maybe RdrName
@@ -206,12 +184,9 @@ getFileTagField (Just ies) (L _ name) =
 getFileTagFieldForMember :: Maybe [IE GhcPs]
                          -> Located RdrName -- member name / constructor name
                          -> Located RdrName -- type class name / type constructor name
-                         -> Maybe TagField
-getFileTagFieldForMember Nothing    _memberName _className = Nothing
-getFileTagFieldForMember (Just ies) memberName  className  =
-    if any go ies
-      then Nothing
-      else Just fileField
+                         -> Bool
+getFileTagFieldForMember Nothing    _memberName _className = True
+getFileTagFieldForMember (Just ies) memberName  className  = any go ies
   where
     go :: IE GhcPs -> Bool
 
@@ -242,23 +217,25 @@ mkGhcTag :: Located RdrName
          -- ^ @RdrName ~ IdP GhcPs@ it *must* be a name of a top level identifier.
          -> GhcKind
          -- ^ tag's kind
-         -> [TagField]
-         -- ^ tag's fields
+         -> Bool
+         -- ^ is term exported
          -> GhcTag
-mkGhcTag (L gtSrcSpan rdrName) gtKind gtFields =
+mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
     case rdrName of
       Unqual occName ->
         GhcTag { gtTag = occNameFS occName
                , gtSrcSpan
                , gtKind
-               , gtFields
+               , gtIsExported
+               , gtFFI = Nothing
                }
 
       Qual _ occName ->
         GhcTag { gtTag = occNameFS occName
                , gtSrcSpan
                , gtKind
-               , gtFields
+               , gtIsExported
+               , gtFFI = Nothing
                }
 
       -- Orig is the only one we are interested in
@@ -266,14 +243,16 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtFields =
         GhcTag { gtTag = occNameFS occName
                , gtSrcSpan
                , gtKind
-               , gtFields
+               , gtIsExported
+               , gtFFI = Nothing
                }
 
       Exact eName -> 
         GhcTag { gtTag = occNameFS $ nameOccName eName
                , gtSrcSpan
                , gtKind
-               , gtFields
+               , gtIsExported
+               , gtFFI = Nothing
                }
 
 
@@ -307,7 +286,7 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
               -> GhcKind
               -- ^ tag's kind
               -> GhcTag
-    mkGhcTag' a k = mkGhcTag a k (maybeToList $ getFileTagField mies a)
+    mkGhcTag' a k = mkGhcTag a k (getFileTagField mies a)
 
     mkGhcTagForMember :: Located RdrName -- member name
                       -> Located RdrName -- class name
@@ -315,7 +294,7 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
                       -> GhcTag
     mkGhcTagForMember memberName className kind =
       mkGhcTag memberName kind
-        (maybeToList $ getFileTagFieldForMember mies memberName className)
+        (getFileTagFieldForMember mies memberName className)
 
 
     -- Main routine which traverse all top level declarations.
@@ -442,7 +421,7 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
                 case sourceText of
                   NoSourceText -> tag
                   -- TODO: add header information from '_mheader'
-                  SourceText s -> TagField "ffi" (Text.pack s) `appendField` tag
+                  SourceText s -> tag { gtFFI = Just (Text.pack s) }
               : tags
             where
               tag = mkGhcTag' fd_name TkForeignImport
@@ -575,7 +554,7 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
 
     -- used to generate tag of an instance declaration
     mkLHsTypeTag :: LHsType GhcPs -> Maybe GhcTag
-    mkLHsTypeTag (L _ hsType) = (\a -> mkGhcTag a TkTypeClassInstance []) <$> hsTypeTagName hsType
+    mkLHsTypeTag (L _ hsType) = (\a -> mkGhcTag a TkTypeClassInstance True) <$> hsTypeTagName hsType
 
 
     hsTypeTagName :: HsType GhcPs -> Maybe (Located RdrName)
