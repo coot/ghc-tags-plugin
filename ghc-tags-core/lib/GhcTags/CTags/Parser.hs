@@ -28,6 +28,7 @@ import           System.IO (FilePath)
 
 import           GhcTags.Tag
 import qualified GhcTags.Utils as Utils
+import           GhcTags.CTags.Utils
 
 
 -- | Parser for a single line of a vim-style tag file.

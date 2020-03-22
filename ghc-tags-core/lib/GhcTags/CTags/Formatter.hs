@@ -20,9 +20,9 @@ import           Text.Printf (printf)
 
 import           Paths_ghc_tags_core (version)
 
-import           GhcTags.Ghc
 import           GhcTags.Tag
 import           GhcTags.Utils (endOfLine)
+import           GhcTags.CTags.Utils
 
 
 -- | 'ByteString' 'Builder' for a single line.
