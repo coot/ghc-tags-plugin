@@ -29,7 +29,7 @@ source-repository head
 
 
 library
-  hs-source-dirs:      src
+  hs-source-dirs:      lib
   exposed-modules:     Plugin.GhcTags
                        Plugin.GhcTags.Options
                        Plugin.GhcTags.FileLock
