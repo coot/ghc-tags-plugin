@@ -8,7 +8,16 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: cachix/install-nix-action@v7
-      - uses: cachix/cachix-action@v5
+      - name: "ghc-tags-core"
+        uses: cachix/cachix-action@v5
+        with:
+          name: "ghc-tags-plugin"
+          signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+          file: release.nix
+          attributes: "ghc-tags-core"
+          nixBuildArgs: "--argstr compiler ghc865"
+      - name: "ghc-tags-plugin"
+        uses: cachix/cachix-action@v5
         with:
           name: "ghc-tags-plugin"
           signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
