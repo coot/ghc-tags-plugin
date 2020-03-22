@@ -20,7 +20,7 @@ import           Text.Printf (printf)
 
 import           Paths_ghc_tags_core (version)
 
-import           GhcTags.Generate
+import           GhcTags.Ghc
 import           GhcTags.Tag
 import           GhcTags.Utils (endOfLine)
 

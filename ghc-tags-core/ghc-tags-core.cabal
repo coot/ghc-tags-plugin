@@ -18,7 +18,7 @@ tested-with:         GHC==8.6.3, GHC==8.8.3
 
 library
   hs-source-dirs:      lib
-  exposed-modules:     GhcTags.Generate
+  exposed-modules:     GhcTags.Ghc
                        GhcTags.Tag
                        GhcTags.Stream
                        GhcTags.CTags
