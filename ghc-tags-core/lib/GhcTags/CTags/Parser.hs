@@ -151,9 +151,13 @@ parseTagLine =
 
 parseHeader :: Parser ()
 parseHeader = AT.choice
-    [ AT.string (Text.pack "!_TAG_FILE_FORMAT")     *> params
+    [ AT.string (Text.pack "!_TAG_FILE_ENCODING")   *> params
+    , AT.string (Text.pack "!_TAG_FILE_FORMAT")     *> params
     , AT.string (Text.pack "!_TAG_FILE_SORTED")     *> params
-    , AT.string (Text.pack "!_TAG_FILE_ENCODING")   *> params
+    , AT.string (Text.pack "!_TAG_KIND_DESCRPTION") *> params
+    , AT.string (Text.pack "!_TAG_KIND_SEPARATOR")  *> params
+    , AT.string (Text.pack "!_TAG_OUTPUT_FILESEP")  *> params
+    , AT.string (Text.pack "!_TAG_OUTPUT_MODE")     *> params
     , AT.string (Text.pack "!_TAG_PROGRAM_AUTHOR")  *> params
     , AT.string (Text.pack "!_TAG_PROGRAM_NAME")    *> params
     , AT.string (Text.pack "!_TAG_PROGRAM_URL")     *> params
