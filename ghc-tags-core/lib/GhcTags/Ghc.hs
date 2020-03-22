@@ -129,7 +129,7 @@ data GhcTag = GhcTag {
   , gtIsExported :: !Bool
     -- ^ 'True' iff the term is exported
   , gtFFI        :: !(Maybe Text)
-    -- ^ 'ffi' import
+    -- ^ @ffi@ import
   }
   deriving Show
 
@@ -137,11 +137,11 @@ data GhcTag = GhcTag {
 type GhcTags = [GhcTag]
 
 
--- | Check if an identifier is exported, if it is not return 'fileField'.
+-- | Check if an identifier is exported.
 --
-getFileTagField :: Maybe [IE GhcPs] -> Located RdrName -> Bool
-getFileTagField Nothing   _name = True
-getFileTagField (Just ies) (L _ name) =
+isExported :: Maybe [IE GhcPs] -> Located RdrName -> Bool
+isExported Nothing   _name = True
+isExported (Just ies) (L _ name) =
     any (\ie -> ieName ie == Just name) ies
   where
     -- TODO: the GHC's one is partial, and I got a panic error.
@@ -153,14 +153,14 @@ getFileTagField (Just ies) (L _ name) =
     ieName _ = Nothing
 
 
--- | Either class members or type constructors.
+-- | Check if a class member or a type constructors is exported.
 --
-getFileTagFieldForMember :: Maybe [IE GhcPs]
-                         -> Located RdrName -- member name / constructor name
-                         -> Located RdrName -- type class name / type constructor name
-                         -> Bool
-getFileTagFieldForMember Nothing    _memberName _className = True
-getFileTagFieldForMember (Just ies) memberName  className  = any go ies
+isMemberExported :: Maybe [IE GhcPs]
+                 -> Located RdrName -- member name / constructor name
+                 -> Located RdrName -- type class name / type constructor name
+                 -> Bool
+isMemberExported Nothing    _memberName _className = True
+isMemberExported (Just ies) memberName  className  = any go ies
   where
     go :: IE GhcPs -> Bool
 
@@ -261,7 +261,7 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
               -> GhcKind
               -- ^ tag's kind
               -> GhcTag
-    mkGhcTag' a k = mkGhcTag a k (getFileTagField mies a)
+    mkGhcTag' a k = mkGhcTag a k (isExported mies a)
 
     mkGhcTagForMember :: Located RdrName -- member name
                       -> Located RdrName -- class name
@@ -269,7 +269,7 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
                       -> GhcTag
     mkGhcTagForMember memberName className kind =
       mkGhcTag memberName kind
-        (getFileTagFieldForMember mies memberName className)
+        (isMemberExported mies memberName className)
 
 
     -- Main routine which traverse all top level declarations.
