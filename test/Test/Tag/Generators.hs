@@ -105,7 +105,7 @@ genTagKind SingCTag = oneof
                        )
 
 shrinkTag' :: SingTagKind tk -> Tag tk -> [Tag tk]
-shrinkTag' _sing tag@Tag {tagName, tagAddr, tagFields} =
+shrinkTag' sing tag@Tag {tagName, tagAddr, tagFields} =
       [ tag { tagName = TagName x }
       | x <- fixText `map` shrink (getTagName tagName)
       , not (Text.null x)
@@ -127,9 +127,13 @@ shrinkTag' _sing tag@Tag {tagName, tagAddr, tagFields} =
               `map` (shrink . stripEnds) addr
       ,  addr /= tagAddr -- wrap might restore the same address!
       ]
-   ++ [ tag { tagFields = fields }
-      | fields <- shrinkList (const []) tagFields
-      ]
+   ++ case tagFields of
+        TagFields fields ->
+          [ tag { tagFields = TagFields fields' }
+          | fields' <- shrinkList (const []) fields
+          ]
+        NoTagFields ->
+          []
     where
       stripEnds :: Text -> Text
       stripEnds addr = case Text.uncons addr of

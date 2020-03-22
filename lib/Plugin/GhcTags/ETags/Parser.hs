@@ -74,7 +74,7 @@ parseTag tagFilePath =
           , tagDefinition = case mTagName of
                               Nothing -> NoTagDefinition
                               Just _  -> TagDefinition tagDefinition
-          , tagFields     = []
+          , tagFields     = NoTagFields
           }
 
     parseTagName :: Parser TagName

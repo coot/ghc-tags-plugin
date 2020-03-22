@@ -77,7 +77,7 @@ genTagAddrLine =
             , (1, TagCommand . ExCommand . (wrap '?' . fixAddr) <$> genTextNonEmpty)
             ]
       <*> pure NoTagDefinition
-      <*> listOf genField
+      <*> (TagFields <$> listOf genField)
 
 genTagAddrLineCol :: Gen CTag
 genTagAddrLineCol =
@@ -91,7 +91,7 @@ genTagAddrLineCol =
             , (1, TagCommand . ExCommand . (wrap '?' . fixAddr) <$> genTextNonEmpty)
             ]
       <*> pure NoTagDefinition
-      <*> listOf genField
+      <*> (TagFields <$> listOf genField)
 
 instance Arbitrary ArbTag where
     arbitrary = oneof
@@ -128,7 +128,7 @@ instance Arbitrary ArbOrdTag where
                    , (1, TagCommand . ExCommand . (wrap '?' . fixAddr) <$> genTextNonEmpty)
                    ]
              <*> pure NoTagDefinition
-             <*> pure []
+             <*> pure (TagFields [])
 
     shrink = map ArbOrdTag . shrinkTag SingCTag . getArbOrdTag
 
@@ -143,8 +143,8 @@ instance Arbitrary EqTags where
       x <- getArbOrdTag <$> arbitrary
       fieldsA <- listOf genField
       fieldsB <- listOf genField
-      pure $ EqTags x { tagFields = fieldsA }
-                    x { tagFields = fieldsB }
+      pure $ EqTags x { tagFields = TagFields fieldsA }
+                    x { tagFields = TagFields fieldsB }
 
 
 -- | Note that this property is weaker than required.  There are unequal `Tag`s
@@ -217,7 +217,7 @@ instance Arbitrary ArbTagsFromFile where
     arbitrary = do
       filePath <- genSmallFilePath
       ArbTagList tags <- arbitrary
-      let tags' = (\t -> t { tagFilePath = filePath, tagFields = [] }) `map` tags
+      let tags' = (\t -> t { tagFilePath = filePath, tagFields = mempty }) `map` tags
       pure $ ArbTagsFromFile filePath (sortBy compareTags tags')
 
     shrink (ArbTagsFromFile fp tags) =
@@ -339,7 +339,9 @@ instance Arbitrary ArbTagsFromFileAndTagList where
           <$> listOf tagGen
         pure $ ArbTagsFromFileAndTagList filePath tagsFromFile tags
       where
-        fixFile p t = t { tagFilePath = p, tagFields = [] }
+        fixFile p t = t { tagFilePath = p
+                        , tagFields   = mempty
+                        }
 
     -- A very basic shrinker
     shrink (ArbTagsFromFileAndTagList filePath as bs) =

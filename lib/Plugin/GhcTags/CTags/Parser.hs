@@ -35,7 +35,8 @@ import qualified Plugin.GhcTags.Utils as Utils
 parseTag :: Parser CTag
 parseTag =
       (\tagName tagFilePath tagAddr (tagKind, tagFields)
-        -> Tag { tagName, tagFilePath, tagAddr, tagKind, tagFields, tagDefinition = NoTagDefinition })
+        -> Tag { tagName, tagFilePath, tagAddr, tagKind
+               , tagFields, tagDefinition = NoTagDefinition })
     <$> parseTagName
     <*  separator
 
@@ -45,11 +46,12 @@ parseTag =
     -- includes an optional ';"' separator
     <*> parseTagAddress
 
-    <*> (  -- kind field followed by list of fields or end of line.
+    <*> (  -- kind field followed by list of fields or end of line, e.g.
+           -- '(TagField, CTagFields)'.
               ((,) <$> ( separator *> parseKindField )
                    <*> ( separator *> parseFields <* endOfLine
                          <|>
-                         endOfLine $> [])
+                         endOfLine $> mempty)
                        )
 
           -- list of fields (kind field might be later, but don't check it, we
@@ -57,7 +59,7 @@ parseTag =
           <|> curry id NoKind
                 <$> ( separator *> parseFields <* endOfLine
                       <|>
-                      endOfLine $> []
+                      endOfLine $> mempty
                     )
 
           -- kind encoded as a single letter, followed by a list
@@ -66,9 +68,9 @@ parseTag =
                   <$> ( separator *> AT.satisfy notTabOrNewLine )
                   <*> ( separator *> parseFields <* endOfLine
                         <|>
-                        endOfLine $> []
+                        endOfLine $> mempty
                       )
-          <|> endOfLine $> (NoKind, [])
+          <|> endOfLine $> (NoKind, mempty)
         )
 
   where
@@ -114,8 +116,8 @@ parseTag =
       charToTagKind <$>
         (AT.string "kind:" *> AT.satisfy notTabOrNewLine)
 
-    parseFields :: Parser [TagField]
-    parseFields = AT.sepBy parseField separator
+    parseFields :: Parser CTagFields
+    parseFields = TagFields <$> AT.sepBy parseField separator
 
 
 charToTagKind :: Char -> CTagKind
