@@ -31,9 +31,13 @@ jobs:
       - name: Update Hackage index
         run: cabal v2-update
       - uses: actions/checkout@v2
-      - name: Build dependencies
+      - name: Build ghc-tags-core dependencies
+        run: cabal v2-build ghc-tags-core --only-dependencies
+      - name: Build ghc-tags-core
+        run: cabal v2-build ghc-tags-core
+      - name: Run ghc-tags-tests
+        run: cabal v2-run ghc-tags-tests
+      - name: Build ghc-tags-plugin dependencies
         run: cabal v2-build ghc-tags-plugin --only-dependencies
       - name: Build ghc-tags-plugin
         run: cabal v2-build ghc-tags-plugin
-      - name: Run tests
-        run: cabal v2-run ghc-tags-tests
