@@ -57,8 +57,7 @@ import           SrcLoc       ( SrcSpan (..)
                               , srcSpanStartCol
                               )
 
-import           GhcTags.Generate
-                              ( GhcTag (..)
+import           GhcTags.Ghc  ( GhcTag (..)
                               , GhcKind (..)
                               , TagField (..)
                               , charToGhcKind

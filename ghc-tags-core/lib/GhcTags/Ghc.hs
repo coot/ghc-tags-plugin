@@ -6,7 +6,7 @@
 
 -- | Interface for generating tags for a parsed module.
 --
-module GhcTags.Generate
+module GhcTags.Ghc
   ( GhcTag (..)
   , GhcTags
   , GhcKind (..)

@@ -49,7 +49,7 @@ import           HsSyn (HsModule (..))
 import qualified Outputable as Out
 import qualified PprColour
 
-import           GhcTags.Generate
+import           GhcTags.Ghc
 import           GhcTags.Tag
 import           GhcTags.Stream
 import qualified GhcTags.CTags as CTags
