@@ -14,8 +14,8 @@ import           Test.Tasty.QuickCheck (testProperty)
 import           Test.QuickCheck
 import           Test.QuickCheck.Instances.Text ()
 
-import           Plugin.GhcTags.Tag
-import qualified Plugin.GhcTags.CTags as CTags
+import           GhcTags.Tag
+import qualified GhcTags.CTags as CTags
 
 import           Test.Tag.Generators
 

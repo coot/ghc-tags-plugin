@@ -16,8 +16,8 @@ import qualified Data.Text.Encoding as Text
 import           System.IO
 import           Text.Printf
 
-import qualified Plugin.GhcTags.CTags as CTags
-import qualified Plugin.GhcTags.ETags as ETags
+import qualified GhcTags.CTags as CTags
+import qualified GhcTags.ETags as ETags
 
 import           Test.Tasty (TestTree, TestName, testGroup)
 import           Test.Tasty.Golden
@@ -28,56 +28,56 @@ tests :: TestTree
 tests =
     testGroup "Golden.Parser" $
       [ testGroup "CTags"
-          [ let input  = "test/golden/test.tags"
-                output = "test/golden/test.tags.out"
+          [ let input  = "ghc-tags-core/test/golden/test.tags"
+                output = "ghc-tags-core/test/golden/test.tags.out"
             in goldenVsFileIgnoreHeaders
                 "test tags"
                  input
                  output
                  (parseGoldenCTagsFile input output)
 
-          , let input  = "test/golden/vim.tags"
-                output = "test/golden/vim.tags.out"
+          , let input  = "ghc-tags-core/test/golden/vim.tags"
+                output = "ghc-tags-core/test/golden/vim.tags.out"
             in goldenVsFileIgnoreHeaders
                 "vim tags"
                  input
                  output
                  (parseGoldenCTagsFile input output)
 
-          , let input  = "test/golden/typed-protocols.tags"
-                output = "test/golden/typed-protocols.tags.out"
+          , let input  = "ghc-tags-core/test/golden/typed-protocols.tags"
+                output = "ghc-tags-core/test/golden/typed-protocols.tags.out"
             in goldenVsFile
                 "typed-protocols tags"
                  input
                  output
                  (parseGoldenCTagsFile input output)
 
-          , let input  = "test/golden/io-sim-classes.tags"
-                output = "test/golden/io-sim-classes.tags.out"
+          , let input  = "ghc-tags-core/test/golden/io-sim-classes.tags"
+                output = "ghc-tags-core/test/golden/io-sim-classes.tags.out"
             in goldenVsFile
                 "io-sim-classes tags"
                  input
                  output
                  (parseGoldenCTagsFile input output)
          
-          , let input  = "test/golden/ouroboros-network.tags"
-                output = "test/golden/ouroboros-network.tags.out"
+          , let input  = "ghc-tags-core/test/golden/ouroboros-network.tags"
+                output = "ghc-tags-core/test/golden/ouroboros-network.tags.out"
             in goldenVsFile 
                 "ouroboros-network tags"
                  input
                  output
                  (parseGoldenCTagsFile input output)
 
-          , let input  = "test/golden/ouroboros-consensus.tags"
-                output = "test/golden/ouroboros-consensus.tags.out"
+          , let input  = "ghc-tags-core/test/golden/ouroboros-consensus.tags"
+                output = "ghc-tags-core/test/golden/ouroboros-consensus.tags.out"
             in goldenVsFile
                 "ouroboros-consensus tags"
                  input
                  output
                  (parseGoldenCTagsFile input output)
 
-          , let input  = "test/golden/ghc.tags"
-                output = "test/golden/ghc.tags.out"
+          , let input  = "ghc-tags-core/test/golden/ghc.tags"
+                output = "ghc-tags-core/test/golden/ghc.tags.out"
             in goldenVsFileIgnoreHeaders
                 "ghc tags"
                  input
@@ -86,24 +86,24 @@ tests =
           ]
 
       , testGroup "ETags"
-          [ let input  = "test/golden/ouroboros-consensus.ETAGS"
-                output = "test/golden/ouroboros-consensus.ETAGS.out"
+          [ let input  = "ghc-tags-core/test/golden/ouroboros-consensus.ETAGS"
+                output = "ghc-tags-core/test/golden/ouroboros-consensus.ETAGS.out"
             in goldenVsFile 
                 "ouroboros-consensus TAGS"
                  input
                  output
                  (parseGoldenETagsFile input output)
 
-          , let input  = "test/golden/vim.ETAGS"
-                output = "test/golden/vim.ETAGS.out"
+          , let input  = "ghc-tags-core/test/golden/vim.ETAGS"
+                output = "ghc-tags-core/test/golden/vim.ETAGS.out"
             in goldenVsFile 
                 "vim tags"
                  input
                  output
                  (parseGoldenETagsFile input output)
 
-          , let input  = "test/golden/ghc.ETAGS"
-                output = "test/golden/ghc.ETAGS.out"
+          , let input  = "ghc-tags-core/test/golden/ghc.ETAGS"
+                output = "ghc-tags-core/test/golden/ghc.ETAGS.out"
             in goldenVsFile 
                 "ghc tags"
                  input

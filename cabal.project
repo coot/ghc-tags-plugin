@@ -1,5 +1,8 @@
-packages: ghc-tags-plugin/*.cabal
-          ghc-tags-core/*.cabal
+packages: ghc-tags-plugin
+          ghc-tags-core
+
+package ghc-tags-core
+  tests: True
 
 source-repository-package
   type: git

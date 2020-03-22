@@ -71,7 +71,7 @@ test-suite ghc-tags-tests
                        tasty-quickcheck,
                        text,
 
-                       ghc-tags-library
+                       ghc-tags-core
   ghc-options:         -Wall
 
 benchmark benchmarks
