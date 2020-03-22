@@ -4,7 +4,7 @@
 
 -- | Simple etags formatter. See <https://en.wikipedia.org/wiki/Ctags#Etags>
 --
-module Plugin.GhcTags.ETags.Formatter
+module GhcTags.ETags.Formatter
   ( withByteOffset
   , formatETagsFile 
   , formatTagsFile
@@ -21,7 +21,7 @@ import           Data.Foldable (foldl')
 import qualified Data.Text          as Text
 import qualified Data.Text.Encoding as Text
 
-import           Plugin.GhcTags.Tag
+import           GhcTags.Tag
 
 
 -- | A product of two monoids: 'Builder' and 'Sum'.

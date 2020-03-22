@@ -18,16 +18,16 @@ tested-with:         GHC==8.6.3, GHC==8.8.3
 
 library
   hs-source-dirs:      lib
-  exposed-modules:     Plugin.GhcTags.Generate
-                       Plugin.GhcTags.Tag
-                       Plugin.GhcTags.Stream
-                       Plugin.GhcTags.CTags
-                       Plugin.GhcTags.CTags.Parser
-                       Plugin.GhcTags.CTags.Formatter
-                       Plugin.GhcTags.ETags
-                       Plugin.GhcTags.ETags.Parser
-                       Plugin.GhcTags.ETags.Formatter
-                       Plugin.GhcTags.Utils
+  exposed-modules:     GhcTags.Generate
+                       GhcTags.Tag
+                       GhcTags.Stream
+                       GhcTags.CTags
+                       GhcTags.CTags.Parser
+                       GhcTags.CTags.Formatter
+                       GhcTags.ETags
+                       GhcTags.ETags.Parser
+                       GhcTags.ETags.Formatter
+                       GhcTags.Utils
                        Paths_ghc_tags_core
   autogen-modules:     Paths_ghc_tags_core
   build-depends:       attoparsec       ^>=0.13.0.0,

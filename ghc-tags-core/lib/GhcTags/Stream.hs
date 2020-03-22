@@ -5,7 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 
-module Plugin.GhcTags.Stream
+module GhcTags.Stream
     ( tagParser
     , combineTagsPipe
     , runCombineTagsPipe
@@ -25,7 +25,7 @@ import qualified Pipes.Lift as Pipes
 import qualified Pipes.Attoparsec as Pipes.AP
 import qualified Pipes.ByteString as Pipes.BS
 
-import           Plugin.GhcTags.Tag
+import           GhcTags.Tag
 
 
 tagParser :: MonadIO m

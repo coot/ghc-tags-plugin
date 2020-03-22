@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 
-module Plugin.GhcTags.Utils
+module GhcTags.Utils
   ( endOfLine
   , notNewLine
   ) where

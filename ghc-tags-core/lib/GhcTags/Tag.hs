@@ -11,7 +11,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
 
-module Plugin.GhcTags.Tag
+module GhcTags.Tag
   ( -- * Tag
     TAG_KIND (..)
   , SingTagKind (..)
@@ -57,7 +57,7 @@ import           SrcLoc       ( SrcSpan (..)
                               , srcSpanStartCol
                               )
 
-import           Plugin.GhcTags.Generate
+import           GhcTags.Generate
                               ( GhcTag (..)
                               , GhcKind (..)
                               , TagField (..)

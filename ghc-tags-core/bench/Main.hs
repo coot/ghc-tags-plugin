@@ -21,9 +21,9 @@ import qualified Pipes.Text.Encoding as Pipes.Text
 import           Criterion
 import           Criterion.Main
 
-import           Plugin.GhcTags.Tag
-import           Plugin.GhcTags.Stream
-import qualified Plugin.GhcTags.CTags as CTags
+import           GhcTags.Tag
+import           GhcTags.Stream
+import qualified GhcTags.CTags as CTags
 
 evalList :: [a] -> ()
 evalList [] = ()

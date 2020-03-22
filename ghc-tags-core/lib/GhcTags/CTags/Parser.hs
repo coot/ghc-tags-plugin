@@ -8,7 +8,7 @@
 
 -- | Parser combinators for vim style tags (ctags)
 --
-module Plugin.GhcTags.CTags.Parser
+module GhcTags.CTags.Parser
   ( parseTagsFile
   , parseTagLine
   , parseTags
@@ -26,8 +26,8 @@ import           Data.Text          (Text)
 import qualified Data.Text          as Text
 import           System.IO (FilePath)
 
-import           Plugin.GhcTags.Tag
-import qualified Plugin.GhcTags.Utils as Utils
+import           GhcTags.Tag
+import qualified GhcTags.Utils as Utils
 
 
 -- | Parser for a single line of a vim-style tag file.
