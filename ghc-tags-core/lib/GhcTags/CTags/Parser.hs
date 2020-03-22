@@ -11,9 +11,7 @@
 module GhcTags.CTags.Parser
   ( parseTagsFile
   , parseTagLine
-  , parseTags
   , parseTag
-  , parseField
   ) where
 
 import           Control.Arrow ((***))
@@ -31,7 +29,7 @@ import qualified GhcTags.Utils as Utils
 import           GhcTags.CTags.Utils
 
 
--- | Parser for a single line of a vim-style tag file.
+-- | Parser for a 'CTag' from a single text line.
 --
 parseTag :: Parser CTag
 parseTag =
@@ -141,6 +139,8 @@ parseTags :: Parser [CTag]
 parseTags = catMaybes <$> many parseTagLine
 
 
+-- | Parse either a header line ot a 'CTag'.
+--
 parseTagLine :: Parser (Maybe CTag)
 parseTagLine =
     either (const Nothing) Just

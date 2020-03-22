@@ -9,7 +9,11 @@
 
 -- | Parser combinators for etags file format
 --
-module GhcTags.ETags.Parser where
+module GhcTags.ETags.Parser
+  ( parseTagsFile
+  , parseTagFileSection
+  , parseTag
+  ) where
 
 import           Control.Applicative (many, (<|>))
 import           Data.Attoparsec.Text  (Parser, (<?>))
@@ -33,7 +37,7 @@ parseTagsFile =
                    (concat <$> many parseTagFileSection)
 
 
--- | Parse tags from a single file (a sections of etags file).
+-- | Parse tags from a single file (a single section in etags file).
 --
 parseTagFileSection :: Parser [ETag]
 parseTagFileSection = do
@@ -52,7 +56,9 @@ parseTagFile =
   <?> "parsing tag file name failed"
 
 
-parseTag :: FilePath -> Parser (ETag)
+-- | Parse an 'ETag' from a single line.
+--
+parseTag :: FilePath -> Parser ETag
 parseTag tagFilePath =
           mkTag
       <$> parseTagDefinition
