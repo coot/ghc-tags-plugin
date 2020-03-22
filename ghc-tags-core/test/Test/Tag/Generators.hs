@@ -15,7 +15,7 @@ import           Algebra.Lattice
 import           Test.QuickCheck
 import           Test.QuickCheck.Instances.Text ()
 
-import           Plugin.GhcTags.Tag
+import           GhcTags.Tag
 
 --
 -- Generators

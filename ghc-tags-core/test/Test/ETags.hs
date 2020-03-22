@@ -12,8 +12,8 @@ import           Test.Tasty.QuickCheck (testProperty)
 import           Test.QuickCheck
 import           Test.QuickCheck.Instances.Text ()
 
-import           Plugin.GhcTags.Tag
-import           Plugin.GhcTags.ETags.Formatter
+import           GhcTags.Tag
+import           GhcTags.ETags.Formatter
 
 import           Test.Tag.Generators
 

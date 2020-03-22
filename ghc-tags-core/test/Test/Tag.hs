@@ -25,9 +25,9 @@ import qualified Pipes
 import qualified Pipes.Prelude as Pipes
 import qualified Pipes.Lift as Pipes
 
-import           Plugin.GhcTags.Tag
-import           Plugin.GhcTags.Stream
-import qualified Plugin.GhcTags.CTags as CTags
+import           GhcTags.Tag
+import           GhcTags.Stream
+import qualified GhcTags.CTags as CTags
 
 import           Test.Tag.Generators
 
