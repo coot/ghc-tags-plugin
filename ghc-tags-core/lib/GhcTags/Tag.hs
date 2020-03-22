@@ -37,7 +37,7 @@ module GhcTags.Tag
   , compareTags
   , combineTags
 
-  -- * GHC inteface
+  -- * Create 'Tag' from a 'GhcTag'
   , ghcTagToTag
   ) where
 
@@ -63,9 +63,12 @@ import           GhcTags.Ghc  ( GhcTag (..)
 -- Tag
 --
 
+-- | Promoted data type used to disntinguish 'CTAG's from 'ETAG's.
+--
 data TAG_KIND = CTAG | ETAG
 
--- | Singletons
+
+-- | Singletons for promoted types.
 --
 data SingTagKind (tk :: TAG_KIND) where
     SingCTag :: SingTagKind CTAG
@@ -253,9 +256,11 @@ compareTags t0 t1 = on compare tagName t0 t1
 
 
 
--- | Combine tags from a tags file with tags from *GHC* ast.
+-- | Combine tags from a single /GHC/ module with tags read from a tags file
+-- with respect to the given ordering function, e.g. 'GhcTags.CTags.orderTags'
+-- or 'GhcTags.ETags.orderTags'.
 --
--- This is crtitical function for perfomance.  Tags from the first list are
+-- This is performance crtitical function.  Tags from the first list are
 -- assumeed to be from the same file.
 --
 -- complexity: /O(max n m)/
@@ -280,7 +285,7 @@ combineTags compareFn modPath = go
 --  GHC interface
 --
 
---  | Create a 'Tag' from 'GhcTag'
+-- | Create a 'Tag' from 'GhcTag'.
 --
 ghcTagToTag :: SingTagKind tk -> GhcTag -> Maybe (Tag tk)
 ghcTagToTag sing GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI } =

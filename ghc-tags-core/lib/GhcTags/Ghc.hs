@@ -78,41 +78,41 @@ import           Name         ( nameOccName
 -- | Kind of the term.
 --
 data GhcKind = TkTerm
-             -- ^  '`'
+             -- ^ @`@
              | TkFunction
-             -- ^ 'λ'
+             -- ^ @λ@
              | TkTypeConstructor
-             -- ^ 'Λ'
+             -- ^ @Λ@
              | TkDataConstructor
-             -- ^ 'c'
+             -- ^ @c@
              | TkGADTConstructor
-             -- ^ 'g'
+             -- ^ @g@
              | TkRecordField
-             -- ^ 'r'
+             -- ^ @r@
              | TkTypeSynonym
-             -- ^ '≡'
+             -- ^ @≡@
              | TkTypeSignature
-             -- ^ '⊢'
+             -- ^ @⊢@
              | TkPatternSynonym
-             -- ^ 'p'
+             -- ^ @p@
              | TkTypeClass
-             -- ^ 'C'
+             -- ^ @C@
              | TkTypeClassMember
-             -- ^ 'm'
+             -- ^ @m@
              | TkTypeClassInstance
-             -- ^ 'i'
+             -- ^ @i@
              | TkTypeFamily
-             -- ^ 'f'
+             -- ^ @f@
              | TkTypeFamilyInstance
-             -- ^ 'F'
+             -- ^ @F@
              | TkDataTypeFamily
-             -- ^ 'd'
+             -- ^ @d@
              | TkDataTypeFamilyInstance
-             -- ^ 'D'
+             -- ^ @D@
              | TkForeignImport
-             -- ^ 'I'
+             -- ^ @I@
              | TkForeignExport
-             -- ^ 'E'
+             -- ^ @E@
   deriving (Ord, Eq, Show)
 
 
