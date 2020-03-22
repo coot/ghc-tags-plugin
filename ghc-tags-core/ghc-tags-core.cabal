@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                ghc-tags-core
-version:             0.1.6.0
+version:             0.1.0.0
 synopsis:            A suite to create and work with tags created from Haskell parsed tree.
 description:
 license:             MPL-2.0
@@ -60,6 +60,7 @@ test-suite ghc-tags-tests
   build-depends:       attoparsec,
                        base,
                        bytestring,
+                       directory,
                        filepath,
                        lattices,
                        mtl,
@@ -83,7 +84,7 @@ benchmark benchmarks
                      , bytestring
                      , criterion
                      , deepseq
-                     , ghc-tags-library
+                     , ghc-tags-core
                      , mtl
                      , pipes
                      , pipes-attoparsec
