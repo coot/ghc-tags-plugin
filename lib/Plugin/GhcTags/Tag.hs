@@ -1,14 +1,15 @@
-{-# LANGUAGE BangPatterns               #-}
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE DerivingStrategies         #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GADTs                      #-}
-{-# LANGUAGE KindSignatures             #-}
-{-# LANGUAGE LambdaCase                 #-}
-{-# LANGUAGE NamedFieldPuns             #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving  #-}
 
 module Plugin.GhcTags.Tag
   ( -- * Tag
@@ -90,27 +91,9 @@ type CTagKind = TagKind CTAG
 
 type ETagKind = TagKind ETAG
 
-instance Eq (TagKind tk) where
-    GhcKind k == GhcKind k' = k  == k'
-    CharKind c == CharKind c' = c == c'
-    NoKind == NoKind = True
-    _ == _ = False
-
-instance Ord (TagKind tk) where
-    GhcKind k `compare` GhcKind k' = k `compare` k'
-    GhcKind {} `compare` _ = LT
-    _ `compare` GhcKind {} = GT
-
-    CharKind c  `compare` CharKind c' = c `compare` c'
-    CharKind {} `compare` _ = LT
-    _ `compare` CharKind {} = GT
-
-    NoKind `compare` NoKind = EQ
-
-instance Show (TagKind tk) where
-    show (GhcKind k)  = "GhcKind " ++ show k
-    show (CharKind c) = "CharKind " ++ show c
-    show NoKind       = "NoKind" 
+deriving instance Eq   (TagKind tk)
+deriving instance Ord  (TagKind tk)
+deriving instance Show (TagKind tk)
 
 
 newtype ExCommand = ExCommand { getExCommand :: Text }
@@ -148,37 +131,9 @@ type CTagAddress = TagAddress CTAG
 type ETagAddress = TagAddress ETAG
 
 
-instance Eq (TagAddress tk) where
-    TagLineCol l0 c0 == TagLineCol l1 c1 = l0 == l1 && c0 == c1
-    TagLine l0       == TagLine    l1    = l0 == l1
-    TagCommand c0    == TagCommand c1    = c0 == c1
-    _                == _                = False
-
-instance Ord (TagAddress CTAG) where
-    TagLineCol l0 c0 `compare` TagLineCol l1 c1 =
-      l0 `compare` l1 <> c0 `compare` c1
-    TagLineCol l0 _  `compare` TagLine l1 =
-      l0 `compare` l1
-    TagLine l0 `compare` TagLineCol l1 _ =
-      l0 `compare` l1
-    TagLineCol {} `compare` TagCommand {} = LT
-    TagCommand {} `compare` TagLineCol {} = GT
-
-    TagLine l0 `compare` TagLine l1 =
-      l0 `compare` l1
-    TagLine {} `compare` TagCommand {} = LT
-    TagCommand {} `compare` TagLine {} = GT
-
-    TagCommand {} `compare` TagCommand {} = EQ
-
-instance Ord (TagAddress ETAG) where
-    TagLineCol l0 c0 `compare` TagLineCol l1 c1 =
-      l0 `compare` l1 <> c0 `compare` c1
-
-instance Show (TagAddress tk) where
-    show (TagLineCol l c) = "TagLineCol " ++ show l ++ " " ++ show c
-    show (TagLine    l)   = "TagLine " ++ show l
-    show (TagCommand c)   = "TagCommand " ++ show c
+deriving instance Eq   (TagAddress tk)
+deriving instance Ord  (TagAddress tk)
+deriving instance Show (TagAddress tk)
 
 
 -- | Emacs tags specific field.
