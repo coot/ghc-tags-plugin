@@ -106,7 +106,7 @@ newtype ExCommand = ExCommand { getExCommand :: Text }
 -- | Tag address, either from a parsed file or from Haskell's AST>
 --
 data TagAddress (tk :: TAG_KIND) where
-      -- | Precise addres: line and column.  This is what we infer from Haskell
+      -- | Precise addres: line and column.  This is what we infer from @GHC@
       -- AST.
       --
       -- The two arguments are line number and either column number or offset
@@ -158,14 +158,14 @@ data TagField = TagField {
   deriving (Eq, Ord, Show)
 
 
--- | File field; tags which contain 'fileFields' are called static (aka static
--- in 'C'), such tags are only visible in the current file)
+-- | File field; tags which contain 'fileField' are called static (aka static
+-- in @C@), such tags are only visible in the current file)
 --
 fileField :: TagField
 fileField = TagField { fieldName = "file", fieldValue = "" }
 
 
--- | Ctags specific list of fields.
+-- | Ctags specific list of 'TagField's.
 --
 data TagFields (tk :: TAG_KIND) where
     NoTagFields :: TagFields ETAG
@@ -187,10 +187,6 @@ type CTagFields = TagFields CTAG
 type ETagFields = TagFields ETAG
 
 
--- appendField :: TagField -> GhcTag -> GhcTag
--- appendField f gt = gt { gtFields = f : gtFields gt }
-
-
 -- | Tag record.  For either ctags or etags formats.  It is either filled with
 -- information parsed from a tags file or from *GHC* ast.
 --
@@ -204,7 +200,8 @@ data Tag (tk :: TAG_KIND) = Tag
   , tagAddr       :: !(TagAddress tk)
     -- ^ address in source file
   , tagDefinition :: !(TagDefinition tk)
-    -- ^ etags specific field
+    -- ^ etags specific field; only tags read from emacs tags file contain this
+    -- field.
   , tagFields     :: !(TagFields tk)
     -- ^ ctags specific field
   }
@@ -292,21 +289,29 @@ ghcTagToTag sing GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI } =
     case gtSrcSpan of
       UnhelpfulSpan {} -> Nothing
       RealSrcSpan realSrcSpan ->
-        Just $ Tag { tagName       = TagName (Text.decodeUtf8 $ fs_bs gtTag)
-                   , tagFilePath   = Text.unpack $ Text.decodeUtf8 $ fs_bs (srcSpanFile realSrcSpan)
-                   , tagAddr       = TagLineCol (srcSpanStartLine realSrcSpan)
-                                                (srcSpanStartCol realSrcSpan)
-                   , tagKind       = case sing of
-                                       SingCTag -> GhcKind gtKind
-                                       SingETag -> NoKind
-                   , tagDefinition = NoTagDefinition
-                   , tagFields     = case sing of
-                                       SingCTag -> TagFields $
-                                                        if gtIsExported
-                                                          then mempty
-                                                          else [fileField]
-                                                     <> case gtFFI of
-                                                          Nothing  -> mempty
-                                                          Just ffi -> [TagField "ffi" ffi]
-                                       SingETag -> NoTagFields
-                   }
+        Just $ Tag
+          { tagName       = TagName (Text.decodeUtf8 $ fs_bs gtTag)
+          , tagFilePath   = Text.unpack
+                          $ Text.decodeUtf8 $ fs_bs (srcSpanFile realSrcSpan)
+
+          , tagAddr       = TagLineCol (srcSpanStartLine realSrcSpan)
+                                       (srcSpanStartCol realSrcSpan)
+
+          , tagKind       =
+              case sing of
+                SingCTag -> GhcKind gtKind
+                SingETag -> NoKind
+
+          , tagDefinition = NoTagDefinition
+
+          , tagFields     =
+              case sing of
+               SingCTag -> TagFields $
+                                if gtIsExported
+                                  then mempty
+                                  else [fileField]
+                             <> case gtFFI of
+                                  Nothing  -> mempty
+                                  Just ffi -> [TagField "ffi" ffi]
+               SingETag -> NoTagFields
+          }
