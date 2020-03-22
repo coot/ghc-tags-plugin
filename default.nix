@@ -21,9 +21,13 @@ let
     then lib.doBenchmark
     else nixpkgs.lib.id;
   doDev = if dev
-    then drv: lib.appendConfigureFlag drv "--ghc-option -Werror -f+gtp-check"
+    then drv: lib.appendConfigureFlag drv "--ghc-option -Werror"
+    else nixpkgs.lib.id;
+  doEnableGtpCheck = if dev
+    then drv: lib.appendConfigureFlag drv "-f+gtp-check"
     else nixpkgs.lib.id;
   docNoSeprateOutput = drv: lib.overrideCabal drv (drv: { enableSeparateDocOutput = false; });
+
   srcFilter = src: path: type:
     let relPath = nixpkgs.lib.removePrefix (toString src + "/") (toString path);
     in
@@ -34,11 +38,16 @@ let
     || nixpkgs.lib.hasPrefix "app"   relPath
     || nixpkgs.lib.any
         (a: a == relPath)
-        [ "Setup.hs" "cabal.project" "ChangeLog.md" "ghc-tags-plugin.cabal" "LICENSE"];
+        [ "Setup.hs" "CHANGELOG.md" "ghc-tags-plugin.cabal" "ghc-tags-core.cabal" "LICENSE"];
 
-  ghc-tags-plugin = docNoSeprateOutput(doDev(doHaddock(doTest(doBench(
-    lib.overrideCabal (callCabal2nix "ghc-tags-plugin" ./. {})
+  ghc-tags-core = docNoSeprateOutput(doDev(doHaddock(doTest(doBench(
+    lib.overrideCabal (callCabal2nix "ghc-tags-core" ./ghc-tags-core {})
       (drv: {src = nixpkgs.lib.cleanSourceWith { filter = srcFilter drv.src; src = drv.src; };})
   )))));
 
-in { inherit ghc-tags-plugin; }
+  ghc-tags-plugin = docNoSeprateOutput(doEnableGtpCheck(doDev(doHaddock(doTest(doBench(
+    lib.overrideCabal (callCabal2nix "ghc-tags-plugin" ./ghc-tags-plugin { inherit ghc-tags-core; })
+      (drv: {src = nixpkgs.lib.cleanSourceWith { filter = srcFilter drv.src; src = drv.src; };})
+  ))))));
+
+in { inherit ghc-tags-plugin ghc-tags-core; }
