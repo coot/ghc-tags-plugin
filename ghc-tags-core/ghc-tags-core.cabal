@@ -24,6 +24,7 @@ library
                        GhcTags.CTags
                        GhcTags.CTags.Parser
                        GhcTags.CTags.Formatter
+                       GhcTags.CTags.Utils
                        GhcTags.ETags
                        GhcTags.ETags.Parser
                        GhcTags.ETags.Formatter

@@ -39,8 +39,6 @@ module GhcTags.Tag
 
   -- * GHC inteface
   , ghcTagToTag
-  , charToGhcKind
-  , ghcKindToChar
   ) where
 
 import           Data.Function (on)
@@ -59,8 +57,6 @@ import           SrcLoc       ( SrcSpan (..)
 
 import           GhcTags.Ghc  ( GhcTag (..)
                               , GhcKind (..)
-                              , charToGhcKind
-                              , ghcKindToChar
                               )
 
 --
