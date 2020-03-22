@@ -12,7 +12,7 @@ import           System.IO
 import           System.Environment
 import           GHC.IO.Handle
 
-import           Plugin.GhcTags.Utils
+import           Plugin.GhcTags.FileLock
 
 
 main :: IO ()
