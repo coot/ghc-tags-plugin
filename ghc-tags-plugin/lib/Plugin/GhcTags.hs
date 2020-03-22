@@ -155,7 +155,12 @@ updateTags Options { etags, filePath = Identity tagsFile }
           when tagsFileExists
             $ renameFile tagsFile sourceFile
           withFile tagsFile WriteMode  $ \writeHandle ->
-            withFile sourceFile ReadWriteMode $ \readHandle ->
+            withFile sourceFile ReadWriteMode $ \readHandle -> do
+              cwd <- getCurrentDirectory
+              -- absolute directory path of the tags file; we need canonical path
+              -- (without ".." and ".") to make 'makeRelative' works.
+              tagsDir <- canonicalizePath (fst $ splitFileName tagsFile)
+
               case (etags, ml_hs_file ms_location) of
 
                 --
@@ -163,6 +168,7 @@ updateTags Options { etags, filePath = Identity tagsFile }
                 --
                 (False, Nothing)          -> pure ()
                 (False, Just sourcePath) -> do
+
                   let -- text parser
                       producer :: Pipes.Producer Text (SafeT IO) ()
                       producer
@@ -188,7 +194,7 @@ updateTags Options { etags, filePath = Identity tagsFile }
                                 putDocLn dynFlags $ errorDoc ParserException ms_mod (displayException e)
                           )
                           (\tag ->
-                            runCombineTagsPipe writeHandle CTags.compareTags CTags.formatTag  sourcePath tag
+                            runCombineTagsPipe writeHandle CTags.compareTags CTags.formatTag  (fixFilePath cwd tagsDir sourcePath) tag
                               `Pipes.Safe.catchP` \(e :: IOException) ->
                                 Pipes.lift $ Pipes.liftIO $
                                   -- don't re-throw; this would kill `ghc`, error
@@ -196,13 +202,8 @@ updateTags Options { etags, filePath = Identity tagsFile }
                                   putDocLn dynFlags $ errorDoc WriteException ms_mod (displayException e)
                           )
 
-                  cwd <- getCurrentDirectory
-                  -- absolute directory path of the tags file; we need canonical path
-                  -- (without ".." and ".") to make 'makeRelative' works.
-                  tagsDir <- canonicalizePath (fst $ splitFileName tagsFile)
-
                   let tags :: [CTag]
-                      tags = map (fixFileName cwd tagsDir)
+                      tags = map (fixTagFilePath cwd tagsDir)
                                                   -- fix file names
                            . sortBy compareTags   -- sort
                            . mapMaybe (ghcTagToTag SingCTag)
@@ -240,13 +241,13 @@ updateTags Options { etags, filePath = Identity tagsFile }
 
                             -- read the source file to calculate byteoffsets
                             ll <- map (succ . BS.length) . BSC.lines <$> BS.readFile sourcePath
-                            cwd <- getCurrentDirectory
-                            tagsDir <- canonicalizePath (fst $ splitFileName tagsFile)
 
                             let tags' :: [ETag]
-                                tags' = combineTags ETags.compareTags sourcePath
+                                tags' = combineTags ETags.compareTags (fixFilePath cwd tagsDir sourcePath)
                                           ( sortBy ETags.compareTags
-                                          . map (ETags.withByteOffset ll . fixFileName cwd tagsDir)
+                                          . map ( ETags.withByteOffset ll
+                                                . fixTagFilePath cwd tagsDir
+                                                )
                                           . mapMaybe (ghcTagToTag SingETag)
                                           . getGhcTags
                                           $ lmodule)
@@ -261,9 +262,15 @@ updateTags Options { etags, filePath = Identity tagsFile }
       (dir, name) -> dir </> "." ++ name
     lockFile = sourceFile ++ ".lock"
 
-    fixFileName :: FilePath -> FilePath -> Tag tk -> Tag tk
-    fixFileName cwd tagsDir tag@Tag { tagFilePath = path } =
-      tag { tagFilePath = makeRelative tagsDir (cwd </> path) }
+    fixFilePath :: FilePath -- curent directory
+                -> FilePath -- tags directory
+                -> FilePath -> FilePath
+    fixFilePath cwd tagsDir path =
+      normalise $ makeRelative tagsDir (cwd </> path)
+
+    fixTagFilePath :: FilePath -> FilePath -> Tag tk -> Tag tk
+    fixTagFilePath cwd tagsDir tag@Tag { tagFilePath } =
+      tag { tagFilePath = fixFilePath cwd tagsDir tagFilePath  }
 
 
 --
