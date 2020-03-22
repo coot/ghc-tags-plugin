@@ -49,7 +49,7 @@ instance Arbitrary ArbCTag where
             ]
       <*> pure NoTagDefinition
       <*> (TagFields <$> listOf genField)
-    shrink = map ArbCTag . shrinkTag SingCTag . getArbCTag
+    shrink = map ArbCTag . shrinkTag . getArbCTag
 
 
 roundTripProp :: ArbCTag -> Property

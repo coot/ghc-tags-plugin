@@ -41,7 +41,7 @@ instance Arbitrary ArbETag where
       <*> (TagLineCol <$> (getPositive <$> arbitrary) <*> (getPositive <$> arbitrary))
       <*> (TagDefinition <$> genTextNonEmpty)
       <*> pure NoTagFields
-    shrink = map ArbETag . shrinkTag SingETag . getArbETag
+    shrink = map ArbETag . shrinkTag . getArbETag
 
 
 --
