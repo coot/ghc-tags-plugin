@@ -249,15 +249,17 @@ updateTags Options { etags, filePath = Identity tagsFile }
                             ll <- map (succ . BS.length) . BSC.lines <$> BS.readFile sourcePath
 
                             let tags' :: [ETag]
-                                tags' = combineTags ETag.compareTags (fixFilePath cwd tagsDir sourcePath)
-                                          ( sortBy ETag.compareTags
-                                          . map ( ETag.withByteOffset ll
-                                                . fixTagFilePath cwd tagsDir
-                                                )
-                                          . mapMaybe (ghcTagToTag SingETag)
-                                          . getGhcTags
-                                          $ lmodule)
-                                          ( sortBy ETag.compareTags tags )
+                                tags' = combineTags
+                                          ETag.compareTags
+                                          (fixFilePath cwd tagsDir sourcePath)
+                                          (sortBy ETag.compareTags
+                                            . map ( ETag.withByteOffset ll
+                                                  . fixTagFilePath cwd tagsDir
+                                                  )
+                                            . mapMaybe (ghcTagToTag SingETag)
+                                            . getGhcTags
+                                            $ lmodule)
+                                          (sortBy ETag.compareTags tags)
 
                             BB.hPutBuilder writeHandle (ETag.formatETagsFile tags')
 
