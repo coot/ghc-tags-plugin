@@ -3,6 +3,7 @@ module Main where
 import           Control.Exception
 import           Data.Bool
 import           Data.Monoid
+import           System.FilePath (normalise)
 
 import           Test.Tasty
 
@@ -18,8 +19,8 @@ main ::IO ()
 main = do
     -- useing 'IO' 'Monoid' instance
     mGoldenDir
-      <- doesGoldenDirectoryExist "test/golden"
-      <> doesGoldenDirectoryExist "ghc-tags-core/test/golden"
+      <- doesGoldenDirectoryExist (normalise "test/golden")
+      <> doesGoldenDirectoryExist (normalise "ghc-tags-core/test/golden")
 
     case mGoldenDir :: First FilePath of
       First Nothing ->
