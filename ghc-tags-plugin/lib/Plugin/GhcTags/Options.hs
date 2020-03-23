@@ -9,9 +9,11 @@ module Plugin.GhcTags.Options
   ) where
 
 import           Data.Bool (bool)
+import           Data.Monoid (Last (..))
 import           Data.Functor.Identity (Identity (..))
 import           System.IO (FilePath)
 import           Options.Applicative
+
 
 etagsParser :: Parser Bool
 etagsParser = switch $
@@ -20,13 +22,12 @@ etagsParser = switch $
     <> showDefault
     <> help "produce emacs etags file"
 
-filePathParser :: Parser (Maybe FilePath)
+
+filePathParser :: Parser (FilePath)
 filePathParser =
-          (Just <$> strArgument
-                      (help "tags file: default tags or TAGS (when --etags is specified)"
-                       <> metavar "file_path"
-                      ))
-      <|> pure Nothing
+    strArgument $
+         help "tags file: default tags or TAGS (when --etags is specified)"
+      <> metavar "file_path"
 
 
 -- | /ghc-tags-plugin/ options
@@ -40,16 +41,17 @@ data Options f = Options
     -- default is either 'tags' (if 'etags' if 'False') or 'TAGS' otherwise.
   }
 
-deriving instance Show (Options Maybe)
 deriving instance Show (Options Identity)
 
-parseOtions :: Parser (Options Maybe)
+
+parseOtions :: Parser (Options Last)
 parseOtions = Options
-           <$> etagsParser
-           <*> filePathParser
+         <$> etagsParser
+         -- allow to pass the argument multiple times
+         <*> (foldMap (Last . Just) <$> many filePathParser)
 
 
-parserInfo :: ParserInfo (Options Maybe)
+parserInfo :: ParserInfo (Options Last)
 parserInfo = info (parseOtions <**> helper) $
        progDesc "write tags from ghc abstract syntax tree"
     <> fullDesc
@@ -59,8 +61,14 @@ runOptionParser :: [String]
                 -> ParserResult (Options Identity)
 runOptionParser = fmap defaultOptions . execParserPure defaultPrefs parserInfo
   where
-    defaultOptions :: Options Maybe -> Options Identity
+    defaultOptions :: Options Last -> Options Identity
     defaultOptions Options { etags, filePath } =
-      case filePath of
-        Nothing -> Options { etags, filePath = Identity (bool "tags" "TAGS" etags) }
-        Just fp -> Options { etags, filePath = Identity fp }
+        Options {
+            etags,
+            filePath = Identity filePath'
+          }
+      where
+        filePath' =
+          case filePath of
+            Last Nothing   -> bool "tags" "TAGS" etags
+            Last (Just fp) -> fp
