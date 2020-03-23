@@ -22,13 +22,13 @@ library
                        GhcTags.Ghc
                        GhcTags.Tag
                        GhcTags.Stream
-                       GhcTags.CTags
-                       GhcTags.CTags.Parser
-                       GhcTags.CTags.Formatter
-                       GhcTags.CTags.Utils
-                       GhcTags.ETags
-                       GhcTags.ETags.Parser
-                       GhcTags.ETags.Formatter
+                       GhcTags.CTag
+                       GhcTags.CTag.Parser
+                       GhcTags.CTag.Formatter
+                       GhcTags.CTag.Utils
+                       GhcTags.ETag
+                       GhcTags.ETag.Parser
+                       GhcTags.ETag.Formatter
   other-modules:       GhcTags.Utils
   build-depends:       attoparsec       ^>=0.13.0.0,
                        base              >=4.12.0.0 && <4.14,
@@ -55,8 +55,8 @@ test-suite ghc-tags-tests
   other-modules:       Test.Golden.Parser
                        Test.Tag
                        Test.Tag.Generators
-                       Test.CTags
-                       Test.ETags
+                       Test.CTag
+                       Test.ETag
   default-language:    Haskell2010      
   build-depends:       attoparsec,
                        base,

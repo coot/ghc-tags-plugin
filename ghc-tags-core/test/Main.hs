@@ -8,8 +8,8 @@ import           Test.Tasty
 
 import qualified Test.Golden.Parser (tests)
 import qualified Test.Tag           (tests)
-import qualified Test.CTags         (tests)
-import qualified Test.ETags         (tests)
+import qualified Test.CTag          (tests)
+import qualified Test.ETag          (tests)
 
 import           System.Directory
 
@@ -40,6 +40,6 @@ tests goldenTestDir =
     testGroup "GhcTags"
     [ Test.Golden.Parser.tests goldenTestDir
     , Test.Tag.tests
-    , Test.CTags.tests
-    , Test.ETags.tests
+    , Test.CTag.tests
+    , Test.ETag.tests
     ]

@@ -1,7 +1,7 @@
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Test.CTags (tests) where
+module Test.CTag (tests) where
 
 import qualified Data.Attoparsec.Text as AT
 import qualified Data.ByteString.Builder as BB
@@ -16,13 +16,13 @@ import           Test.QuickCheck
 import           Test.QuickCheck.Instances.Text ()
 
 import           GhcTags.Tag
-import qualified GhcTags.CTags as CTags
+import qualified GhcTags.CTag as CTag
 
 import           Test.Tag.Generators
 
 
 tests :: TestTree
-tests = testGroup "CTags"
+tests = testGroup "CTag"
   [ testProperty "round-trip" roundTripProp
   ]
 
@@ -58,9 +58,9 @@ roundTripProp :: ArbCTag -> Property
 roundTripProp (ArbCTag tag) =
     let bs   = BL.toStrict
              . BB.toLazyByteString
-             . CTags.formatTag
+             . CTag.formatTag
              $ tag
-        mtag = AT.parseOnly CTags.parseTag
+        mtag = AT.parseOnly CTag.parseTag
              . Text.decodeUtf8
              $ bs
     in case mtag of

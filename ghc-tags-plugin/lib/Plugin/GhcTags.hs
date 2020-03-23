@@ -52,12 +52,12 @@ import qualified PprColour
 import           GhcTags.Ghc
 import           GhcTags.Tag
 import           GhcTags.Stream
-import qualified GhcTags.CTags as CTags
-import qualified GhcTags.ETags as ETags
+import qualified GhcTags.CTag as CTag
+import qualified GhcTags.ETag as ETag
 
 import           Plugin.GhcTags.Options
 import           Plugin.GhcTags.FileLock
-import qualified Plugin.GhcTags.CTags as CTags
+import qualified Plugin.GhcTags.CTag as CTags
 
 
 -- | The GhcTags plugin.  It will run for every compiled module and have access
@@ -186,7 +186,7 @@ updateTags Options { etags, filePath = Identity tagsFile }
                       pipe :: Pipes.Effect (StateT [CTag] (SafeT IO)) ()
                       pipe =
                         Pipes.for
-                          (Pipes.hoist Pipes.lift (tagParser CTags.parseTagLine producer)
+                          (Pipes.hoist Pipes.lift (tagParser CTag.parseTagLine producer)
                             `Pipes.Safe.catchP` \(e :: IOException) ->
                               Pipes.lift $ Pipes.liftIO $
                                 -- don't re-throw; this would kill `ghc`, error
@@ -194,7 +194,7 @@ updateTags Options { etags, filePath = Identity tagsFile }
                                 putDocLn dynFlags $ errorDoc ParserException ms_mod (displayException e)
                           )
                           (\tag ->
-                            runCombineTagsPipe writeHandle CTags.compareTags CTags.formatTag  (fixFilePath cwd tagsDir sourcePath) tag
+                            runCombineTagsPipe writeHandle CTag.compareTags CTag.formatTag  (fixFilePath cwd tagsDir sourcePath) tag
                               `Pipes.Safe.catchP` \(e :: IOException) ->
                                 Pipes.lift $ Pipes.liftIO $
                                   -- don't re-throw; this would kill `ghc`, error
@@ -212,11 +212,11 @@ updateTags Options { etags, filePath = Identity tagsFile }
                            $ lmodule
 
                   -- Write header
-                  BSL.hPut writeHandle (BB.toLazyByteString (foldMap CTags.formatHeader CTags.headers))
+                  BSL.hPut writeHandle (BB.toLazyByteString (foldMap CTag.formatHeader CTag.headers))
                   -- update tags file / run 'pipe'
                   tags' <- Pipes.Safe.runSafeT $ execStateT ((Pipes.runEffect pipe)) tags
                   -- write the remaining tags'
-                  traverse_ (BSL.hPut writeHandle . BB.toLazyByteString . CTags.formatTag) tags'
+                  traverse_ (BSL.hPut writeHandle . BB.toLazyByteString . CTag.formatTag) tags'
 
                 --
                 -- etags
@@ -229,7 +229,7 @@ updateTags Options { etags, filePath = Identity tagsFile }
                         putDocLn dynFlags $ errorDoc ReadException ms_mod (displayException err)
 
                       Right txt -> do
-                        pres <- try @IOException $ ETags.parseTagsFile txt
+                        pres <- try @IOException $ ETag.parseTagsFile txt
                         case pres of
                           Left err   -> 
                             putDocLn dynFlags $ errorDoc ParserException ms_mod (displayException err)
@@ -243,17 +243,17 @@ updateTags Options { etags, filePath = Identity tagsFile }
                             ll <- map (succ . BS.length) . BSC.lines <$> BS.readFile sourcePath
 
                             let tags' :: [ETag]
-                                tags' = combineTags ETags.compareTags (fixFilePath cwd tagsDir sourcePath)
-                                          ( sortBy ETags.compareTags
-                                          . map ( ETags.withByteOffset ll
+                                tags' = combineTags ETag.compareTags (fixFilePath cwd tagsDir sourcePath)
+                                          ( sortBy ETag.compareTags
+                                          . map ( ETag.withByteOffset ll
                                                 . fixTagFilePath cwd tagsDir
                                                 )
                                           . mapMaybe (ghcTagToTag SingETag)
                                           . getGhcTags
                                           $ lmodule)
-                                          ( sortBy ETags.compareTags tags )
+                                          ( sortBy ETag.compareTags tags )
 
-                            BB.hPutBuilder writeHandle (ETags.formatETagsFile tags')
+                            BB.hPutBuilder writeHandle (ETag.formatETagsFile tags')
 
 
   where

@@ -17,8 +17,8 @@ import           System.IO
 import           System.FilePath
 import           Text.Printf
 
-import qualified GhcTags.CTags as CTags
-import qualified GhcTags.ETags as ETags
+import qualified GhcTags.CTag as CTag
+import qualified GhcTags.ETag as ETag
 
 import           Test.Tasty (TestTree, TestName, testGroup)
 import           Test.Tasty.Golden
@@ -28,7 +28,7 @@ import           Test.Tasty.Golden.Advanced
 tests :: FilePath -> TestTree
 tests goldenTestDir =
     testGroup "Golden.Parser" $
-      [ testGroup "CTags"
+      [ testGroup "CTag"
           [ let input  = goldenTestDir </> "test.tags"
                 output = goldenTestDir </> "test.tags.out"
             in goldenVsFileIgnoreHeaders
@@ -86,7 +86,7 @@ tests goldenTestDir =
                  (parseGoldenCTagsFile input output)
           ]
 
-      , testGroup "ETags"
+      , testGroup "ETag"
           [ let input  = goldenTestDir </> "ouroboros-consensus.ETAGS"
                 output = goldenTestDir </> "ouroboros-consensus.ETAGS.out"
             in goldenVsFile 
@@ -120,12 +120,12 @@ parseGoldenCTagsFile
     -> IO ()
 parseGoldenCTagsFile input output = do
     res <- withBinaryFile input ReadMode
-      (BS.hGetContents >=> CTags.parseTagsFile . Text.decodeUtf8)
+      (BS.hGetContents >=> CTag.parseTagsFile . Text.decodeUtf8)
     case res of
       Left  err  -> throwIO (userError err)
       Right tags ->
         withBinaryFile output WriteMode
-          $ flip BS.hPutBuilder (foldMap CTags.formatTag tags)
+          $ flip BS.hPutBuilder (foldMap CTag.formatTag tags)
 
 
 parseGoldenETagsFile
@@ -134,12 +134,12 @@ parseGoldenETagsFile
     -> IO ()
 parseGoldenETagsFile input output = do
     res <- withBinaryFile input ReadMode
-      (BS.hGetContents >=> ETags.parseTagsFile . Text.decodeUtf8)
+      (BS.hGetContents >=> ETag.parseTagsFile . Text.decodeUtf8)
     case res of
       Left  err  -> throwIO (userError err)
       Right tags ->
         withBinaryFile output WriteMode
-          $ flip BS.hPutBuilder (ETags.formatETagsFile tags)
+          $ flip BS.hPutBuilder (ETag.formatETagsFile tags)
 
 --
 --

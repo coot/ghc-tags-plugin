@@ -23,7 +23,7 @@ import           Criterion.Main
 
 import           GhcTags.Tag
 import           GhcTags.Stream
-import qualified GhcTags.CTags as CTags
+import qualified GhcTags.CTag as CTag
 
 evalList :: [a] -> ()
 evalList [] = ()
@@ -43,22 +43,22 @@ main = defaultMain
     [ -- 381 tags
       env (Text.decodeUtf8 <$> BS.readFile "test/golden/io-sim-classes.tags") $ \text ->
       bench "parse io-sim-classes.tags" $
-        whnfAppIO (fmap evalTags . CTags.parseTagsFile) text
+        whnfAppIO (fmap evalTags . CTag.parseTagsFile) text
 
     , -- 6767 tags
       env (Text.decodeUtf8 <$> BS.readFile "test/golden/ouroboros-consensus.tags") $ \text ->
       bench "parse ouroboros-consensus.tags" $
-        whnfAppIO (fmap evalTags . CTags.parseTagsFile) text
+        whnfAppIO (fmap evalTags . CTag.parseTagsFile) text
 
     , -- 12549 tags
       env (Text.decodeUtf8 <$> BS.readFile "bench/data.tags") $ \text ->
       bench "data.tags" $
-        whnfAppIO (fmap evalTags . CTags.parseTagsFile) text
+        whnfAppIO (fmap evalTags . CTag.parseTagsFile) text
 
     , -- 23741 tags
       env (Text.decodeUtf8 <$> BS.readFile "test/golden/vim.tags") $ \text ->
       bench "parse vim.tags" $
-        whnfAppIO (fmap evalTags . CTags.parseTagsFile) text
+        whnfAppIO (fmap evalTags . CTag.parseTagsFile) text
     ]
   , bgroup "read parse & format"
     [ bench "io-sim-classes.tags" $
@@ -84,7 +84,7 @@ main = defaultMain
       [ env
           (do
             text <- Text.decodeUtf8 <$> BS.readFile "test/golden/io-sim-classes.tags"
-            Right tags  <- CTags.parseTagsFile text
+            Right tags  <- CTag.parseTagsFile text
             return (tagFilePath (head tags), TagsNF tags)
           )
           $ \ ~(modPath, TagsNF tags) ->
@@ -96,7 +96,7 @@ main = defaultMain
       , env
           (do
             text <- Text.decodeUtf8 <$> BS.readFile "test/golden/ouroboros-network.tags"
-            Right tags  <- CTags.parseTagsFile text
+            Right tags  <- CTag.parseTagsFile text
             return (tagFilePath (head tags), TagsNF tags)
           )
           $ \ ~(modPath, TagsNF tags) ->
@@ -114,10 +114,10 @@ main = defaultMain
 benchReadParseFormat :: FilePath -> IO BSL.ByteString
 benchReadParseFormat path = do
     text <- Text.decodeUtf8 <$> BS.readFile path
-    res  <- CTags.parseTagsFile text
+    res  <- CTag.parseTagsFile text
     case res of
       Left err   -> throwIO (userError err)
-      Right tags -> pure $ BB.toLazyByteString (CTags.formatTagsFile [] tags)
+      Right tags -> pure $ BB.toLazyByteString (CTag.formatTagsFile [] tags)
 
 
 benchStreamParseFormat :: FilePath -> IO ()
@@ -126,10 +126,10 @@ benchStreamParseFormat fp =
       withFile fp ReadMode $ \h ->
         Pipes.void $ Pipes.runEffect $ Pipes.for
           (Pipes.AP.parsed
-            CTags.parseTag
+            CTag.parseTag
             (Pipes.BS.fromHandle h `Pipes.for` (Pipes.yield . Text.decodeUtf8)))
           (\tag -> 
-            (Pipes.BS.fromLazy . BB.toLazyByteString . CTags.formatTag) tag
+            (Pipes.BS.fromLazy . BB.toLazyByteString . CTag.formatTag) tag
             Pipes.>->
             Pipes.BS.toHandle devNull)
 
@@ -147,10 +147,10 @@ benchStreamTags filePath modPath tags =
             pipe :: Pipes.Effect (StateT [CTag] IO) ()
             pipe =
               Pipes.for
-                (Pipes.hoist Pipes.lift $ tagParser CTags.parseTagLine producer)
-                (runCombineTagsPipe writeHandle CTags.compareTags CTags.formatTag modPath)
+                (Pipes.hoist Pipes.lift $ tagParser CTag.parseTagLine producer)
+                (runCombineTagsPipe writeHandle CTag.compareTags CTag.formatTag modPath)
         tags' <- execStateT (Pipes.runEffect pipe) tags
-        traverse_ (BSL.hPut writeHandle . BB.toLazyByteString . CTags.formatTag) tags'
+        traverse_ (BSL.hPut writeHandle . BB.toLazyByteString . CTag.formatTag) tags'
 
 
 benchReadTags :: FilePath -> FilePath -> [CTag] -> IO ()
@@ -159,6 +159,6 @@ benchReadTags filePath modPath tags = do
        withFile "/tmp/bench.stream.tags" WriteMode $ \writeHandle -> do
          Right tags' <-
            Text.decodeUtf8 <$> BS.hGetContents readHandle
-           >>= CTags.parseTagsFile
-         let tags'' = combineTags CTags.compareTags modPath tags tags'
-         BB.hPutBuilder writeHandle (CTags.formatTagsFile [] tags'')
+           >>= CTag.parseTagsFile
+         let tags'' = combineTags CTag.compareTags modPath tags tags'
+         BB.hPutBuilder writeHandle (CTag.formatTagsFile [] tags'')

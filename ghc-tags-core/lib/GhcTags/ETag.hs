@@ -1,12 +1,12 @@
-module GhcTags.ETags
+module GhcTags.ETag
   ( module X
   , compareTags
   ) where
 
 import           Data.Function (on)
 
-import           GhcTags.ETags.Formatter as X
-import           GhcTags.ETags.Parser    as X
+import           GhcTags.ETag.Formatter as X
+import           GhcTags.ETag.Parser    as X
 
 import           GhcTags.Tag ( Tag (..)
                              , ETag

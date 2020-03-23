@@ -16,7 +16,7 @@ import           Test.QuickCheck
 import           Test.QuickCheck.Instances.Text ()
 
 import           GhcTags.Tag
-import           GhcTags.CTags.Utils
+import           GhcTags.CTag.Utils
 
 --
 -- Generators

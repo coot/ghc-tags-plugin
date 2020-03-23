@@ -4,7 +4,7 @@
 
 -- | Simple etags formatter. See <https://en.wikipedia.org/wiki/Ctags#Etags>
 --
-module GhcTags.ETags.Formatter
+module GhcTags.ETag.Formatter
   ( withByteOffset
   , formatETagsFile 
   , formatTagsFile

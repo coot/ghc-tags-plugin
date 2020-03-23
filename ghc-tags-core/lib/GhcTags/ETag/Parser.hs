@@ -9,7 +9,7 @@
 
 -- | Parser combinators for etags file format
 --
-module GhcTags.ETags.Parser
+module GhcTags.ETag.Parser
   ( parseTagsFile
   , parseTagFileSection
   , parseTag

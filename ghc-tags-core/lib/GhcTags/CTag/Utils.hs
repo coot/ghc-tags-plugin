@@ -1,4 +1,4 @@
-module GhcTags.CTags.Utils
+module GhcTags.CTag.Utils
   ( ghcKindToChar
   , charToGhcKind
   ) where

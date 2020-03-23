@@ -1,6 +1,6 @@
 {-# LANGUAGE NamedFieldPuns  #-}
 
-module Test.ETags (tests) where
+module Test.ETag (tests) where
 
 import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Lazy as BL
@@ -13,13 +13,13 @@ import           Test.QuickCheck
 import           Test.QuickCheck.Instances.Text ()
 
 import           GhcTags.Tag
-import           GhcTags.ETags.Formatter
+import           GhcTags.ETag.Formatter
 
 import           Test.Tag.Generators
 
 
 tests :: TestTree
-tests = testGroup "ETags"
+tests = testGroup "ETag"
   [ testProperty "etag size" eTagsBuilderSizeProp
   ]
 

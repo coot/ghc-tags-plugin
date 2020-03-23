@@ -3,7 +3,7 @@
 
 -- | 'bytestring''s 'Builder' for a 'Tag'
 --
-module GhcTags.CTags.Formatter
+module GhcTags.CTag.Formatter
   ( formatTagsFile
   , formatTag
   , formatHeader
@@ -18,7 +18,7 @@ import           Text.Printf (printf)
 
 import           GhcTags.Tag
 import           GhcTags.Utils (endOfLine)
-import           GhcTags.CTags.Utils
+import           GhcTags.CTag.Utils
 
 
 -- | 'ByteString' 'Builder' for a single line.
