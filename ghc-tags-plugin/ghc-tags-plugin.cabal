@@ -30,7 +30,7 @@ source-repository head
 library
   hs-source-dirs:      lib
   exposed-modules:     Plugin.GhcTags
-                       Plugin.GhcTags.CTags
+                       Plugin.GhcTags.CTag
                        Plugin.GhcTags.FileLock
                        Plugin.GhcTags.Options
   other-modules:       Paths_ghc_tags_plugin

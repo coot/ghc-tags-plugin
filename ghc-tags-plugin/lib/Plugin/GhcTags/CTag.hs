@@ -1,4 +1,4 @@
-module Plugin.GhcTags.CTags where
+module Plugin.GhcTags.CTag where
 
 import Data.Version
 

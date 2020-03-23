@@ -57,7 +57,7 @@ import qualified GhcTags.ETag as ETag
 
 import           Plugin.GhcTags.Options
 import           Plugin.GhcTags.FileLock
-import qualified Plugin.GhcTags.CTag as CTags
+import qualified Plugin.GhcTags.CTag as CTag
 
 
 -- | The GhcTags plugin.  It will run for every compiled module and have access
