@@ -15,6 +15,7 @@ import           Data.Function (on)
 import           Data.Functor.Identity
 import           Data.Foldable (traverse_)
 import           Data.List (nub, sortBy)
+import           System.FilePath (equalFilePath)
 
 import           Test.Tasty (TestTree, testGroup)
 import           Test.Tasty.QuickCheck (testProperty)
@@ -267,16 +268,16 @@ combineTags_identity (ArbTagsFromFile fp as) =
 --
 combineTags_preserve :: ArbTagsFromFile -> ArbTagList -> Bool
 combineTags_preserve (ArbTagsFromFile fp as) (ArbTagList bs) =
-       filter (\t -> tagFilePath t /= fp) (combineTags CTag.compareTags fp as bs)
+       filter (\t -> not $ tagFilePath t `equalFilePath` fp) (combineTags CTag.compareTags fp as bs)
     == 
-       filter (\t -> tagFilePath t /= fp) bs
+       filter (\t -> not $ tagFilePath t `equalFilePath` fp) bs
 
 
 -- | Substitutes all tags of the current file.
 --
 combineTags_substitution :: ArbTagsFromFile -> ArbTagList -> Bool
 combineTags_substitution (ArbTagsFromFile fp as) (ArbTagList bs) =
-       filter (\t -> tagFilePath t == fp) (combineTags CTag.compareTags fp as bs)
+       filter (\t -> tagFilePath t `equalFilePath` fp) (combineTags CTag.compareTags fp as bs)
     == 
        as
 

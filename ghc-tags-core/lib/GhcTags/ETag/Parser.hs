@@ -21,7 +21,7 @@ import qualified Data.Attoparsec.Text  as AT
 import           Data.Functor (($>))
 import           Data.Text (Text)
 import qualified Data.Text as Text
-import           System.FilePath (FilePath, normalise)
+import           System.FilePath (FilePath)
 
 import           GhcTags.Tag
 import qualified GhcTags.Utils as Utils
@@ -75,7 +75,7 @@ parseTag tagFilePath =
                               Nothing   -> TagName tagDefinition
                               Just name -> name
           , tagKind       = NoKind
-          , tagFilePath   = normalise tagFilePath
+          , tagFilePath
           , tagAddr       = TagLineCol lineNo byteOffset
           , tagDefinition = case mTagName of
                               Nothing -> NoTagDefinition
