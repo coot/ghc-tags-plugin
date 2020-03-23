@@ -27,6 +27,7 @@ import           System.Directory
 import           System.FilePath
 import           System.IO
 
+import           Pipes ((~>))
 import qualified Pipes as Pipes
 import           Pipes.Safe (SafeT)
 import qualified Pipes.Safe as Pipes.Safe
@@ -193,6 +194,11 @@ updateTags Options { etags, filePath = Identity tagsFile }
                                 -- loudly and continue.
                                 putDocLn dynFlags $ errorDoc ParserException ms_mod (displayException e)
                           )
+                          $
+                          -- normalise paths
+                          (\tag -> Pipes.yield tag { tagFilePath = normalise (tagFilePath tag) })
+                          ~>
+                          -- merge tags
                           (\tag ->
                             runCombineTagsPipe writeHandle CTag.compareTags CTag.formatTag  (fixFilePath cwd tagsDir sourcePath) tag
                               `Pipes.Safe.catchP` \(e :: IOException) ->
@@ -265,8 +271,7 @@ updateTags Options { etags, filePath = Identity tagsFile }
     fixFilePath :: FilePath -- curent directory
                 -> FilePath -- tags directory
                 -> FilePath -> FilePath
-    fixFilePath cwd tagsDir path =
-      normalise $ makeRelative tagsDir (cwd </> path)
+    fixFilePath cwd tagsDir = normalise . makeRelative tagsDir . (cwd </>)
 
     fixTagFilePath :: FilePath -> FilePath -> Tag tk -> Tag tk
     fixTagFilePath cwd tagsDir tag@Tag { tagFilePath } =
