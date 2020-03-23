@@ -20,6 +20,7 @@ import qualified Data.ByteString.Builder as BS
 import           Data.Functor (($>))
 import           Data.Text (Text)
 import           System.IO
+import           System.FilePath (equalFilePath)
 
 import           Pipes ((>->), (~>))
 import qualified Pipes as Pipes
@@ -63,7 +64,7 @@ combineTagsPipe compareFn modPath = go
        -> Pipes.Producer (Tag tk) m [Tag tk]
 
     go tag as
-      | tagFilePath tag == modPath = pure as
+      | tagFilePath tag `equalFilePath` modPath = pure as
 
     go tag as@(a : as')
       | otherwise = case a `compareFn` tag of

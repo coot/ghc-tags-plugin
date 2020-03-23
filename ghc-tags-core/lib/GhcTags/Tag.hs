@@ -45,6 +45,7 @@ import           Data.Function (on)
 import           Data.Text   (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
+import           System.FilePath (equalFilePath)
 
 -- GHC imports
 import           FastString   ( FastString (..)
@@ -196,8 +197,7 @@ data Tag (tk :: TAG_KIND) = Tag
   , tagKind       :: !(TagKind tk)
     -- ^ ctags specifc field, which classifies tags
   , tagFilePath   :: !FilePath
-    -- ^ source file path; for tags parsed with 'GhcTags.CTags.parseTag' or
-    -- 'GhcTags.ETags.parseTag' this is a normalised path.
+    -- ^ source file path; it might not be normalised.
   , tagAddr       :: !(TagAddress tk)
     -- ^ address in source file
   , tagDefinition :: !(TagDefinition tk)
@@ -206,7 +206,15 @@ data Tag (tk :: TAG_KIND) = Tag
   , tagFields     :: !(TagFields tk)
     -- ^ ctags specific field
   }
-  deriving (Eq, Show)
+  deriving (Show)
+
+instance Eq (Tag tk) where
+    t0 == t1 = on (==) tagName t0 t1
+            && on (==) tagKind t0 t1
+            && on equalFilePath tagFilePath t0 t1
+            && on (==) tagAddr t0 t1
+            && on (==) tagDefinition t0 t1
+            && on (==) tagFields t0 t1
             
 
 type CTag = Tag CTAG
@@ -270,7 +278,7 @@ combineTags :: (Tag tk -> Tag tk -> Ordering)
 combineTags compareFn modPath = go
   where
     go as@(a : as') bs@(b : bs')
-      | tagFilePath b == modPath = go as bs'
+      | tagFilePath b `equalFilePath` modPath = go as bs'
       | otherwise = case a `compareFn` b of
           LT -> a : go as' bs
           EQ -> a : go as' bs'
