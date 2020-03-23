@@ -27,6 +27,8 @@ import           System.Directory
 import           System.FilePath
 import           System.IO
 
+import           Options.Applicative.Types (ParserFailure (..))
+
 import           Pipes ((~>))
 import qualified Pipes as Pipes
 import           Pipes.Safe (SafeT)
@@ -47,6 +49,7 @@ import           GhcPlugins ( CommandLineOption
 import qualified GhcPlugins
 import           HsExtension (GhcPs)
 import           HsSyn (HsModule (..))
+import           Outputable (($+$), ($$))
 import qualified Outputable as Out
 import qualified PprColour
 
@@ -113,8 +116,12 @@ ghcTagsPlugin options moduleSummary hsParsedModule@HsParsedModule {hpm_module} =
       case runOptionParser options of
         Success opts -> GhcPlugins.liftIO (updateTags opts moduleSummary hpm_module)
 
-        Failure err  -> GhcPlugins.liftIO $
-          putDocLn (ms_hspp_opts moduleSummary) (errorDoc OptionParserFailure (ms_mod moduleSummary) (show err))
+        Failure (ParserFailure f)  -> GhcPlugins.liftIO $
+          putDocLn (ms_hspp_opts moduleSummary)
+                   (messageDoc
+                     OptionParserFailure
+                     (ms_mod moduleSummary)
+                     (show $ case f "<ghc-tags-plugin>" of (h, _, _) -> h))
 
         CompletionInvoked {} -> error "ghc-tags-plugin: impossible happend"
 
@@ -144,7 +151,7 @@ updateTags Options { etags, filePath = Identity tagsFile }
            lmodule =
     -- wrap 'IOException's
     handle (\ioerr -> do
-           putDocLn dynFlags (errorDoc UnhandledException ms_mod (displayException ioerr))
+           putDocLn dynFlags (messageDoc UnhandledException ms_mod (displayException ioerr))
            throwIO $ GhcTagsPluginIOExceptino ioerr) $
      flip finally (void $ try @IOException $ removeFile sourceFile) $
         -- Take advisory exclusive lock (a BSD lock using `flock`) on the tags
@@ -180,7 +187,7 @@ updateTags Options { etags, filePath = Identity tagsFile }
                               Pipes.lift $ Pipes.liftIO $
                                 -- don't re-throw; this would kill `ghc`, error
                                 -- loudly and continue.
-                                putDocLn dynFlags (errorDoc ReadException ms_mod (displayException e))
+                                putDocLn dynFlags (messageDoc ReadException ms_mod (displayException e))
                         | otherwise      = pure ()
 
                       -- gags pipe
@@ -192,7 +199,7 @@ updateTags Options { etags, filePath = Identity tagsFile }
                               Pipes.lift $ Pipes.liftIO $
                                 -- don't re-throw; this would kill `ghc`, error
                                 -- loudly and continue.
-                                putDocLn dynFlags $ errorDoc ParserException ms_mod (displayException e)
+                                putDocLn dynFlags $ messageDoc ParserException ms_mod (displayException e)
                           )
                           $
                           -- normalise paths
@@ -205,7 +212,7 @@ updateTags Options { etags, filePath = Identity tagsFile }
                                 Pipes.lift $ Pipes.liftIO $
                                   -- don't re-throw; this would kill `ghc`, error
                                   -- loudly and continue.
-                                  putDocLn dynFlags $ errorDoc WriteException ms_mod (displayException e)
+                                  putDocLn dynFlags $ messageDoc WriteException ms_mod (displayException e)
                           )
 
                   let tags :: [CTag]
@@ -232,16 +239,16 @@ updateTags Options { etags, filePath = Identity tagsFile }
                   try @IOException (Text.decodeUtf8 <$> BS.hGetContents readHandle)
                     >>= \case
                       Left err ->
-                        putDocLn dynFlags $ errorDoc ReadException ms_mod (displayException err)
+                        putDocLn dynFlags $ messageDoc ReadException ms_mod (displayException err)
 
                       Right txt -> do
                         pres <- try @IOException $ ETag.parseTagsFile txt
                         case pres of
                           Left err   -> 
-                            putDocLn dynFlags $ errorDoc ParserException ms_mod (displayException err)
+                            putDocLn dynFlags $ messageDoc ParserException ms_mod (displayException err)
 
                           Right (Left err) ->
-                            putDocLn dynFlags $ errorDoc ParserException ms_mod err
+                            printMessageDoc dynFlags ParserException ms_mod err
 
                           Right (Right tags) -> do
 
@@ -284,23 +291,40 @@ updateTags Options { etags, filePath = Identity tagsFile }
 -- Error Formatting
 --
 
-errorDoc :: ExceptionType -> Module -> String -> Out.SDoc
-errorDoc errorType mod_ errorMessage =
-  Out.coloured PprColour.colBold
-    $ Out.blankLine
-        Out.$+$
+data MessageSeverity
+      = Warning
+      | Error
+
+messageDoc :: ExceptionType -> Module -> String -> Out.SDoc
+messageDoc errorType mod_ errorMessage =
+    Out.blankLine
+      $+$
+        Out.coloured PprColour.colBold
           ((Out.text "GhcTagsPlugin: ")
-            Out.<> (Out.coloured PprColour.colRedFg (Out.text $ show errorType ++ ":")))
-        Out.$$
-          (Out.nest 4 $ Out.ppr mod_)
-        Out.$$
-          (Out.nest 8 $ Out.coloured PprColour.colRedFg (Out.text errorMessage))
-        Out.$+$
-          Out.blankLine
-        Out.$+$
-          (Out.text "Please report this bug to https://github.com/coot/ghc-tags-plugin/issues")
-        Out.$+$
-          Out.blankLine
+            Out.<> (Out.coloured messageColour (Out.text $ show errorType ++ ":")))
+      $$
+        Out.coloured PprColour.colBold (Out.nest 4 $ Out.ppr mod_)
+      $$
+        (Out.nest 8 $ Out.coloured messageColour (Out.text errorMessage))
+      $+$
+        Out.blankLine
+      $+$ case severity of
+        Error ->
+          Out.coloured PprColour.colBold (Out.text "Please report this bug to: ")
+            Out.<> Out.text "https://github.com/coot/ghc-tags-plugin/issues"
+          $+$ Out.blankLine
+        Warning -> Out.blankLine
+  where
+    severity = case errorType of
+      ReadException       -> Error
+      ParserException     -> Error
+      WriteException      -> Error
+      UnhandledException  -> Error
+      OptionParserFailure -> Warning
+
+    messageColour = case severity of
+      Error   -> PprColour.colRedFg
+      Warning -> PprColour.colBlueFg
 
 
 putDocLn :: DynFlags -> Out.SDoc -> IO ()
@@ -310,3 +334,7 @@ putDocLn dynFlags sdoc =
         dynFlags
         sdoc
         (Out.setStyleColoured True $ Out.defaultErrStyle dynFlags)
+
+
+printMessageDoc :: DynFlags -> ExceptionType -> Module -> String -> IO ()
+printMessageDoc dynFlags = (fmap . fmap . fmap) (putDocLn dynFlags) messageDoc
