@@ -23,6 +23,7 @@ install:
 		      --lib \
 		      ghc-tags-plugin
 	rm ${ENV}
+	ghc-pkg describe --package-db=${PACKAGE_DB} ghc-tags-plugin | grep ^id | sed 's/^id: //'
 
 reinstall: uninstall install
 
