@@ -37,6 +37,7 @@ import           HsDecls      ( ForeignImport (..)
                               , FamEqn (..)
                               , FamilyDecl (..)
                               , FamilyInfo (..)
+                              , FamilyResultSig (..)
                               , ForeignDecl (..)
                               , LHsDecl
                               , HsConDeclDetails
@@ -58,9 +59,13 @@ import           HsSyn        ( FieldOcc (..)
 import           HsTypes      ( ConDeclField (..)
                               , HsConDetails (..)
                               , HsImplicitBndrs (..)
+                              , HsKind
                               , HsType (..)
+                              , HsWildCardBndrs
                               , LConDeclField
                               , LHsType
+                              , LHsSigType
+                              , HsTyVarBndr (..)
                               )
 import           SrcLoc       ( GenLocated (..)
                               , Located
@@ -80,19 +85,19 @@ import           Name         ( nameOccName
 data GhcTagKind
     = GtkTerm
     | GtkFunction
-    | GtkTypeConstructor
+    | GtkTypeConstructor        (Maybe (HsKind GhcPs))
     | GtkDataConstructor
-    | GtkGADTConstructor
+    | GtkGADTConstructor               (HsType GhcPs)
     | GtkRecordField
-    | GtkTypeSynonym
-    | GtkTypeSignature
+    | GtkTypeSynonym                   (HsType GhcPs)
+    | GtkTypeSignature                 (HsWildCardBndrs GhcPs (LHsSigType GhcPs))
     | GtkPatternSynonym
     | GtkTypeClass
     | GtkTypeClassMember
-    | GtkTypeClassInstance (HsType GhcPs)
-    | GtkTypeFamily
+    | GtkTypeClassInstance             (HsType GhcPs)
+    | GtkTypeFamily             (Maybe (HsKind GhcPs))
     | GtkTypeFamilyInstance
-    | GtkDataTypeFamily
+    | GtkDataTypeFamily         (Maybe (HsKind GhcPs))
     | GtkDataTypeFamilyInstance
     | GtkForeignImport
     | GtkForeignExport
@@ -268,8 +273,8 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
               Nothing  ->       tags
 
           -- type synonyms
-          SynDecl { tcdLName } ->
-            mkGhcTag' tcdLName GtkTypeSynonym : tags
+          SynDecl { tcdLName, tcdRhs = L _ hsType } ->
+            mkGhcTag' tcdLName (GtkTypeSynonym hsType) : tags
 
           -- data declaration:
           --   type,
@@ -278,8 +283,8 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
           --
           DataDecl { tcdLName, tcdDataDefn } -> 
             case tcdDataDefn of
-              HsDataDefn { dd_cons } ->
-                     mkGhcTag' tcdLName GtkTypeConstructor
+              HsDataDefn { dd_cons, dd_kindSig } ->
+                     mkGhcTag' tcdLName (GtkTypeConstructor (unLoc <$> dd_kindSig))
                    : (mkConsTags tcdLName . unLoc) `concatMap` dd_cons
                   ++ tags
 
@@ -406,8 +411,8 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
                -- constructor declaration
                -> GhcTags
 
-    mkConsTags tyName ConDeclGADT { con_names, con_args } =
-         (\n -> mkGhcTagForMember n tyName GtkGADTConstructor)
+    mkConsTags tyName ConDeclGADT { con_names, con_args, con_res_ty = L _ con_res_ty } =
+         (\n -> mkGhcTagForMember n tyName (GtkGADTConstructor con_res_ty))
          `map` con_names
       ++ mkHsConDeclDetails tyName con_args
 
@@ -458,8 +463,8 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
 
 
     mkClsMemberTags :: Located RdrName -> Sig GhcPs -> GhcTags
-    mkClsMemberTags clsName (TypeSig   _ lhs _) =
-      (\n -> mkGhcTagForMember n clsName GtkTypeSignature)
+    mkClsMemberTags clsName (TypeSig   _ lhs hsSigWcType) =
+      (\n -> mkGhcTagForMember n clsName (GtkTypeSignature hsSigWcType))
       `map` lhs
     mkClsMemberTags clsName (PatSynSig _ lhs _) =
       (\n -> mkGhcTagForMember n clsName GtkPatternSynonym)
@@ -471,7 +476,9 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
 
 
     mkSigTags :: Sig GhcPs -> GhcTags
-    mkSigTags (TypeSig   _ lhs _)    = flip mkGhcTag' GtkTypeSignature   `map` lhs
+    mkSigTags (TypeSig   _ lhs hsSigWcType)
+                                     = flip mkGhcTag' (GtkTypeSignature hsSigWcType)
+                                         `map` lhs
     mkSigTags (PatSynSig _ lhs _)    = flip mkGhcTag' GtkPatternSynonym  `map` lhs
     mkSigTags (ClassOpSig _ _ lhs _) = flip mkGhcTag' GtkTypeClassMember `map` lhs
     mkSigTags IdSig {}               = []
@@ -495,15 +502,15 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
                      -- if this type family is associate, pass the name of the
                      -- associated class
                      -> Maybe GhcTag
-    mkFamilyDeclTags FamilyDecl { fdLName, fdInfo } assocClsName =
+    mkFamilyDeclTags FamilyDecl { fdLName, fdInfo, fdResultSig = L _ familyResultSig } assocClsName =
       case assocClsName of
         Nothing      -> Just $ mkGhcTag' fdLName tk
         Just clsName -> Just $ mkGhcTagForMember fdLName clsName tk 
       where
         tk = case fdInfo of
-              DataFamily           -> GtkDataTypeFamily
-              OpenTypeFamily       -> GtkTypeFamily
-              ClosedTypeFamily {}  -> GtkTypeFamily
+              DataFamily           -> GtkDataTypeFamily (famResultKindSignature familyResultSig)
+              OpenTypeFamily       -> GtkTypeFamily (famResultKindSignature familyResultSig)
+              ClosedTypeFamily {}  -> GtkTypeFamily (famResultKindSignature familyResultSig)
     mkFamilyDeclTags XFamilyDecl {} _ = Nothing
 
 
@@ -558,3 +565,17 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
           Just $ mkGhcTag' feqn_tycon GtkTypeFamilyInstance
 
         HsIB { hsib_body = XFamEqn {} } -> Nothing
+
+--
+--
+--
+
+famResultKindSignature :: FamilyResultSig GhcPs -> Maybe (HsKind GhcPs)
+famResultKindSignature (NoSig _) = Nothing
+famResultKindSignature (KindSig _ ki) = Just (unLoc ki)
+famResultKindSignature (TyVarSig _ bndr) =
+  case unLoc bndr of
+    UserTyVar _ _ -> Nothing
+    KindedTyVar _ _ ki -> Just (unLoc ki)
+    XTyVarBndr {} -> Nothing
+famResultKindSignature XFamilyResultSig {} = Nothing

@@ -219,7 +219,7 @@ updateTags Options { etags, filePath = Identity tagsFile }
                       tags = map (fixTagFilePath cwd tagsDir)
                                                   -- fix file names
                            . sortBy compareTags   -- sort
-                           . mapMaybe (ghcTagToTag SingCTag)
+                           . mapMaybe (ghcTagToTag SingCTag dynFlags)
                                                   -- translate 'GhcTag' to 'Tag'
                            . getGhcTags           -- generate 'GhcTag's
                            $ lmodule
@@ -263,7 +263,7 @@ updateTags Options { etags, filePath = Identity tagsFile }
                                             . map ( ETag.withByteOffset ll
                                                   . fixTagFilePath cwd tagsDir
                                                   )
-                                            . mapMaybe (ghcTagToTag SingETag)
+                                            . mapMaybe (ghcTagToTag SingETag dynFlags)
                                             . getGhcTags
                                             $ lmodule)
                                           (sortBy ETag.compareTags tags)
