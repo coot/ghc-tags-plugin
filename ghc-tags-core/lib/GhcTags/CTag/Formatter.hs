@@ -57,15 +57,11 @@ formatTag Tag { tagName, tagFilePath, tagAddr, tagKind, tagFields = TagFields ta
       BS.byteString . Text.encodeUtf8 . getExCommand $ exCommand     
 
     formatKindChar :: CTagKind -> Builder
-    formatKindChar NoKind = mempty
-    formatKindChar (CharKind c)
-                     | isAscii c = BS.charUtf8 '\t' <> BS.charUtf8 c
-                     | otherwise = BS.stringUtf8 "\tkind:" <> BS.charUtf8 c
-    formatKindChar (GhcKind ghcKind)
-                     | isAscii c = BS.charUtf8 '\t' <> BS.charUtf8 c
-                     | otherwise = BS.stringUtf8 "\tkind:" <> BS.charUtf8 c
-      where
-        c = ghcKindToChar ghcKind
+    formatKindChar tk =
+      case tagKindToChar tk of
+        Nothing -> mempty
+        Just c | isAscii c -> BS.charUtf8 '\t' <> BS.charUtf8 c
+               | otherwise -> BS.stringUtf8 "\tkind:" <> BS.charUtf8 c
 
 
 formatField :: TagField -> Builder

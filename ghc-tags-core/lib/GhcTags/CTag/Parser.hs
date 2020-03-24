@@ -124,12 +124,6 @@ parseTag =
     parseFields = TagFields <$> AT.sepBy parseField separator
 
 
-charToTagKind :: Char -> CTagKind
-charToTagKind c = case charToGhcKind c of
-    Nothing      -> CharKind c
-    Just ghcTag  -> GhcKind  ghcTag
-
-
 parseField :: Parser TagField
 parseField =
          TagField

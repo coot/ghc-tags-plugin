@@ -31,7 +31,6 @@ module GhcTags.Tag
   , TagFields (..)
   , CTagFields
   , ETagFields
-  , GhcKind (..)
   , TagField (..)
     -- ** Ordering and combining tags
   , compareTags
@@ -88,9 +87,44 @@ newtype TagName = TagName { getTagName :: Text }
 -- `ghc-tags-plugin'
 --
 data TagKind (tk :: TAG_KIND) where
-    GhcKind  :: !GhcKind -> TagKind CTAG
-    CharKind :: !Char -> TagKind CTAG
-    NoKind   :: TagKind tk
+    TkTerm                   :: TagKind CTAG
+    -- ^ @`@
+    TkFunction               :: TagKind CTAG
+    -- ^ @λ@
+    TkTypeConstructor        :: TagKind CTAG
+    -- ^ @Λ@
+    TkDataConstructor        :: TagKind CTAG
+    -- ^ @c@
+    TkGADTConstructor        :: TagKind CTAG
+    -- ^ @g@
+    TkRecordField            :: TagKind CTAG
+    -- ^ @r@
+    TkTypeSynonym            :: TagKind CTAG
+    -- ^ @≡@
+    TkTypeSignature          :: TagKind CTAG
+    -- ^ @⊢@
+    TkPatternSynonym         :: TagKind CTAG
+    -- ^ @p@
+    TkTypeClass              :: TagKind CTAG
+    -- ^ @C@
+    TkTypeClassMember        :: TagKind CTAG
+    -- ^ @m@
+    TkTypeClassInstance      :: TagKind CTAG
+    -- ^ @i@
+    TkTypeFamily             :: TagKind CTAG
+    -- ^ @f@
+    TkTypeFamilyInstance     :: TagKind CTAG
+    -- ^ @F@
+    TkDataTypeFamily         :: TagKind CTAG
+    -- ^ @d@
+    TkDataTypeFamilyInstance :: TagKind CTAG
+    -- ^ @D@
+    TkForeignImport          :: TagKind CTAG
+    -- ^ @I@
+    TkForeignExport          :: TagKind CTAG
+    -- ^ @E@
+    CharKind                 :: !Char -> TagKind CTAG
+    NoKind                   :: TagKind tk
 
 type CTagKind = TagKind CTAG
 type ETagKind = TagKind ETAG
@@ -251,15 +285,15 @@ compareTags t0 t1 = on compare tagName t0 t1
                  <> on compare tagKind     t0 t1
 
     where
-      getTkClass :: Tag tk -> Maybe GhcKind
+      getTkClass :: Tag tk -> Maybe (TagKind tk)
       getTkClass t = case tagKind t of
-        GhcKind TkTypeClass              -> Just TkTypeClass
-        GhcKind TkTypeClassInstance      -> Just TkTypeClassInstance
-        GhcKind TkTypeFamily             -> Just TkTypeFamily
-        GhcKind TkTypeFamilyInstance     -> Just TkTypeFamilyInstance
-        GhcKind TkDataTypeFamily         -> Just TkDataTypeFamily
-        GhcKind TkDataTypeFamilyInstance -> Just TkDataTypeFamilyInstance
-        _                                -> Nothing
+        TkTypeClass              -> Just TkTypeClass
+        TkTypeClassInstance      -> Just TkTypeClassInstance
+        TkTypeFamily             -> Just TkTypeFamily
+        TkTypeFamilyInstance     -> Just TkTypeFamilyInstance
+        TkDataTypeFamily         -> Just TkDataTypeFamily
+        TkDataTypeFamilyInstance -> Just TkDataTypeFamilyInstance
+        _                        -> Nothing
 
 
 
@@ -309,7 +343,7 @@ ghcTagToTag sing GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI } =
 
           , tagKind       =
               case sing of
-                SingCTag -> GhcKind gtKind
+                SingCTag -> fromGhcKind gtKind
                 SingETag -> NoKind
 
           , tagDefinition = NoTagDefinition
@@ -325,3 +359,26 @@ ghcTagToTag sing GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI } =
                                   Just ffi -> [TagField "ffi" ffi]
                SingETag -> NoTagFields
           }
+
+  where
+    fromGhcKind :: GhcKind -> CTagKind
+    fromGhcKind = \case
+      GKTerm                   -> TkTerm
+      GKFunction               -> TkFunction
+      GKTypeConstructor        -> TkTypeConstructor
+      GKDataConstructor        -> TkDataConstructor
+      GKGADTConstructor        -> TkGADTConstructor
+      GKRecordField            -> TkRecordField
+      GKTypeSynonym            -> TkTypeSynonym
+      GKTypeSignature          -> TkTypeSignature
+      GKPatternSynonym         -> TkPatternSynonym
+      GKTypeClass              -> TkTypeClass
+      GKTypeClassMember        -> TkTypeClassMember
+      GKTypeClassInstance {}   -> TkTypeClassInstance
+      GKTypeFamily             -> TkTypeFamily
+      GKTypeFamilyInstance     -> TkTypeFamilyInstance
+      GKDataTypeFamily         -> TkDataTypeFamily
+      GKDataTypeFamilyInstance -> TkDataTypeFamilyInstance
+      GKForeignImport          -> TkForeignImport
+      GKForeignExport          -> TkForeignExport
+      
