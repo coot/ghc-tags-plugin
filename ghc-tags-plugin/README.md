@@ -127,10 +127,6 @@ test-project: -plugin-package=ghc-tags-plugin
               -fplugin=Plugin.GhcTags
 ```
 
-Check out an example
-[here](https://github.com/coot/ghc-tags-plugin/tree/stack-setup/test-project).
-
-
 ## ● Ghcid
 
 If you follow the cabal configuration as above (using `stack` should work too)
