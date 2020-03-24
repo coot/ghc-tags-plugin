@@ -86,43 +86,44 @@ newtype TagName = TagName { getTagName :: Text }
 -- preserve information from parsed tags files which were not created by
 -- `ghc-tags-plugin'
 --
+-- * 'TkTerm' - @`@
+-- * 'TkFunction' - @λ@
+-- * 'TkTypeConstructor' - @Λ@
+-- * 'TkDataConstructor' - @c@
+-- * 'TkGADTConstructor' - @g@
+-- * 'TkRecordField' - @r@
+-- * 'TkTypeSynonym' - @≡@
+-- * 'TkTypeSignature' - @⊢@
+-- * 'TkPatternSynonym' - @p@
+-- * 'TkTypeClass' - @C@
+-- * 'TkTypeClassMember' - @m@
+-- * 'TkTypeClassInstance' - @i@
+-- * 'TkTypeFamily' - @f@
+-- * 'TkTypeFamilyInstance' - @F@
+-- * 'TkDataTypeFamily' - @d@
+-- * 'TkDataTypeFamilyInstance' - @D@
+-- * 'TkForeignImport' - @I@
+-- * 'TkForeignExport' - @E@
+--
 data TagKind (tk :: TAG_KIND) where
     TkTerm                   :: TagKind CTAG
-    -- ^ @`@
     TkFunction               :: TagKind CTAG
-    -- ^ @λ@
     TkTypeConstructor        :: TagKind CTAG
-    -- ^ @Λ@
     TkDataConstructor        :: TagKind CTAG
-    -- ^ @c@
     TkGADTConstructor        :: TagKind CTAG
-    -- ^ @g@
     TkRecordField            :: TagKind CTAG
-    -- ^ @r@
     TkTypeSynonym            :: TagKind CTAG
-    -- ^ @≡@
     TkTypeSignature          :: TagKind CTAG
-    -- ^ @⊢@
     TkPatternSynonym         :: TagKind CTAG
-    -- ^ @p@
     TkTypeClass              :: TagKind CTAG
-    -- ^ @C@
     TkTypeClassMember        :: TagKind CTAG
-    -- ^ @m@
     TkTypeClassInstance      :: TagKind CTAG
-    -- ^ @i@
     TkTypeFamily             :: TagKind CTAG
-    -- ^ @f@
     TkTypeFamilyInstance     :: TagKind CTAG
-    -- ^ @F@
     TkDataTypeFamily         :: TagKind CTAG
-    -- ^ @d@
     TkDataTypeFamilyInstance :: TagKind CTAG
-    -- ^ @D@
     TkForeignImport          :: TagKind CTAG
-    -- ^ @I@
     TkForeignExport          :: TagKind CTAG
-    -- ^ @E@
     CharKind                 :: !Char -> TagKind CTAG
     NoKind                   :: TagKind tk
 
