@@ -1,23 +1,25 @@
 cabal-version:       2.4
 name:                ghc-tags-plugin
 version:             0.1.6.0
-synopsis:            A compiler plugin which generates tags file from GHC syntax tree.
+synopsis:            A compiler plugin which generates tags file from GHC parsed syntax tree.
 description:
-  A compiler source plugin which takes parsed Haskell syntax tree and saves
-  tags file to disk, leaving the parsed tree untouched.
+  A /GHC compiler plugin/ which takes parsed Haskell representation @HsModule GhcPs@
+  and extracts __tags__ information and saves it either in __ctags__ or
+  __etags__ format.
 license:             MPL-2.0
 license-file:        LICENSE
 author:              Marcin Szamotulski
 maintainer:          profunctor@pm.me
 copyright:           (c) 2020, Marcin Szamotulski
 category:            Development
+stability:           alpha
 extra-source-files:  CHANGELOG.md
                      README.md
 homepage:            https://github.com/coot/ghc-tags-plugin#readme
 bug-reports:         https://github.com/coot/ghc-tags-plugin/issues
 tested-with:         GHC==8.6.3, GHC==8.8.3
 
--- Don't build gtp-check command by default
+-- Don't build gtp-check command by default; it's a development tool.
 flag gtp-check
   default: False
   manual:  False
@@ -25,7 +27,6 @@ flag gtp-check
 source-repository head
   type:     git
   location: https://github.com/coot/ghc-tags-plugin
-
 
 library
   hs-source-dirs:      lib
