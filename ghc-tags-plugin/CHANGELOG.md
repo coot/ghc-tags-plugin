@@ -33,7 +33,10 @@
 
 * concurrency safety - protection `tags` file using a file lock
 
-## 0.1.6.0 -- 2020-03-21
+## 0.1.6.0 -- ?
 
 * support for etags files
 * various bug fixes
+* type level information (not type checked!), from the parsed tree, including:
+  type of instances (instance context & instance head), types of `GADTs`
+  constructors, rhs of type synonyms, kinds of type or data families.
