@@ -1,6 +1,6 @@
-# Revision history for ghctags
+# Revision history for ghc-tags-core
 
-## 0.1.0.0 -- YYYY-mm-dd
+## 0.1.0.0 -- 2020-03-24
 
 * First version. Released on an unsuspecting world.
 * Normalise 'tagFilePath' for tags which are returned by the parsers.

@@ -33,7 +33,7 @@
 
 * concurrency safety - protection `tags` file using a file lock
 
-## 0.1.6.0 -- ?
+## 0.1.6.0 -- 2020-03-24
 
 * support for etags files
 * various bug fixes
