@@ -6,7 +6,6 @@ module Test.Tag.Generators where
 
 import qualified Data.Char as Char
 import           Data.List as List
-import           Data.Maybe (isNothing)
 import           Data.Text   (Text)
 import qualified Data.Text as Text
 
@@ -16,7 +15,6 @@ import           Test.QuickCheck
 import           Test.QuickCheck.Instances.Text ()
 
 import           GhcTags.Tag
-import           GhcTags.CTag.Utils
 
 --
 -- Generators
@@ -69,40 +67,35 @@ fixAddr = fixText . Text.replace ";\"" ""
 wrap :: Char -> Text -> Text
 wrap c = Text.cons c . flip Text.snoc c
 
-genGhcKind :: Gen GhcKind
-genGhcKind = elements
-  [ TkTerm
-  , TkFunction
-  , TkTypeConstructor
-  , TkDataConstructor
-  , TkGADTConstructor
-  , TkRecordField
-  , TkTypeSynonym
-  , TkTypeSignature
-  , TkPatternSynonym
-  , TkTypeClass
-  , TkTypeClassMember
-  , TkTypeClassInstance
-  , TkTypeFamily
-  , TkTypeFamilyInstance
-  , TkDataTypeFamily
-  , TkDataTypeFamilyInstance
-  , TkForeignImport
-  , TkForeignExport
-  ]
-
 genTagKind :: SingTagKind tk -> Gen (TagKind tk)
 genTagKind SingETag = pure NoKind
 genTagKind SingCTag = oneof
-    [ pure NoKind
+    [ pure TkTerm
+    , pure TkFunction
+    , pure TkTypeConstructor
+    , pure TkDataConstructor
+    , pure TkGADTConstructor
+    , pure TkRecordField
+    , pure TkTypeSynonym
+    , pure TkTypeSignature
+    , pure TkPatternSynonym
+    , pure TkTypeClass
+    , pure TkTypeClassMember
+    , pure TkTypeClassInstance
+    , pure TkTypeFamily
+    , pure TkTypeFamilyInstance
+    , pure TkDataTypeFamily
+    , pure TkDataTypeFamilyInstance
+    , pure TkForeignImport
+    , pure TkForeignExport
     , CharKind <$> genChar
-    , GhcKind <$> genGhcKind
+    , pure NoKind
     ]
   where
     genChar = suchThat arbitrary
                        ( ((/= Char.Control) . Char.generalCategory)
                          /\ (/= ':')
-                         /\ (isNothing . charToGhcKind)
+                         /\ (not . flip elem ("`λΛcgr≡⊢pCmifFdDIE" :: String))
                        )
 
 shrinkTag' :: Tag tk -> [Tag tk]

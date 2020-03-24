@@ -1,50 +1,56 @@
+{-# LANGUAGE GADTs #-}
+
 module GhcTags.CTag.Utils
-  ( ghcKindToChar
-  , charToGhcKind
+  ( tagKindToChar
+  , charToTagKind
   ) where
 
-import           GhcTags.Ghc
+import           GhcTags.Tag
 
-ghcKindToChar :: GhcKind -> Char
-ghcKindToChar tagKind = case tagKind of
-    TkTerm                    -> '`'
-    TkFunction                -> 'λ'
-    TkTypeConstructor         -> 'Λ'
-    TkDataConstructor         -> 'c'
-    TkGADTConstructor         -> 'g'
-    TkRecordField             -> 'r'
-    TkTypeSynonym             -> '≡'
-    TkTypeSignature           -> '⊢'
-    TkPatternSynonym          -> 'p'
-    TkTypeClass               -> 'C'
-    TkTypeClassMember         -> 'm'
-    TkTypeClassInstance       -> 'i'
-    TkTypeFamily              -> 'f'
-    TkTypeFamilyInstance      -> 'F'
-    TkDataTypeFamily          -> 'd'
-    TkDataTypeFamilyInstance  -> 'D'
-    TkForeignImport           -> 'I'
-    TkForeignExport           -> 'E'
+tagKindToChar :: CTagKind -> Maybe Char
+tagKindToChar tk = case tk of
+    TkTerm                    -> Just '`'
+    TkFunction                -> Just 'λ'
+    TkTypeConstructor         -> Just 'Λ'
+    TkDataConstructor         -> Just 'c'
+    TkGADTConstructor         -> Just 'g'
+    TkRecordField             -> Just 'r'
+    TkTypeSynonym             -> Just '≡'
+    TkTypeSignature           -> Just '⊢'
+    TkPatternSynonym          -> Just 'p'
+    TkTypeClass               -> Just 'C'
+    TkTypeClassMember         -> Just 'm'
+    TkTypeClassInstance       -> Just 'i'
+    TkTypeFamily              -> Just 'f'
+    TkTypeFamilyInstance      -> Just 'F'
+    TkDataTypeFamily          -> Just 'd'
+    TkDataTypeFamilyInstance  -> Just 'D'
+    TkForeignImport           -> Just 'I'
+    TkForeignExport           -> Just 'E'
+
+    CharKind c                -> Just c
+    NoKind                    -> Nothing
 
 
-charToGhcKind :: Char -> Maybe GhcKind
-charToGhcKind c = case c of
-     '`' -> Just TkTerm
-     'λ' -> Just TkFunction
-     'Λ' -> Just TkTypeConstructor
-     'c' -> Just TkDataConstructor
-     'g' -> Just TkGADTConstructor
-     'r' -> Just TkRecordField
-     '≡' -> Just TkTypeSynonym
-     '⊢' -> Just TkTypeSignature
-     'p' -> Just TkPatternSynonym
-     'C' -> Just TkTypeClass
-     'm' -> Just TkTypeClassMember
-     'i' -> Just TkTypeClassInstance
-     'f' -> Just TkTypeFamily
-     'F' -> Just TkTypeFamilyInstance
-     'd' -> Just TkDataTypeFamily
-     'D' -> Just TkDataTypeFamilyInstance
-     'I' -> Just TkForeignImport
-     'E' -> Just TkForeignExport
-     _   -> Nothing
+charToTagKind :: Char -> CTagKind
+charToTagKind c = case c of
+     '`' -> TkTerm
+     'λ' -> TkFunction
+     'Λ' -> TkTypeConstructor
+     'c' -> TkDataConstructor
+     'g' -> TkGADTConstructor
+     'r' -> TkRecordField
+     '≡' -> TkTypeSynonym
+     '⊢' -> TkTypeSignature
+     'p' -> TkPatternSynonym
+     'C' -> TkTypeClass
+     'm' -> TkTypeClassMember
+     'i' -> TkTypeClassInstance
+     'f' -> TkTypeFamily
+     'F' -> TkTypeFamilyInstance
+     'd' -> TkDataTypeFamily
+     'D' -> TkDataTypeFamilyInstance
+     'I' -> TkForeignImport
+     'E' -> TkForeignExport
+
+     _   -> CharKind c
