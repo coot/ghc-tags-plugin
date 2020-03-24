@@ -56,7 +56,7 @@ import           SrcLoc       ( SrcSpan (..)
                               )
 
 import           GhcTags.Ghc  ( GhcTag (..)
-                              , GhcKind (..)
+                              , GhcTagKind (..)
                               )
 
 --
@@ -82,7 +82,7 @@ newtype TagName = TagName { getTagName :: Text }
 
 
 -- | When we parse a `tags` file we can eithera find no kind or recognize the
--- kind of GhcKind or we store the found character kind.  This allows us to
+-- kind of GhcTagKind or we store the found character kind.  This allows us to
 -- preserve information from parsed tags files which were not created by
 -- `ghc-tags-plugin'
 --
@@ -343,7 +343,7 @@ ghcTagToTag sing GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI } =
 
           , tagKind       =
               case sing of
-                SingCTag -> fromGhcKind gtKind
+                SingCTag -> fromGhcTagKind gtKind
                 SingETag -> NoKind
 
           , tagDefinition = NoTagDefinition
@@ -361,24 +361,23 @@ ghcTagToTag sing GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI } =
           }
 
   where
-    fromGhcKind :: GhcKind -> CTagKind
-    fromGhcKind = \case
-      GKTerm                   -> TkTerm
-      GKFunction               -> TkFunction
-      GKTypeConstructor        -> TkTypeConstructor
-      GKDataConstructor        -> TkDataConstructor
-      GKGADTConstructor        -> TkGADTConstructor
-      GKRecordField            -> TkRecordField
-      GKTypeSynonym            -> TkTypeSynonym
-      GKTypeSignature          -> TkTypeSignature
-      GKPatternSynonym         -> TkPatternSynonym
-      GKTypeClass              -> TkTypeClass
-      GKTypeClassMember        -> TkTypeClassMember
-      GKTypeClassInstance {}   -> TkTypeClassInstance
-      GKTypeFamily             -> TkTypeFamily
-      GKTypeFamilyInstance     -> TkTypeFamilyInstance
-      GKDataTypeFamily         -> TkDataTypeFamily
-      GKDataTypeFamilyInstance -> TkDataTypeFamilyInstance
-      GKForeignImport          -> TkForeignImport
-      GKForeignExport          -> TkForeignExport
-      
+    fromGhcTagKind :: GhcTagKind -> CTagKind
+    fromGhcTagKind = \case
+      GtkTerm                   -> TkTerm
+      GtkFunction               -> TkFunction
+      GtkTypeConstructor        -> TkTypeConstructor
+      GtkDataConstructor        -> TkDataConstructor
+      GtkGADTConstructor        -> TkGADTConstructor
+      GtkRecordField            -> TkRecordField
+      GtkTypeSynonym            -> TkTypeSynonym
+      GtkTypeSignature          -> TkTypeSignature
+      GtkPatternSynonym         -> TkPatternSynonym
+      GtkTypeClass              -> TkTypeClass
+      GtkTypeClassMember        -> TkTypeClassMember
+      GtkTypeClassInstance {}   -> TkTypeClassInstance
+      GtkTypeFamily             -> TkTypeFamily
+      GtkTypeFamilyInstance     -> TkTypeFamilyInstance
+      GtkDataTypeFamily         -> TkDataTypeFamily
+      GtkDataTypeFamilyInstance -> TkDataTypeFamilyInstance
+      GtkForeignImport          -> TkForeignImport
+      GtkForeignExport          -> TkForeignExport
