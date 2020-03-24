@@ -47,8 +47,9 @@ import qualified Data.Text.Encoding as Text
 import           System.FilePath (equalFilePath)
 
 -- GHC imports
-import           FastString   ( FastString (..)
-                              )
+import           DynFlags     ( DynFlags (pprUserLength) )
+import           FastString   ( FastString (..) )
+
 import           SrcLoc       ( SrcSpan (..)
                               , srcSpanFile
                               , srcSpanStartLine
@@ -58,6 +59,7 @@ import           SrcLoc       ( SrcSpan (..)
 import           GhcTags.Ghc  ( GhcTag (..)
                               , GhcTagKind (..)
                               )
+import qualified Outputable as Out
 
 --
 -- Tag
@@ -329,8 +331,8 @@ combineTags compareFn modPath = go
 
 -- | Create a 'Tag' from 'GhcTag'.
 --
-ghcTagToTag :: SingTagKind tk -> GhcTag -> Maybe (Tag tk)
-ghcTagToTag sing GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI } =
+ghcTagToTag :: SingTagKind tk -> DynFlags -> GhcTag -> Maybe (Tag tk)
+ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI } =
     case gtSrcSpan of
       UnhelpfulSpan {} -> Nothing
       RealSrcSpan realSrcSpan ->
@@ -349,16 +351,10 @@ ghcTagToTag sing GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI } =
 
           , tagDefinition = NoTagDefinition
 
-          , tagFields     =
-              case sing of
-               SingCTag -> TagFields $
-                                if gtIsExported
-                                  then mempty
-                                  else [fileField]
-                             <> case gtFFI of
-                                  Nothing  -> mempty
-                                  Just ffi -> [TagField "ffi" ffi]
-               SingETag -> NoTagFields
+          , tagFields     = (    staticField
+                              <> ffiField
+                              <> kindField
+                            ) sing
           }
 
   where
@@ -366,19 +362,97 @@ ghcTagToTag sing GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI } =
     fromGhcTagKind = \case
       GtkTerm                   -> TkTerm
       GtkFunction               -> TkFunction
-      GtkTypeConstructor        -> TkTypeConstructor
+      GtkTypeConstructor {}     -> TkTypeConstructor
       GtkDataConstructor        -> TkDataConstructor
-      GtkGADTConstructor        -> TkGADTConstructor
+      GtkGADTConstructor {}     -> TkGADTConstructor
       GtkRecordField            -> TkRecordField
-      GtkTypeSynonym            -> TkTypeSynonym
-      GtkTypeSignature          -> TkTypeSignature
+      GtkTypeSynonym {}         -> TkTypeSynonym
+      GtkTypeSignature {}       -> TkTypeSignature
       GtkPatternSynonym         -> TkPatternSynonym
       GtkTypeClass              -> TkTypeClass
       GtkTypeClassMember        -> TkTypeClassMember
       GtkTypeClassInstance {}   -> TkTypeClassInstance
-      GtkTypeFamily             -> TkTypeFamily
+      GtkTypeFamily {}          -> TkTypeFamily
       GtkTypeFamilyInstance     -> TkTypeFamilyInstance
-      GtkDataTypeFamily         -> TkDataTypeFamily
+      GtkDataTypeFamily {}      -> TkDataTypeFamily
       GtkDataTypeFamilyInstance -> TkDataTypeFamilyInstance
       GtkForeignImport          -> TkForeignImport
       GtkForeignExport          -> TkForeignExport
+
+    -- static field (wheather term is exported or not)
+    staticField :: SingTagKind tk -> TagFields tk
+    staticField = \case
+      SingETag -> NoTagFields
+      SingCTag ->
+        TagFields $
+          if gtIsExported
+            then mempty
+            else [fileField]
+
+    -- ffi field
+    ffiField :: SingTagKind tk -> TagFields tk
+    ffiField = \case
+      SingETag -> NoTagFields
+      SingCTag ->
+        TagFields $
+          case gtFFI of
+            Nothing  -> mempty
+            Just ffi -> [TagField "ffi" ffi]
+
+
+    -- 'TagFields' from 'GhcTagKind'
+    kindField :: SingTagKind tk -> TagFields tk
+    kindField = \case
+      SingETag -> NoTagFields
+      SingCTag ->
+        case gtKind of
+          GtkTypeClassInstance hsType ->
+            mkField "instance" hsType
+
+          GtkTypeFamily (Just hsKind) ->
+            mkField kindFieldName hsKind
+
+          GtkDataTypeFamily (Just hsKind) ->
+            mkField kindFieldName hsKind
+
+          GtkTypeSignature hsSigWcType ->
+            mkField typeFieldName hsSigWcType
+
+          GtkTypeSynonym hsType ->
+            mkField typeFieldName hsType
+
+          GtkGADTConstructor hsType ->
+            mkField typeFieldName hsType
+
+          GtkTypeConstructor (Just hsKind) ->
+            mkField kindFieldName hsKind
+
+          _ -> mempty
+
+
+    kindFieldName, typeFieldName :: Text
+    kindFieldName = "Kind" -- "kind" is reserverd
+    typeFieldName = "type"
+
+    --
+    -- fields
+    --
+    
+    mkField :: Out.Outputable p => Text -> p -> TagFields CTAG
+    mkField fieldName  p =
+      TagFields
+        [ TagField
+            { fieldName
+            , fieldValue = render p
+            }]
+
+    render :: Out.Outputable p => p -> Text
+    render hsType =
+        Text.intercalate " " -- remove all line breaks, tabs and multiple spaces
+      . Text.words
+      . Text.pack
+      $ Out.renderWithStyle
+          (dynFlags { pprUserLength = 1 })
+          (Out.ppr hsType)
+          (Out.setStyleColoured False
+            $ Out.mkErrStyle dynFlags Out.neverQualify)
