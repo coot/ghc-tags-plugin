@@ -78,42 +78,24 @@ import           Name         ( nameOccName
 -- | Kind of the term.
 --
 data GhcTagKind
-  = GtkTerm
-  -- ^ @`@
-  | GtkFunction
-  -- ^ @λ@
-  | GtkTypeConstructor
-  -- ^ @Λ@
-  | GtkDataConstructor
-  -- ^ @c@
-  | GtkGADTConstructor
-  -- ^ @g@
-  | GtkRecordField
-  -- ^ @r@
-  | GtkTypeSynonym
-  -- ^ @≡@
-  | GtkTypeSignature
-  -- ^ @⊢@
-  | GtkPatternSynonym
-  -- ^ @p@
-  | GtkTypeClass
-  -- ^ @C@
-  | GtkTypeClassMember
-  -- ^ @m@
-  | GtkTypeClassInstance (HsType GhcPs)
-  -- ^ @i@
-  | GtkTypeFamily
-  -- ^ @f@
-  | GtkTypeFamilyInstance
-  -- ^ @F@
-  | GtkDataTypeFamily
-  -- ^ @d@
-  | GtkDataTypeFamilyInstance
-  -- ^ @D@
-  | GtkForeignImport
-  -- ^ @I@
-  | GtkForeignExport
-  -- ^ @E@
+    = GtkTerm
+    | GtkFunction
+    | GtkTypeConstructor
+    | GtkDataConstructor
+    | GtkGADTConstructor
+    | GtkRecordField
+    | GtkTypeSynonym
+    | GtkTypeSignature
+    | GtkPatternSynonym
+    | GtkTypeClass
+    | GtkTypeClassMember
+    | GtkTypeClassInstance (HsType GhcPs)
+    | GtkTypeFamily
+    | GtkTypeFamilyInstance
+    | GtkDataTypeFamily
+    | GtkDataTypeFamilyInstance
+    | GtkForeignImport
+    | GtkForeignExport
 
 
 -- | We can read names from using fields of type 'GHC.Hs.Extensions.IdP' (a type
