@@ -23,7 +23,13 @@ import           Test.Tag.Generators
 
 tests :: TestTree
 tests = testGroup "CTag"
-  [ testProperty "round-trip" roundTripProp
+  [ testGroup "CTag ByteString codec"
+    [ testProperty "parseTag . formatTag" roundTripProp
+    ]
+  , testGroup "TagKind to Char converstion"
+    [ testProperty "tagKindToChar . charToTagKind" tagKindCharToCharProp
+    , testProperty "charToTagKind . tagKindToChar" tagKindTagKindToTagKindProp
+    ]
   ]
 
 --
@@ -75,3 +81,25 @@ roundTripProp (ArbCTag tag) =
     projectTagAddress t@Tag {tagAddr = TagLineCol line _} =
       t { tagAddr = TagLine line }
     projectTagAddress t = t
+
+--
+--
+--
+
+tagKindCharToCharProp :: Char -> Bool
+tagKindCharToCharProp c = Just c == CTag.tagKindToChar (CTag.charToTagKind c)
+
+newtype ArbCTagKind = ArbCTagKind { getArbCTagKind :: CTagKind }
+  deriving Show
+
+instance Arbitrary ArbCTagKind where
+    arbitrary = ArbCTagKind <$> genTagKind SingCTag
+
+
+tagKindTagKindToTagKindProp :: ArbCTagKind -> Bool
+tagKindTagKindToTagKindProp (ArbCTagKind tk) = 
+      (case tk of
+        NoKind -> Nothing
+        _      -> Just tk)
+    ==
+      (CTag.charToTagKind <$> CTag.tagKindToChar tk)
