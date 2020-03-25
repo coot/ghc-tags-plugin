@@ -337,7 +337,7 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
       UnhelpfulSpan {} -> Nothing
       RealSrcSpan realSrcSpan ->
         Just $ Tag
-          { tagName       = TagName (Text.decodeUtf8 $ fs_bs gtTag)
+          { tagName       = TagName tagName 
           , tagFilePath   = Text.unpack
                           $ Text.decodeUtf8 $ fs_bs (srcSpanFile realSrcSpan)
 
@@ -358,12 +358,14 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
           }
 
   where
+    tagName = Text.decodeUtf8 $ fs_bs gtTag
+
     fromGhcTagKind :: GhcTagKind -> CTagKind
     fromGhcTagKind = \case
       GtkTerm                   -> TkTerm
       GtkFunction               -> TkFunction
       GtkTypeConstructor {}     -> TkTypeConstructor
-      GtkDataConstructor        -> TkDataConstructor
+      GtkDataConstructor {}     -> TkDataConstructor
       GtkGADTConstructor {}     -> TkGADTConstructor
       GtkRecordField            -> TkRecordField
       GtkTypeSynonym {}         -> TkTypeSynonym
@@ -421,11 +423,19 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
           GtkTypeSynonym hsType ->
             mkField typeFieldName hsType
 
-          GtkGADTConstructor hsType ->
-            mkField typeFieldName hsType
-
           GtkTypeConstructor (Just hsKind) ->
             mkField kindFieldName hsKind
+
+          GtkDataConstructor ty fields ->
+            TagFields
+              [TagField
+                { fieldName  = typeFieldName
+                , fieldValue = Text.intercalate " -> " (map render fields ++ [render ty])
+                }]
+
+
+          GtkGADTConstructor hsType ->
+            mkField typeFieldName hsType
 
           _ -> mempty
 

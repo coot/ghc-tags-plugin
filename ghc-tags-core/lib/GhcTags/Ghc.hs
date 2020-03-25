@@ -46,6 +46,7 @@ import           HsDecls      ( ForeignImport (..)
                               , InstDecl (..)
                               , TyClDecl (..)
                               , TyFamInstDecl (..)
+                              , hsConDeclArgTys
                               )
 import           HsImpExp     ( IE (..)
                               , IEWildcard (..)
@@ -86,7 +87,10 @@ data GhcTagKind
     = GtkTerm
     | GtkFunction
     | GtkTypeConstructor        (Maybe (HsKind GhcPs))
-    | GtkDataConstructor
+    -- | H98 data construtor
+    | GtkDataConstructor        (Located RdrName) -- ^ type name
+                                [HsType GhcPs]    -- ^ fields type
+    -- | GADT constructor with its type
     | GtkGADTConstructor               (HsType GhcPs)
     | GtkRecordField
     | GtkTypeSynonym                   (HsType GhcPs)
@@ -417,7 +421,8 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
       ++ mkHsConDeclDetails tyName con_args
 
     mkConsTags tyName ConDeclH98  { con_name, con_args } =
-        mkGhcTagForMember con_name tyName GtkDataConstructor
+        mkGhcTagForMember con_name tyName
+          (GtkDataConstructor tyName (map unLoc $ hsConDeclArgTys con_args))
       : mkHsConDeclDetails tyName con_args
 
     mkConsTags _ XConDecl {} = []
