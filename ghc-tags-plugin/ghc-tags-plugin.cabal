@@ -3,8 +3,9 @@ name:                ghc-tags-plugin
 version:             0.1.6.0
 synopsis:            A compiler plugin which generates tags file from GHC parsed syntax tree.
 description:
-  A /GHC compiler plugin/ which takes parsed Haskell representation @HsModule GhcPs@
-  and extracts __tags__ information and saves it either in __ctags__ or
+  A [GHC compiler plugin](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/extending_ghc.html?highlight=compiler%20plugin#compiler-plugins)
+  which takes parsed Haskell representation @HsModule GhcPs@,
+  extracts __tags__ information and saves it either in __ctags__ or
   __etags__ format.
 license:             MPL-2.0
 license-file:        LICENSE
@@ -31,10 +32,11 @@ source-repository head
 library
   hs-source-dirs:      lib
   exposed-modules:     Plugin.GhcTags
-                       Plugin.GhcTags.CTag
-                       Plugin.GhcTags.FileLock
                        Plugin.GhcTags.Options
-  other-modules:       Paths_ghc_tags_plugin
+                       Plugin.GhcTags.FileLock
+  other-modules:       Plugin.GhcTags.CTag
+                       Paths_ghc_tags_plugin
+  autogen-modules:     Paths_ghc_tags_plugin
   build-depends:       base              >=4.12.0.0 && <4.14,
                        bytestring       ^>=0.10,
                        directory        ^>=1.3,
