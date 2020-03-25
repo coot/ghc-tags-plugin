@@ -320,7 +320,7 @@ combineTags compareFn modPath = go
           LT -> a : go as' bs
           EQ -> a : go as' bs'
           GT -> b : go as  bs'
-    go [] bs = filter (\b -> tagFilePath b /= modPath) bs
+    go [] bs = filter (\b -> not (tagFilePath b `equalFilePath` modPath)) bs
     go as [] = as
     {-# INLINE go #-}
 
