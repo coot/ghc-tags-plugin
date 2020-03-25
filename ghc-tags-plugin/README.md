@@ -3,10 +3,10 @@ Ghc Tags Compiler Plugin
 ![Haskell Programming Language](https://img.shields.io/badge/language-Haskell-8D82AC.svg)
 ![MPL-2.0 License](http://img.shields.io/badge/license-MPL20-brightgreen.svg)
 
-![](https://github.com/coot/ghc-tags-plugin/workflows/Linux%20GHC-8.6.5/badge.svg)
-![](https://github.com/coot/ghc-tags-plugin/workflows/Linux%20GHC-8.8.3/badge.svg)
-![](https://github.com/coot/ghc-tags-plugin/workflows/Windows%20GHC-8.6.5/badge.svg)
-![](https://matrix.hackage.haskell.org/api/v2/packages/ghc-tags-plugin/badge)
+[![](https://github.com/coot/ghc-tags-plugin/workflows/Linux%20GHC-8.6.5/badge.svg)](https://github.com/coot/ghc-tags-plugin/actions)
+[![](https://github.com/coot/ghc-tags-plugin/workflows/Linux%20GHC-8.8.3/badge.svg)](https://github.com/coot/ghc-tags-plugin/actions)
+[![](https://github.com/coot/ghc-tags-plugin/workflows/Windows%20GHC-8.6.5/badge.svg)](https://github.com/coot/ghc-tags-plugin/actions)
+[![](https://matrix.hackage.haskell.org/api/v2/packages/ghc-tags-plugin/badge)](https://matrix.hackage.haskell.org/#/package/ghc-tags-plugin)
 
 A [Ghc Compiler Plugin](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/extending_ghc.html#compiler-plugins)
 which generates tags for each compiled module or component.
