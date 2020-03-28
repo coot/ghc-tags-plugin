@@ -1,23 +1,28 @@
-{-# LANGUAGE GADTs          #-}
-{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 -- | 'bytestring''s 'Builder' for a 'Tag'
 --
 module GhcTags.CTag.Formatter
   ( formatTagsFile
+  -- * format a ctag
   , formatTag
+  -- * format a pseudo-ctag
   , formatHeader
   ) where
 
+import           Control.Arrow ((|||))
 import           Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as BS
 import           Data.Char (isAscii)
+import           Data.Text          (Text)
 import qualified Data.Text          as Text
 import qualified Data.Text.Encoding as Text
-import           Text.Printf (printf)
 
 import           GhcTags.Tag
 import           GhcTags.Utils (endOfLine)
+import           GhcTags.CTag.Header
 import           GhcTags.CTag.Utils
 
 
@@ -71,14 +76,62 @@ formatField TagField { fieldName, fieldValue } =
    <> BS.byteString (Text.encodeUtf8 fieldValue)
 
 
-formatHeader :: (String, String) -> Builder
-formatHeader (header, arg) = BS.stringUtf8 $ printf ("!_" ++ header ++ "\t%s\t//" ++ endOfLine) arg
+formatHeader :: Header -> Builder
+formatHeader Header { headerType, headerLanguage, headerArg, headerComment } =
+    case headerType of
+      FileEncoding ->
+        formatTextHeaderArgs "FILE_ENCODING"     headerLanguage headerArg headerComment
+      FileFormat ->
+        formatIntHeaderArgs "FILE_FORMAT"        headerLanguage headerArg headerComment
+      FileSorted ->
+        formatIntHeaderArgs "FILE_SORTED"        headerLanguage headerArg headerComment
+      OutputMode ->
+        formatTextHeaderArgs "OUTPUT_MODE"       headerLanguage headerArg headerComment
+      KindDescription ->
+        formatTextHeaderArgs "KIND_DESCRIPTION"  headerLanguage headerArg headerComment
+      KindSeparator ->
+        formatTextHeaderArgs "KIND_SEPARATOR"    headerLanguage headerArg headerComment
+      ProgramAuthor ->
+        formatTextHeaderArgs "PROGRAM_AUTHOR"    headerLanguage headerArg headerComment
+      ProgramName ->
+        formatTextHeaderArgs "PROGRAM_NAME"      headerLanguage headerArg headerComment
+      ProgramUrl ->
+        formatTextHeaderArgs "PROGRAM_URL"       headerLanguage headerArg headerComment
+      ProgramVersion ->
+        formatTextHeaderArgs "PROGRAM_VERSION"   headerLanguage headerArg headerComment
+      ExtraDescription ->
+        formatTextHeaderArgs "EXTRA_DESCRIPTION" headerLanguage headerArg headerComment
+      FieldDescription ->
+        formatTextHeaderArgs "FIELD_DESCRIPTION" headerLanguage headerArg headerComment
+      PseudoTag name ->
+        formatHeaderArgs (BS.byteString . Text.encodeUtf8)
+                         "!_" name headerLanguage headerArg headerComment
+  where
+    formatHeaderArgs :: (ty -> Builder)
+                     -> String
+                     -> Text
+                     -> Maybe Text
+                     -> ty
+                     -> Text
+                     -> Builder
+    formatHeaderArgs formatArg prefix headerName language arg comment =
+         BS.stringUtf8 prefix
+      <> BS.byteString (Text.encodeUtf8 headerName)
+      <> foldMap ((BS.charUtf8 '!' <>) . BS.byteString . Text.encodeUtf8) language
+      <> BS.charUtf8 '\t'
+      <> formatArg arg
+      <> BS.stringUtf8 "\t/"
+      <> BS.byteString (Text.encodeUtf8 comment)
+      <> BS.charUtf8 '/'
+      <> BS.stringUtf8 endOfLine
+
+    formatTextHeaderArgs = formatHeaderArgs (BS.byteString . Text.encodeUtf8) "!_TAG_"
+    formatIntHeaderArgs  = formatHeaderArgs BS.intDec "!_TAG_"
+
 
 -- | 'ByteString' 'Builder' for vim 'Tag' file.
 --
-formatTagsFile :: [(String, String)] -- ^ list of headers
-               -> [CTag]             -- ^ 'CTag's
+formatTagsFile :: [Either Header CTag]             -- ^ 'CTag's
                -> Builder
-formatTagsFile headers tags =
-       foldMap formatHeader headers
-    <> foldMap formatTag tags
+formatTagsFile tags =
+    foldMap (formatHeader ||| formatTag) tags

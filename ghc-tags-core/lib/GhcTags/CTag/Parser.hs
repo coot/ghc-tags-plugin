@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns               #-}
 {-# LANGUAGE LambdaCase                 #-}
+{-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE NamedFieldPuns             #-}
@@ -11,7 +12,10 @@
 module GhcTags.CTag.Parser
   ( parseTagsFile
   , parseTagLine
+  -- * parse a ctag
   , parseTag
+  -- * parse a pseudo-ctag
+  , parseHeader
   ) where
 
 import           Control.Arrow ((***))
@@ -19,13 +23,13 @@ import           Control.Applicative (many, (<|>))
 import           Data.Attoparsec.Text  (Parser, (<?>))
 import qualified Data.Attoparsec.Text  as AT
 import           Data.Functor (void, ($>))
-import           Data.Maybe (catMaybes)
 import           Data.Text          (Text)
 import qualified Data.Text          as Text
 import           System.FilePath (FilePath)
 
 import           GhcTags.Tag
 import qualified GhcTags.Utils as Utils
+import           GhcTags.CTag.Header
 import           GhcTags.CTag.Utils
 
 
@@ -134,42 +138,96 @@ parseField =
 
 -- | A vim-style tag file parser.
 --
-parseTags :: Parser [CTag]
-parseTags = catMaybes <$> many parseTagLine
+parseTags :: Parser [Either Header CTag]
+parseTags = many parseTagLine
 
 
 -- | Parse either a header line ot a 'CTag'.
 --
-parseTagLine :: Parser (Maybe CTag)
+parseTagLine :: Parser (Either Header CTag)
 parseTagLine =
-    either (const Nothing) Just
-      <$> AT.eitherP
-            (parseHeader <?> "failed parsing tag")
-            (parseTag    <?> "failed parsing header")
+    AT.eitherP
+      (parseHeader <?> "failed parsing tag")
+      (parseTag    <?> "failed parsing header")
 
 
-parseHeader :: Parser ()
-parseHeader = AT.choice
-    [ AT.string (Text.pack "!_TAG_FILE_ENCODING")   *> params
-    , AT.string (Text.pack "!_TAG_FILE_FORMAT")     *> params
-    , AT.string (Text.pack "!_TAG_FILE_SORTED")     *> params
-    , AT.string (Text.pack "!_TAG_KIND_DESCRPTION") *> params
-    , AT.string (Text.pack "!_TAG_KIND_SEPARATOR")  *> params
-    , AT.string (Text.pack "!_TAG_OUTPUT_FILESEP")  *> params
-    , AT.string (Text.pack "!_TAG_OUTPUT_MODE")     *> params
-    , AT.string (Text.pack "!_TAG_PROGRAM_AUTHOR")  *> params
-    , AT.string (Text.pack "!_TAG_PROGRAM_NAME")    *> params
-    , AT.string (Text.pack "!_TAG_PROGRAM_URL")     *> params
-    , AT.string (Text.pack "!_TAG_PROGRAM_VERSION") *> params
-    ]
+parseHeader :: Parser Header
+parseHeader = do
+    e <- AT.string "!_TAG_" $> False
+         <|>
+         AT.string "!_" $> True
+    case e of
+      True ->
+               flip parsePseudoTagArgs (AT.takeWhile notTabOrNewLine)
+             . PseudoTag
+         =<< AT.takeWhile (\x -> notTabOrNewLine x && x /= '!')
+      False -> do
+        headerType <-
+              AT.string "FILE_ENCODING"     $> SomeHeaderType FileEncoding
+          <|> AT.string "FILE_FORMAT"       $> SomeHeaderType FileFormat
+          <|> AT.string "FILE_SORTED"       $> SomeHeaderType FileSorted
+          <|> AT.string "OUTPUT_MODE"       $> SomeHeaderType OutputMode
+          <|> AT.string "KIND_DESCRIPTION"  $> SomeHeaderType KindDescription
+          <|> AT.string "KIND_SEPARATOR"    $> SomeHeaderType KindSeparator
+          <|> AT.string "PROGRAM_AUTHOR"    $> SomeHeaderType ProgramAuthor
+          <|> AT.string "PROGRAM_NAME"      $> SomeHeaderType ProgramName
+          <|> AT.string "PROGRAM_URL"       $> SomeHeaderType ProgramUrl
+          <|> AT.string "PROGRAM_VERSION"   $> SomeHeaderType ProgramVersion
+          <|> AT.string "EXTRA_DESCRIPTION" $> SomeHeaderType ExtraDescription
+          <|> AT.string "FIELD_DESCRIPTION" $> SomeHeaderType FieldDescription
+        case headerType of
+          SomeHeaderType ht@FileEncoding ->
+              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+          SomeHeaderType ht@FileFormat ->
+              parsePseudoTagArgs ht AT.decimal
+          SomeHeaderType ht@FileSorted ->
+              parsePseudoTagArgs ht AT.decimal
+          SomeHeaderType ht@OutputMode ->
+              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+          SomeHeaderType ht@KindDescription ->
+              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+          SomeHeaderType ht@KindSeparator ->
+              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+          SomeHeaderType ht@ProgramAuthor ->
+              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+          SomeHeaderType ht@ProgramName ->
+              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+          SomeHeaderType ht@ProgramUrl ->
+              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+          SomeHeaderType ht@ProgramVersion ->
+              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+          SomeHeaderType ht@ExtraDescription ->
+              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+          SomeHeaderType ht@FieldDescription ->
+              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+          SomeHeaderType PseudoTag {} ->
+              error "parseHeader: impossible happened"
+
   where
-    params = void $ AT.char '\t' *> AT.skipWhile Utils.notNewLine *> endOfLine
+    parsePseudoTagArgs :: Show ty
+                       => HeaderType ty
+                       -> Parser ty
+                       -> Parser Header
+    parsePseudoTagArgs ht parseArg =
+              Header ht
+          <$> ( (Just <$> (AT.char '!' *> AT.takeWhile notTabOrNewLine))
+                <|> pure Nothing
+              )
+          <*> (AT.char '\t' *> parseArg)
+          <*> (AT.char '\t' *> parseComment)
+
+    parseComment :: Parser Text
+    parseComment =
+         AT.char '/'
+      *> (Text.init <$> AT.takeWhile notNewLine)
+      <* endOfLine
+
 
 
 -- | Parse a vim-style tag file.
 --
 parseTagsFile :: Text
-              -> IO (Either String [CTag])
+              -> IO (Either String [Either Header CTag])
 parseTagsFile =
       fmap AT.eitherResult
     . AT.parseWith (pure mempty) parseTags
@@ -190,4 +248,7 @@ endOfLine = AT.string "\r\n" $> ()
 
 
 notTabOrNewLine :: Char -> Bool
-notTabOrNewLine = \x -> x /= '\t' && x /= '\n' && x /= '\r'
+notTabOrNewLine = \x -> x /= '\t' && notNewLine x
+
+notNewLine :: Char -> Bool
+notNewLine = \x -> x /= '\n' && x /= '\r'
