@@ -87,9 +87,11 @@ data GhcTagKind
     = GtkTerm
     | GtkFunction
     | GtkTypeConstructor        (Maybe (HsKind GhcPs))
+
     -- | H98 data construtor
     | GtkDataConstructor        (Located RdrName) -- ^ type name
                                 [HsType GhcPs]    -- ^ fields type
+
     -- | GADT constructor with its type
     | GtkGADTConstructor               (HsType GhcPs)
     | GtkRecordField
