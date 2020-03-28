@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs             #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -6,6 +7,7 @@ module Test.CTag (tests) where
 import qualified Data.Attoparsec.Text as AT
 import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Lazy as BL
+import           Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import           System.FilePath (normalise)
@@ -24,7 +26,8 @@ import           Test.Tag.Generators
 tests :: TestTree
 tests = testGroup "CTag"
   [ testGroup "CTag ByteString codec"
-    [ testProperty "parseTag . formatTag" roundTripProp
+    [ testProperty "parseTag . formatTag" roundTripCTagProp
+    , testProperty "parseHeader . formatHeader" roundTripHeaderProp
     ]
   , testGroup "TagKind to Char converstion"
     [ testProperty "tagKindToChar . charToTagKind" tagKindCharToCharProp
@@ -33,7 +36,7 @@ tests = testGroup "CTag"
   ]
 
 --
--- Generators
+-- CTag generator
 --
 
 newtype ArbCTag = ArbCTag { getArbCTag :: CTag }
@@ -60,8 +63,8 @@ instance Arbitrary ArbCTag where
     shrink = map ArbCTag . shrinkTag . getArbCTag
 
 
-roundTripProp :: ArbCTag -> Property
-roundTripProp (ArbCTag tag) =
+roundTripCTagProp :: ArbCTag -> Property
+roundTripCTagProp (ArbCTag tag) =
     let bs   = BL.toStrict
              . BB.toLazyByteString
              . CTag.formatTag
@@ -82,6 +85,129 @@ roundTripProp (ArbCTag tag) =
       t { tagAddr = TagLine line }
     projectTagAddress t = t
 
+
+
+--
+-- Header generator
+--
+
+data ArbHeader = ArbHeader { getArgHeader :: CTag.Header }
+  deriving Show
+
+instance Arbitrary ArbHeader where
+    arbitrary =
+      ArbHeader
+        <$> oneof
+            [ CTag.Header CTag.FileEncoding
+                <$> genLanguageText
+                <*> genTextNonEmpty
+                <*> genComment
+            , CTag.Header CTag.FileEncoding
+                <$> genLanguageText
+                <*> genTextNonEmpty
+                <*> genComment
+            , CTag.Header CTag.FileFormat
+                <$> genLanguageText
+                <*> (getPositive <$> arbitrary)
+                <*> genComment
+            , CTag.Header CTag.FileSorted
+                <$> genLanguageText
+                <*> (getPositive <$> arbitrary)
+                <*> genComment
+            , CTag.Header CTag.OutputMode
+                <$> genLanguageText
+                <*> genTextNonEmpty
+                <*> genComment
+            , CTag.Header CTag.KindDescription
+                <$> genLanguageText
+                <*> genTextNonEmpty
+                <*> genComment
+            , CTag.Header CTag.KindSeparator
+                <$> genLanguageText
+                <*> genComment
+                <*> genTextNonEmpty
+            , CTag.Header CTag.ProgramAuthor
+                <$> genLanguageText
+                <*> genTextNonEmpty
+                <*> genComment
+            , CTag.Header CTag.ProgramName
+                <$> genLanguageText
+                <*> genTextNonEmpty
+                <*> genComment
+            , CTag.Header CTag.ProgramUrl
+                <$> genLanguageText
+                <*> genTextNonEmpty
+                <*> genComment
+            , CTag.Header CTag.ProgramVersion
+                <$> genLanguageText
+                <*> genTextNonEmpty
+                <*> genComment
+            , CTag.Header CTag.ExtraDescription
+                <$> genLanguageText
+                <*> genTextNonEmpty
+                <*> genComment
+            , CTag.Header CTag.FieldDescription
+                <$> genLanguageText
+                <*> genTextNonEmpty
+                <*> genComment
+            , CTag.Header
+                <$> (CTag.PseudoTag <$> genPseudoTagName)
+                <*> genLanguageText
+                <*> genTextNonEmpty
+                <*> genComment
+            ]
+
+    shrink (ArbHeader CTag.Header { CTag.headerType, CTag.headerLanguage, CTag.headerArg, CTag.headerComment}) =
+      [ ArbHeader $ CTag.Header headerType headerLanguage' headerArg headerComment
+      | lang <- shrink headerLanguage
+      , let headerLanguage' =
+              lang >>= (\x -> if Text.null x then Nothing else Just x)
+      ]
+      ++ 
+      [ ArbHeader $ CTag.Header headerType headerLanguage headerArg' headerComment
+      | headerArg' <-
+          case CTag.headerTypeSing headerType of
+            CTag.SingHeaderTypeText -> filter (not . Text.null) (shrink headerArg)
+            CTag.SingHeaderTypeInt  -> shrink headerArg
+      ]
+      ++
+      [ ArbHeader $ CTag.Header headerType headerLanguage headerArg headerComment'
+      | headerComment' <- fixText `map` shrink headerComment
+      ]
+
+
+genPseudoTagName :: Gen Text
+genPseudoTagName =
+    suchThat (Text.filter (/= '!') . fixText <$> arbitrary)
+             (not . Text.null)
+
+genLanguageText :: Gen (Maybe Text)
+genLanguageText = oneof
+  [ pure Nothing
+  , Just <$> genTextNonEmpty
+  ]
+
+genComment :: Gen Text
+genComment = fixText <$> arbitrary
+
+roundTripHeaderProp :: ArbHeader -> Property
+roundTripHeaderProp (ArbHeader h) =
+    let bs = BL.toStrict
+           . BB.toLazyByteString
+           . CTag.formatHeader
+           $ h
+        mh = AT.parseOnly CTag.parseHeader
+           . Text.decodeUtf8
+           $ bs
+    in case mh of
+      Left  err  -> counterexample
+                      ("parser error: " ++ err ++ " bs: " ++ (Text.unpack (Text.decodeUtf8 bs)))
+                      (property False)
+      Right h'   -> counterexample
+                      (show $ Text.decodeUtf8 bs)
+                      (h === h')
+
+
 --
 --
 --
@@ -97,7 +223,7 @@ instance Arbitrary ArbCTagKind where
 
 
 tagKindTagKindToTagKindProp :: ArbCTagKind -> Bool
-tagKindTagKindToTagKindProp (ArbCTagKind tk) = 
+tagKindTagKindToTagKindProp (ArbCTagKind tk) =
       (case tk of
         NoKind -> Nothing
         _      -> Just tk)

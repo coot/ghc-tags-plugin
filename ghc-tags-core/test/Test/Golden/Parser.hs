@@ -125,7 +125,7 @@ parseGoldenCTagsFile input output = do
       Left  err  -> throwIO (userError err)
       Right tags ->
         withBinaryFile output WriteMode
-          $ flip BS.hPutBuilder (foldMap CTag.formatTag tags)
+          $ flip BS.hPutBuilder (foldMap (CTag.formatHeader ||| CTag.formatTag) tags)
 
 
 parseGoldenETagsFile

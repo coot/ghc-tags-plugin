@@ -3,6 +3,7 @@ module GhcTags.CTag
   , compareTags
   ) where
 
+import           GhcTags.CTag.Header    as X
 import           GhcTags.CTag.Parser    as X
 import           GhcTags.CTag.Formatter as X
 import           GhcTags.CTag.Utils     as X

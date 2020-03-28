@@ -42,6 +42,7 @@ library
                        GhcTags.Tag
                        GhcTags.Stream
                        GhcTags.CTag
+                       GhcTags.CTag.Header
                        GhcTags.CTag.Parser
                        GhcTags.CTag.Formatter
                        GhcTags.CTag.Utils
