@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes  #-}
 {-# OPTIONS -Wno-orphans #-}
 
 module Main (main) where
@@ -8,7 +9,9 @@ import           Control.Monad.State.Strict
 import qualified Data.ByteString         as BS
 import qualified Data.ByteString.Lazy    as BSL
 import qualified Data.ByteString.Builder as BB
+import           Data.Either (rights)
 import           Data.Foldable (traverse_)
+import           Data.Maybe (mapMaybe)
 import           Data.Text            (Text)
 import qualified Data.Text.Encoding as Text
 import           System.IO
@@ -25,17 +28,21 @@ import           GhcTags.Tag
 import           GhcTags.Stream
 import qualified GhcTags.CTag as CTag
 
-evalList :: [a] -> ()
-evalList [] = ()
-evalList (a : as) = a `seq` evalList as `seq` ()
+evalListWith :: (forall b. a -> b -> b) -> [a] -> ()
+evalListWith _seq_ [] = ()
+evalListWith seq_ (a : as) = a `seq_` (evalListWith seq_ as) `seq` ()
 
-evalTags :: Either String [CTag] -> ()
-evalTags = either (`seq` ()) evalList
+evalEither :: Either a b -> x -> x
+evalEither (Left a) x = a `seq` x
+evalEither (Right b) x = b `seq` x
+
+evalTags :: Either String [Either CTag.Header CTag] -> ()
+evalTags = either (`seq` ()) (evalListWith evalEither)
 
 newtype TagsNF = TagsNF [CTag]
 
 instance NFData TagsNF where
-    rnf (TagsNF tags) = evalList tags
+    rnf (TagsNF tags) = evalListWith seq tags
 
 main :: IO ()
 main = defaultMain
@@ -84,7 +91,8 @@ main = defaultMain
       [ env
           (do
             text <- Text.decodeUtf8 <$> BS.readFile "test/golden/io-sim-classes.tags"
-            Right tags  <- CTag.parseTagsFile text
+            Right tags  <- fmap (mapMaybe (either (const Nothing) Just))
+                           <$> CTag.parseTagsFile text
             return (tagFilePath (head tags), TagsNF tags)
           )
           $ \ ~(modPath, TagsNF tags) ->
@@ -96,7 +104,8 @@ main = defaultMain
       , env
           (do
             text <- Text.decodeUtf8 <$> BS.readFile "test/golden/ouroboros-network.tags"
-            Right tags  <- CTag.parseTagsFile text
+            Right tags  <- fmap (mapMaybe (either (const Nothing) Just))
+                           <$> CTag.parseTagsFile text
             return (tagFilePath (head tags), TagsNF tags)
           )
           $ \ ~(modPath, TagsNF tags) ->
@@ -117,7 +126,7 @@ benchReadParseFormat path = do
     res  <- CTag.parseTagsFile text
     case res of
       Left err   -> throwIO (userError err)
-      Right tags -> pure $ BB.toLazyByteString (CTag.formatTagsFile [] tags)
+      Right tags -> pure $ BB.toLazyByteString (CTag.formatTagsFile tags)
 
 
 benchStreamParseFormat :: FilePath -> IO ()
@@ -147,7 +156,10 @@ benchStreamTags filePath modPath tags =
             pipe :: Pipes.Effect (StateT [CTag] IO) ()
             pipe =
               Pipes.for
-                (Pipes.hoist Pipes.lift $ tagParser CTag.parseTagLine producer)
+                (Pipes.hoist Pipes.lift
+                  $ tagParser
+                      (either (const Nothing) Just <$> CTag.parseTagLine)
+                      producer)
                 (runCombineTagsPipe writeHandle CTag.compareTags CTag.formatTag modPath)
         tags' <- execStateT (Pipes.runEffect pipe) tags
         traverse_ (BSL.hPut writeHandle . BB.toLazyByteString . CTag.formatTag) tags'
@@ -160,5 +172,5 @@ benchReadTags filePath modPath tags = do
          Right tags' <-
            Text.decodeUtf8 <$> BS.hGetContents readHandle
            >>= CTag.parseTagsFile
-         let tags'' = combineTags CTag.compareTags modPath tags tags'
-         BB.hPutBuilder writeHandle (CTag.formatTagsFile [] tags'')
+         let tags'' = combineTags CTag.compareTags modPath tags (rights tags')
+         BB.hPutBuilder writeHandle (CTag.formatTagsFile (Right `map` tags''))
