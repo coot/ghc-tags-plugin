@@ -1,3 +1,33 @@
+!_TAG_FILE_FORMAT	2	//
+!_TAG_FILE_SORTED	1	//
+!_TAG_FILE_ENCODING	utf-8	//
+!_TAG_PROGRAM_AUTHOR	Marcin Szamotulski	//
+!_TAG_PROGRAM_NAME	ghc-tags-plugin	//
+!_TAG_PROGRAM_URL	https://hackage.haskell.org/package/ghc-tags-plugin	//
+!_TAG_PROGRAM_VERSION	0.1.6.0	//
+!_TAG_FIELD_DESCRIPTION!Haskell	type	/type of expression/
+!_TAG_FIELD_DESCRIPTION!Haskell	ffi	/foreign object name/
+!_TAG_FIELD_DESCRIPTION!Haskell	file	/not exported term/
+!_TAG_FIELD_DESCRIPTION!Haskell	instance	/class, type or data type instance/
+!_TAG_FIELD_DESCRIPTION!Haskell	Kind	/kind of a type/
+!_TAG_KIND_DESCRIPTION!Haskell	`	/module top level term, but not a function/
+!_TAG_KIND_DESCRIPTION!Haskell	λ	/module top level function term/
+!_TAG_KIND_DESCRIPTION!Haskell	Λ	/type constructor/
+!_TAG_KIND_DESCRIPTION!Haskell	c	/data constructor/
+!_TAG_KIND_DESCRIPTION!Haskell	g	/gadt constructor/
+!_TAG_KIND_DESCRIPTION!Haskell	r	/record field/
+!_TAG_KIND_DESCRIPTION!Haskell	≡	/type synonym/
+!_TAG_KIND_DESCRIPTION!Haskell	~	/type signature/
+!_TAG_KIND_DESCRIPTION!Haskell	p	/pattern synonym/
+!_TAG_KIND_DESCRIPTION!Haskell	C	/type class/
+!_TAG_KIND_DESCRIPTION!Haskell	m	/type class member/
+!_TAG_KIND_DESCRIPTION!Haskell	i	/type class instance/
+!_TAG_KIND_DESCRIPTION!Haskell	F	/type family/
+!_TAG_KIND_DESCRIPTION!Haskell	f	/type family instance/
+!_TAG_KIND_DESCRIPTION!Haskell	D	/data type family/
+!_TAG_KIND_DESCRIPTION!Haskell	d	/data type family instance/
+!_TAG_KIND_DESCRIPTION!Haskell	I	/foreign import/
+!_TAG_KIND_DESCRIPTION!Haskell	E	/foreign export/
 .:	src/Control/Monad/Class/MonadAsync.hs	235;"	kind:⊢
 .:	src/Control/Monad/Class/MonadAsync.hs	236;"	kind:λ
 Async	src/Control/Monad/Class/MonadAsync.hs	97;"	f
