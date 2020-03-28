@@ -194,7 +194,7 @@ updateTags Options { etags, filePath = Identity tagsFile }
                       pipe :: Pipes.Effect (StateT [CTag] (SafeT IO)) ()
                       pipe =
                         Pipes.for
-                          (Pipes.hoist Pipes.lift (tagParser CTag.parseTagLine producer)
+                          (Pipes.hoist Pipes.lift (tagParser (either (const Nothing) Just <$> CTag.parseTagLine) producer)
                             `Pipes.Safe.catchP` \(e :: IOException) ->
                               Pipes.lift $ Pipes.liftIO $
                                 -- don't re-throw; this would kill `ghc`, error
