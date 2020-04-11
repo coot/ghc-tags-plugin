@@ -3,8 +3,3 @@ packages: ghc-tags-plugin
 
 package ghc-tags-core
   tests: True
-
-source-repository-package
-  type: git
-  location: https://github.com/coot/text-pipes
-  tag: 1e8bd919a8b5b3ec20351340f2495dd65047839c
