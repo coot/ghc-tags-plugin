@@ -11,6 +11,7 @@ import qualified Data.ByteString.Lazy as BL
 import           Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
+import qualified System.FilePath.ByteString as FilePath
 
 import           Test.Tasty (TestTree, testGroup)
 import           Test.Tasty.QuickCheck (testProperty)
@@ -77,12 +78,19 @@ roundTripCTagProp (ArbCTag tag) =
                       (property False)
       Right tag' -> counterexample
                       (show $ Text.decodeUtf8 bs)
-                      (projectTagAddress tag === tag')
+                      (projectTag tag === tag')
   where
-    projectTagAddress :: CTag -> CTag
-    projectTagAddress t@Tag {tagAddr = TagLineCol line _} =
-      t { tagAddr = TagLine line }
-    projectTagAddress t = t
+    projectTag :: CTag -> CTag
+    projectTag t@Tag {tagFilePath = TagFilePath path, tagAddr} =
+      t { tagFilePath = TagFilePath
+                      . Text.decodeUtf8
+                      . FilePath.normalise
+                      . Text.encodeUtf8
+                      $ path
+        , tagAddr = case tagAddr of
+            TagLineCol line _ -> TagLine line
+            _                 -> tagAddr
+        }
 
 
 
