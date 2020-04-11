@@ -106,12 +106,12 @@ benchmark benchmarks
                      , bytestring
                      , criterion
                      , deepseq
+                     , filepath-bytestring
                      , ghc-tags-core
                      , mtl
                      , pipes
                      , pipes-attoparsec
                      , pipes-bytestring
-                     , pipes-text
                      , text
   ghc-options:         -Wall -rtsopts
 
