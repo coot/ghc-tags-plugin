@@ -20,8 +20,6 @@ import           Data.Attoparsec.Text  (Parser, (<?>))
 import qualified Data.Attoparsec.Text  as AT
 import           Data.Functor (($>))
 import           Data.Text (Text)
-import qualified Data.Text as Text
-import           System.FilePath (FilePath)
 
 import           GhcTags.Tag
 import qualified GhcTags.Utils as Utils
@@ -41,14 +39,14 @@ parseTagsFile =
 --
 parseTagFileSection :: Parser [ETag]
 parseTagFileSection = do
-      tagFile <-
+      tagFilePath <-
         AT.char '\x0c' *> endOfLine
-                       *> parseTagFile
-      many (parseTag tagFile)
+                       *> parseTagFilePath
+      many (parseTag tagFilePath)
 
-parseTagFile :: Parser FilePath
-parseTagFile =
-      Text.unpack
+parseTagFilePath :: AT.Parser TagFilePath
+parseTagFilePath =
+      TagFilePath
   <$> AT.takeWhile (\x -> x /= ',' && Utils.notNewLine x)
   <*  AT.char ','
   <*  (AT.decimal :: Parser Int)
@@ -58,7 +56,7 @@ parseTagFile =
 
 -- | Parse an 'ETag' from a single line.
 --
-parseTag :: FilePath -> Parser ETag
+parseTag :: TagFilePath -> Parser ETag
 parseTag tagFilePath =
           mkTag
       <$> parseTagDefinition

@@ -15,7 +15,7 @@ import           Data.Function (on)
 import           Data.Functor.Identity
 import           Data.Foldable (traverse_)
 import           Data.List (nub, sortBy)
-import           System.FilePath (equalFilePath)
+import qualified Data.Text as Text
 
 import           Test.Tasty (TestTree, testGroup)
 import           Test.Tasty.QuickCheck (testProperty)
@@ -120,8 +120,8 @@ instance Arbitrary ArbOrdTag where
                      ])
              <*> genTagKind SingCTag
              <*> elements
-                     [ "Main.hs"
-                     , "Lib.hs"
+                     [ TagFilePath "Main.hs"
+                     , TagFilePath "Lib.hs"
                      ]
              <*> frequency
                    [ (8, TagLine . getPositive <$> arbitrary)
@@ -194,8 +194,8 @@ weakConsistency a = a `compareTags` a == EQ
 -- combineTags properties
 --
 
-genSmallFilePath :: Gen String
-genSmallFilePath = suchThat (resize 3 arbitrary) (not . null)
+genSmallFilePath :: Gen TagFilePath
+genSmallFilePath = TagFilePath <$> suchThat (resize 3 arbitrary) (not . Text.null)
 
 
 -- | sorted list of Tags
@@ -211,7 +211,7 @@ instance Arbitrary ArbTagList where
 
 -- | List of tags from the same file
 --
-data ArbTagsFromFile = ArbTagsFromFile FilePath [CTag]
+data ArbTagsFromFile = ArbTagsFromFile TagFilePath [CTag]
     deriving Show
 
 instance Arbitrary ArbTagsFromFile where
@@ -221,15 +221,15 @@ instance Arbitrary ArbTagsFromFile where
       let tags' = (\t -> t { tagFilePath = filePath, tagFields = mempty }) `map` tags
       pure $ ArbTagsFromFile filePath (sortBy compareTags tags')
 
-    shrink (ArbTagsFromFile fp tags) =
+    shrink (ArbTagsFromFile fp@(TagFilePath rawPath) tags) =
       [ ArbTagsFromFile fp (sortBy compareTags tags')
       -- Don't shrink file name!
       | tags' <- shrinkList shrinkTag' tags
       ]
       ++
-      [ ArbTagsFromFile fp' ((\t -> t { tagFilePath = fp' }) `map` tags)
-      | fp' <- shrinkList (const []) fp
-      , not (null fp')
+      [ ArbTagsFromFile (TagFilePath rawPath') ((\t -> t { tagFilePath = TagFilePath rawPath' }) `map` tags)
+      | rawPath' <- shrink rawPath
+      , not (Text.null rawPath')
       ]
 
 
@@ -268,16 +268,16 @@ combineTags_identity (ArbTagsFromFile fp as) =
 --
 combineTags_preserve :: ArbTagsFromFile -> ArbTagList -> Bool
 combineTags_preserve (ArbTagsFromFile fp as) (ArbTagList bs) =
-       filter (\t -> not $ tagFilePath t `equalFilePath` fp) (combineTags CTag.compareTags fp as bs)
+       filter (\t -> not $ tagFilePath t == fp) (combineTags CTag.compareTags fp as bs)
     == 
-       filter (\t -> not $ tagFilePath t `equalFilePath` fp) bs
+       filter (\t -> not $ tagFilePath t == fp) bs
 
 
 -- | Substitutes all tags of the current file.
 --
 combineTags_substitution :: ArbTagsFromFile -> ArbTagList -> Bool
 combineTags_substitution (ArbTagsFromFile fp as) (ArbTagList bs) =
-       filter (\t -> tagFilePath t `equalFilePath` fp) (combineTags CTag.compareTags fp as bs)
+       filter (\t -> tagFilePath t == fp) (combineTags CTag.compareTags fp as bs)
     == 
        as
 
@@ -301,7 +301,7 @@ combineTags_order (ArbTagsFromFile fp as) (ArbTagList bs) =
 -- `TagLine 10` with `TagLine 10 3`, even if they are the same tags.  The crux
 -- of the problem is that `ctags` have no way of representing a column number.
 --
-data ArbTagsFromFileAndTagList = ArbTagsFromFileAndTagList FilePath [CTag] [CTag]
+data ArbTagsFromFileAndTagList = ArbTagsFromFileAndTagList TagFilePath [CTag] [CTag]
   deriving (Eq, Show)
 
 -- | Make addresses monotonic
@@ -345,12 +345,12 @@ instance Arbitrary ArbTagsFromFileAndTagList where
                         }
 
     -- A very basic shrinker
-    shrink (ArbTagsFromFileAndTagList filePath as bs) =
-      [ ArbTagsFromFileAndTagList filePath'
-                                  ((\t -> t { tagFilePath = filePath' }) `map` as)
+    shrink (ArbTagsFromFileAndTagList filePath@(TagFilePath rawPath) as bs) =
+      [ ArbTagsFromFileAndTagList (TagFilePath rawPath')
+                                  ((\t -> t { tagFilePath = TagFilePath rawPath' }) `map` as)
                                   bs
-      | filePath' <- shrink filePath 
-      , not (null filePath')
+      | rawPath' <- shrink rawPath 
+      , not (Text.null rawPath')
       ]
       ++
       [ ArbTagsFromFileAndTagList filePath

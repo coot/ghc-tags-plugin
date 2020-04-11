@@ -18,7 +18,6 @@ import qualified Data.ByteString.Builder as BB
 import           Data.List (groupBy)
 import           Data.Function (on)
 import           Data.Foldable (foldl')
-import qualified Data.Text          as Text
 import qualified Data.Text.Encoding as Text
 
 import           GhcTags.Tag
@@ -98,7 +97,7 @@ formatTagsFile ts@(Tag {tagFilePath} : _) =
         if builderSize > 0
           then BB.charUtf8 '\x0c'
             <> BB.stringUtf8 endOfLine
-            <> (BB.byteString . Text.encodeUtf8 . Text.pack $ tagFilePath)
+            <> BB.byteString (Text.encodeUtf8 $ getRawFilePath tagFilePath)
             <> BB.charUtf8 ','
             <> BB.intDec builderSize
             <> BB.stringUtf8 endOfLine
