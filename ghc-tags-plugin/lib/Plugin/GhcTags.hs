@@ -10,10 +10,13 @@ module Plugin.GhcTags ( plugin, Options (..) ) where
 
 import           Control.Exception
 import           Control.Monad.State.Strict
+import           Data.ByteString (ByteString)
 import qualified Data.ByteString         as BS
 import qualified Data.ByteString.Char8   as BSC
 import qualified Data.ByteString.Lazy    as BSL
 import qualified Data.ByteString.Builder as BB
+import qualified Data.Text as Text
+import qualified Data.Text.Encoding as Text
 #if __GLASGOW_HASKELL__ < 808
 import           Data.Functor (void, (<$))
 #endif
@@ -21,20 +24,18 @@ import           Data.Functor.Identity (Identity (..))
 import           Data.List (sortBy)
 import           Data.Foldable (traverse_)
 import           Data.Maybe (mapMaybe)
-import           Data.Text (Text)
-import qualified Data.Text.Encoding as Text
 import           System.Directory
 import           System.FilePath
+import           System.FilePath.ByteString (RawFilePath)
+import qualified System.FilePath.ByteString as FilePath
 import           System.IO
 
 import           Options.Applicative.Types (ParserFailure (..))
 
-import           Pipes ((~>))
 import qualified Pipes as Pipes
 import           Pipes.Safe (SafeT)
 import qualified Pipes.Safe as Pipes.Safe
 import qualified Pipes.ByteString as Pipes.BS
-import qualified Pipes.Text.Encoding as Pipes.Text
 
 import           GhcPlugins ( CommandLineOption
                             , DynFlags
@@ -164,10 +165,10 @@ updateTags Options { etags, filePath = Identity tagsFile }
             $ renameFile tagsFile sourceFile
           withFile tagsFile WriteMode  $ \writeHandle ->
             withFile sourceFile ReadWriteMode $ \readHandle -> do
-              cwd <- getCurrentDirectory
+              cwd <- BSC.pack <$> getCurrentDirectory
               -- absolute directory path of the tags file; we need canonical path
               -- (without ".." and ".") to make 'makeRelative' works.
-              tagsDir <- canonicalizePath (fst $ splitFileName tagsFile)
+              tagsDir <- BSC.pack <$> canonicalizePath (fst $ splitFileName tagsFile)
 
               case (etags, ml_hs_file ms_location) of
 
@@ -177,12 +178,12 @@ updateTags Options { etags, filePath = Identity tagsFile }
                 (False, Nothing)          -> pure ()
                 (False, Just sourcePath) -> do
 
-                  let -- text parser
-                      producer :: Pipes.Producer Text (SafeT IO) ()
+                  let sourcePathBS = Text.encodeUtf8 (Text.pack sourcePath)
+                      -- text parser
+                      producer :: Pipes.Producer ByteString (SafeT IO) ()
                       producer
                         | tagsFileExists =
-                            void (Pipes.Text.decodeUtf8
-                                   (Pipes.BS.fromHandle readHandle))
+                            void (Pipes.BS.fromHandle readHandle)
                             `Pipes.Safe.catchP` \(e :: IOException) ->
                               Pipes.lift $ Pipes.liftIO $
                                 -- don't re-throw; this would kill `ghc`, error
@@ -190,7 +191,7 @@ updateTags Options { etags, filePath = Identity tagsFile }
                                 putDocLn dynFlags (messageDoc ReadException ms_mod (displayException e))
                         | otherwise      = pure ()
 
-                      -- gags pipe
+                      -- tags pipe
                       pipe :: Pipes.Effect (StateT [CTag] (SafeT IO)) ()
                       pipe =
                         Pipes.for
@@ -202,12 +203,9 @@ updateTags Options { etags, filePath = Identity tagsFile }
                                 putDocLn dynFlags $ messageDoc ParserException ms_mod (displayException e)
                           )
                           $
-                          -- normalise paths
-                          (\tag -> Pipes.yield tag { tagFilePath = normalise (tagFilePath tag) })
-                          ~>
                           -- merge tags
                           (\tag ->
-                            runCombineTagsPipe writeHandle CTag.compareTags CTag.formatTag  (fixFilePath cwd tagsDir sourcePath) tag
+                            runCombineTagsPipe writeHandle CTag.compareTags CTag.formatTag  (fixFilePath cwd tagsDir sourcePathBS) tag
                               `Pipes.Safe.catchP` \(e :: IOException) ->
                                 Pipes.lift $ Pipes.liftIO $
                                   -- don't re-throw; this would kill `ghc`, error
@@ -236,7 +234,7 @@ updateTags Options { etags, filePath = Identity tagsFile }
                 --
                 (True, Nothing)         -> pure ()
                 (True, Just sourcePath) ->
-                  try @IOException (Text.decodeUtf8 <$> BS.hGetContents readHandle)
+                  try @IOException (BS.hGetContents readHandle)
                     >>= \case
                       Left err ->
                         putDocLn dynFlags $ messageDoc ReadException ms_mod (displayException err)
@@ -255,10 +253,12 @@ updateTags Options { etags, filePath = Identity tagsFile }
                             -- read the source file to calculate byteoffsets
                             ll <- map (succ . BS.length) . BSC.lines <$> BS.readFile sourcePath
 
-                            let tags' :: [ETag]
+                            let sourcePathBS = Text.encodeUtf8 (Text.pack sourcePath)
+
+                                tags' :: [ETag]
                                 tags' = combineTags
                                           ETag.compareTags
-                                          (fixFilePath cwd tagsDir sourcePath)
+                                          (fixFilePath cwd tagsDir sourcePathBS)
                                           (sortBy ETag.compareTags
                                             . map ( ETag.withByteOffset ll
                                                   . fixTagFilePath cwd tagsDir
@@ -277,14 +277,23 @@ updateTags Options { etags, filePath = Identity tagsFile }
       (dir, name) -> dir </> "." ++ name
     lockFile = sourceFile ++ ".lock"
 
-    fixFilePath :: FilePath -- curent directory
-                -> FilePath -- tags directory
-                -> FilePath -> FilePath
-    fixFilePath cwd tagsDir = normalise . makeRelative tagsDir . (cwd </>)
+    fixFilePath :: RawFilePath -- curent directory
+                -> RawFilePath -- tags directory
+                -> RawFilePath -> RawFilePath
+    fixFilePath cwd tagsDir =
+        FilePath.normalise
+      . FilePath.makeRelative tagsDir
+      . (cwd FilePath.</>)
 
-    fixTagFilePath :: FilePath -> FilePath -> Tag tk -> Tag tk
-    fixTagFilePath cwd tagsDir tag@Tag { tagFilePath } =
-      tag { tagFilePath = fixFilePath cwd tagsDir tagFilePath  }
+    -- we are missing `Text` based `FilePath` library!
+    fixTagFilePath :: RawFilePath -> RawFilePath -> Tag tk -> Tag tk
+    fixTagFilePath cwd tagsDir tag@Tag { tagFilePath = TagFilePath fp } =
+      tag { tagFilePath =
+              TagFilePath
+                (Text.decodeUtf8
+                  (fixFilePath cwd tagsDir
+                    (Text.encodeUtf8 fp)))
+          }
 
 
 --
