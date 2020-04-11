@@ -1,0 +1,120 @@
+!_TAG_FILE_FORMAT	2	//
+!_TAG_FILE_SORTED	1	//
+!_TAG_FILE_ENCODING	utf-8	//
+!_TAG_PROGRAM_AUTHOR	Marcin Szamotulski	//
+!_TAG_PROGRAM_NAME	ghc-tags-plugin	//
+!_TAG_PROGRAM_URL	https://hackage.haskell.org/package/ghc-tags-plugin	//
+!_TAG_PROGRAM_VERSION	0.1.6.0	//
+!_TAG_FIELD_DESCRIPTION!Haskell	type	/type of expression/
+!_TAG_FIELD_DESCRIPTION!Haskell	ffi	/foreign object name/
+!_TAG_FIELD_DESCRIPTION!Haskell	file	/not exported term/
+!_TAG_FIELD_DESCRIPTION!Haskell	instance	/class, type or data type instance/
+!_TAG_FIELD_DESCRIPTION!Haskell	Kind	/kind of a type/
+!_TAG_KIND_DESCRIPTION!Haskell	`	/module top level term, but not a function/
+!_TAG_KIND_DESCRIPTION!Haskell	λ	/module top level function term/
+!_TAG_KIND_DESCRIPTION!Haskell	Λ	/type constructor/
+!_TAG_KIND_DESCRIPTION!Haskell	c	/data constructor/
+!_TAG_KIND_DESCRIPTION!Haskell	g	/gadt constructor/
+!_TAG_KIND_DESCRIPTION!Haskell	r	/record field/
+!_TAG_KIND_DESCRIPTION!Haskell	≡	/type synonym/
+!_TAG_KIND_DESCRIPTION!Haskell	~	/type signature/
+!_TAG_KIND_DESCRIPTION!Haskell	p	/pattern synonym/
+!_TAG_KIND_DESCRIPTION!Haskell	C	/type class/
+!_TAG_KIND_DESCRIPTION!Haskell	m	/type class member/
+!_TAG_KIND_DESCRIPTION!Haskell	i	/type class instance/
+!_TAG_KIND_DESCRIPTION!Haskell	F	/type family/
+!_TAG_KIND_DESCRIPTION!Haskell	f	/type family instance/
+!_TAG_KIND_DESCRIPTION!Haskell	D	/data type family/
+!_TAG_KIND_DESCRIPTION!Haskell	d	/data type family instance/
+!_TAG_KIND_DESCRIPTION!Haskell	I	/foreign import/
+!_TAG_KIND_DESCRIPTION!Haskell	E	/foreign export/
+AsClient	src/Network/TypedProtocol/Core.hs	319;"	c
+AsServer	src/Network/TypedProtocol/Core.hs	319;"	c
+Await	src/Network/TypedProtocol/Core.hs	458;"	g
+ClientAgency	src/Network/TypedProtocol/Core.hs	326;"	g
+ClientHasAgency	src/Network/TypedProtocol/Core.hs	273;"	d
+ConsQ	src/Network/TypedProtocol/Proofs.hs	318;"	g
+Done	src/Network/TypedProtocol/Core.hs	424;"	g
+Driver	src/Network/TypedProtocol/Driver.hs	66;"	kind:Λ	file:
+Driver	src/Network/TypedProtocol/Driver.hs	67;"	c
+Effect	src/Network/TypedProtocol/Core.hs	411;"	g
+EmptyQ	src/Network/TypedProtocol/Proofs.hs	317;"	g
+FlipAgency	src/Network/TypedProtocol/Core.hs	355;"	f	file:
+HasDState	src/Network/TypedProtocol/Driver.hs	220;"	g
+IsNat	src/Network/TypedProtocol/Pipelined.hs	155;"	kind:Λ
+IsSucc	src/Network/TypedProtocol/Pipelined.hs	157;"	g
+IsZero	src/Network/TypedProtocol/Pipelined.hs	156;"	g
+MaybeDState	src/Network/TypedProtocol/Driver.hs	219;"	kind:Λ
+Message	src/Network/TypedProtocol/Core.hs	269;"	d
+N	src/Network/TypedProtocol/Pipelined.hs	144;"	kind:Λ	file:
+Nat	src/Network/TypedProtocol/Pipelined.hs	153;"	kind:Λ	file:
+NoDState	src/Network/TypedProtocol/Driver.hs	221;"	g
+NobodyHasAgency	src/Network/TypedProtocol/Core.hs	282;"	d
+Outstanding	src/Network/TypedProtocol/Pipelined.hs	141;"	kind:≡	file:
+Peer	src/Network/TypedProtocol/Core.hs	401;"	kind:Λ	file:
+PeerHasAgency	src/Network/TypedProtocol/Core.hs	325;"	kind:Λ	file:
+PeerPipelined	src/Network/TypedProtocol/Pipelined.hs	32;"	kind:Λ	file:
+PeerPipelined	src/Network/TypedProtocol/Pipelined.hs	33;"	g
+PeerReceiver	src/Network/TypedProtocol/Pipelined.hs	122;"	kind:Λ	file:
+PeerRole	src/Network/TypedProtocol/Core.hs	319;"	kind:Λ	file:
+PeerSender	src/Network/TypedProtocol/Pipelined.hs	47;"	kind:Λ	file:
+Protocol	src/Network/TypedProtocol/Core.hs	262;"	C	file:
+Queue	src/Network/TypedProtocol/Proofs.hs	316;"	kind:Λ	file:
+ReceiveHandler	src/Network/TypedProtocol/Driver.hs	173;"	kind:Λ
+ReceiveHandler	src/Network/TypedProtocol/Driver.hs	174;"	g
+ReceiverAwait	src/Network/TypedProtocol/Pipelined.hs	129;"	g
+ReceiverDone	src/Network/TypedProtocol/Pipelined.hs	127;"	g
+ReceiverEffect	src/Network/TypedProtocol/Pipelined.hs	124;"	g
+S	src/Network/TypedProtocol/Pipelined.hs	144;"	c
+SenderAwait	src/Network/TypedProtocol/Pipelined.hs	79;"	g
+SenderCollect	src/Network/TypedProtocol/Pipelined.hs	118;"	g
+SenderDone	src/Network/TypedProtocol/Pipelined.hs	54;"	g
+SenderEffect	src/Network/TypedProtocol/Pipelined.hs	50;"	g
+SenderPipeline	src/Network/TypedProtocol/Pipelined.hs	94;"	g
+SenderYield	src/Network/TypedProtocol/Pipelined.hs	66;"	g
+ServerAgency	src/Network/TypedProtocol/Core.hs	327;"	g
+ServerHasAgency	src/Network/TypedProtocol/Core.hs	277;"	d
+Show	src/Network/TypedProtocol/Core.hs	331;"	i
+SomeMessage	src/Network/TypedProtocol/Driver.hs	86;"	kind:Λ	file:
+SomeMessage	src/Network/TypedProtocol/Driver.hs	87;"	g
+Succ	src/Network/TypedProtocol/Pipelined.hs	167;"	p
+Succ	src/Network/TypedProtocol/Pipelined.hs	168;"	p
+TerminalStates	src/Network/TypedProtocol/Proofs.hs	141;"	kind:Λ	file:
+TerminalStates	src/Network/TypedProtocol/Proofs.hs	142;"	g
+TheyHaveAgency	src/Network/TypedProtocol/Core.hs	351;"	kind:≡	file:
+UnsafeInt	src/Network/TypedProtocol/Pipelined.hs	153;"	c
+WeHaveAgency	src/Network/TypedProtocol/Core.hs	342;"	kind:≡	file:
+Yield	src/Network/TypedProtocol/Core.hs	436;"	g
+Z	src/Network/TypedProtocol/Pipelined.hs	144;"	c
+Zero	src/Network/TypedProtocol/Pipelined.hs	163;"	p
+Zero	src/Network/TypedProtocol/Pipelined.hs	164;"	p
+connect	src/Network/TypedProtocol/Proofs.hs	82;"	kind:⊢	file:
+connect	src/Network/TypedProtocol/Proofs.hs	87;"	kind:λ	file:
+connectPipelined	src/Network/TypedProtocol/Proofs.hs	158;"	kind:⊢	file:
+connectPipelined	src/Network/TypedProtocol/Proofs.hs	165;"	kind:λ	file:
+enqueue	src/Network/TypedProtocol/Proofs.hs	323;"	kind:⊢	file:
+enqueue	src/Network/TypedProtocol/Proofs.hs	324;"	kind:λ	file:
+exclusionLemma_ClientAndServerHaveAgency	src/Network/TypedProtocol/Core.hs	287;"	m
+exclusionLemma_NobodyAndClientHaveAgency	src/Network/TypedProtocol/Core.hs	296;"	m
+exclusionLemma_NobodyAndServerHaveAgency	src/Network/TypedProtocol/Core.hs	305;"	m
+forgetPipelined	src/Network/TypedProtocol/Proofs.hs	279;"	kind:⊢	file:
+forgetPipelined	src/Network/TypedProtocol/Proofs.hs	284;"	kind:λ	file:
+natToInt	src/Network/TypedProtocol/Pipelined.hs	173;"	kind:⊢	file:
+natToInt	src/Network/TypedProtocol/Pipelined.hs	174;"	kind:λ	file:
+pipelineInterleaving	src/Network/TypedProtocol/Proofs.hs	335;"	kind:⊢	file:
+pipelineInterleaving	src/Network/TypedProtocol/Proofs.hs	338;"	kind:λ	file:
+recvMessage	src/Network/TypedProtocol/Driver.hs	73;"	r
+runPeerWithDriver	src/Network/TypedProtocol/Driver.hs	98;"	kind:⊢	file:
+runPeerWithDriver	src/Network/TypedProtocol/Driver.hs	105;"	kind:λ	file:
+runPipelinedPeerReceiver	src/Network/TypedProtocol/Driver.hs	298;"	kind:⊢
+runPipelinedPeerReceiver	src/Network/TypedProtocol/Driver.hs	305;"	kind:λ
+runPipelinedPeerReceiverQueue	src/Network/TypedProtocol/Driver.hs	275;"	kind:⊢
+runPipelinedPeerReceiverQueue	src/Network/TypedProtocol/Driver.hs	282;"	kind:λ
+runPipelinedPeerSender	src/Network/TypedProtocol/Driver.hs	224;"	kind:⊢
+runPipelinedPeerSender	src/Network/TypedProtocol/Driver.hs	233;"	kind:λ
+runPipelinedPeerWithDriver	src/Network/TypedProtocol/Driver.hs	148;"	kind:⊢	file:
+runPipelinedPeerWithDriver	src/Network/TypedProtocol/Driver.hs	155;"	kind:λ	file:
+sendMessage	src/Network/TypedProtocol/Driver.hs	68;"	r
+startDState	src/Network/TypedProtocol/Driver.hs	78;"	r
+toIsNat	src/Network/TypedProtocol/Pipelined.hs	159;"	kind:⊢
+toIsNat	src/Network/TypedProtocol/Pipelined.hs	160;"	kind:λ
