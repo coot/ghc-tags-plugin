@@ -1,0 +1,5 @@
+free	Foreign\Marschall\Alloc.hs	324;"	kind:λ	ffi:free	type:Ptr a -> IO ()
+id	Data\Function.hs	28;"	kind:λ	type:a -> a
+alloca	Foreign\Marschall\Alloc.hs	20;"	kind:λ	type:forall a b. Storable -> (Ptr a -> IO b) ) -> IO b
+<>	Data\Semigroup.hs	10;"	kind:λ	type:Semigroup a => a -> a -> a	class:Semigroup
+mempty	Data\Monoid.hs	15;"	kind:λ	class:Monoid	type:Moind a => a
