@@ -20,6 +20,7 @@ module GhcTags.Tag
   , CTag
     -- ** Tag fields
   , TagName (..)
+  , TagFilePath (..)
   , ExCommand (..)
   , TagAddress (..)
   , CTagAddress
@@ -44,7 +45,6 @@ import           Data.Function (on)
 import           Data.Text   (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
-import           System.FilePath (equalFilePath)
 
 -- GHC imports
 import           DynFlags     ( DynFlags (pprUserLength) )
@@ -224,6 +224,11 @@ instance Monoid (TagFields ETAG) where
 type CTagFields = TagFields CTAG
 type ETagFields = TagFields ETAG
 
+newtype TagFilePath = TagFilePath { getRawFilePath :: Text }
+  deriving (Ord, Show)
+
+instance Eq TagFilePath where
+    (TagFilePath a) == (TagFilePath b) = a == b
 
 -- | Tag record.  For either ctags or etags formats.  It is either filled with
 -- information parsed from a tags file or from *GHC* ast.
@@ -233,7 +238,7 @@ data Tag (tk :: TAG_KIND) = Tag
     -- ^ name of the tag
   , tagKind       :: !(TagKind tk)
     -- ^ ctags specifc field, which classifies tags
-  , tagFilePath   :: !FilePath
+  , tagFilePath   :: !TagFilePath
     -- ^ source file path; it might not be normalised.
   , tagAddr       :: !(TagAddress tk)
     -- ^ address in source file
@@ -248,7 +253,7 @@ data Tag (tk :: TAG_KIND) = Tag
 instance Eq (Tag tk) where
     t0 == t1 = on (==) tagName t0 t1
             && on (==) tagKind t0 t1
-            && on equalFilePath tagFilePath t0 t1
+            && on (==) tagFilePath t0 t1
             && on (==) tagAddr t0 t1
             && on (==) tagDefinition t0 t1
             && on (==) tagFields t0 t1
@@ -310,17 +315,17 @@ compareTags t0 t1 = on compare tagName t0 t1
 -- complexity: /O(max n m)/
 --
 combineTags :: (Tag tk -> Tag tk -> Ordering)
-            -> FilePath
+            -> TagFilePath
             -> [Tag tk] -> [Tag tk] -> [Tag tk]
 combineTags compareFn modPath = go
   where
     go as@(a : as') bs@(b : bs')
-      | tagFilePath b `equalFilePath` modPath = go as bs'
+      | tagFilePath b == modPath = go as bs'
       | otherwise = case a `compareFn` b of
           LT -> a : go as' bs
           EQ -> a : go as' bs'
           GT -> b : go as  bs'
-    go [] bs = filter (\b -> not (tagFilePath b `equalFilePath` modPath)) bs
+    go [] bs = filter (\b -> not (tagFilePath b == modPath)) bs
     go as [] = as
     {-# INLINE go #-}
 
@@ -338,8 +343,10 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
       RealSrcSpan realSrcSpan ->
         Just $ Tag
           { tagName       = TagName tagName 
-          , tagFilePath   = Text.unpack
-                          $ Text.decodeUtf8 $ fs_bs (srcSpanFile realSrcSpan)
+          , tagFilePath   = TagFilePath
+                          $ Text.decodeUtf8
+                          $ fs_bs
+                          $ srcSpanFile realSrcSpan
 
           , tagAddr       = TagLineCol (srcSpanStartLine realSrcSpan)
                                        (srcSpanStartCol realSrcSpan)

@@ -25,7 +25,6 @@ import qualified Data.Attoparsec.Text  as AT
 import           Data.Functor (void, ($>))
 import           Data.Text          (Text)
 import qualified Data.Text          as Text
-import           System.FilePath (FilePath)
 
 import           GhcTags.Tag
 import qualified GhcTags.Utils as Utils
@@ -48,7 +47,7 @@ parseTag =
     <$> parseTagName
     <*  separator
 
-    <*> parseFileName
+    <*> parseTagFileName
     <*  separator
 
     -- includes an optional ';"' separator
@@ -89,8 +88,8 @@ parseTag =
     parseTagName = TagName <$> AT.takeWhile (/= '\t')
                            <?> "parsing tag name failed"
 
-    parseFileName :: Parser FilePath
-    parseFileName = Text.unpack <$> AT.takeWhile (/= '\t')
+    parseTagFileName :: Parser TagFilePath
+    parseTagFileName = TagFilePath <$> AT.takeWhile (/= '\t')
 
     parseExCommand :: Parser ExCommand
     parseExCommand = (\x -> ExCommand $ Text.take (Text.length x - 1) x)

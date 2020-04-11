@@ -10,7 +10,6 @@ import qualified Data.ByteString.Lazy as BL
 import           Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
-import           System.FilePath (normalise)
 
 import           Test.Tasty (TestTree, testGroup)
 import           Test.Tasty.QuickCheck (testProperty)
@@ -48,7 +47,7 @@ instance Arbitrary ArbCTag where
       <$> (TagName <$> genTextNonEmpty)
       <*> genTagKind SingCTag
       -- the 'roundTripProp' property holds only for normalised paths
-      <*> (normalise <$> genFilePath)
+      <*> genTagFilePath -- TODO normalise
       <*> frequency
             [ (2, TagLine . getPositive <$> arbitrary)
             -- we are generating `TagLineCol` even though they are not present

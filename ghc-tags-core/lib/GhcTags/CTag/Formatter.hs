@@ -17,7 +17,6 @@ import           Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as BS
 import           Data.Char (isAscii)
 import           Data.Text          (Text)
-import qualified Data.Text          as Text
 import qualified Data.Text.Encoding as Text
 
 import           GhcTags.Tag
@@ -34,7 +33,7 @@ formatTag Tag { tagName, tagFilePath, tagAddr, tagKind, tagFields = TagFields ta
        (BS.byteString . Text.encodeUtf8 . getTagName $ tagName)
     <> BS.charUtf8 '\t'
 
-    <> (BS.byteString . Text.encodeUtf8 . Text.pack $ tagFilePath)
+    <> BS.byteString (Text.encodeUtf8 . getRawFilePath $ tagFilePath)
     <> BS.charUtf8 '\t'
 
     <> formatTagAddress tagAddr

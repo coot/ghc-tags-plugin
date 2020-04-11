@@ -5,7 +5,6 @@
 module Test.Tag.Generators where
 
 import qualified Data.Char as Char
-import           Data.List as List
 import           Data.Text   (Text)
 import qualified Data.Text as Text
 
@@ -33,15 +32,17 @@ fixText :: Text -> Text
 fixText = Text.filter ( ((/= Char.Control) . Char.generalCategory)
                         /\ Char.isPrint)
 
-fixFilePath :: String -> String
-fixFilePath = List.filter ( ((/= Char.Control) . Char.generalCategory)
+fixFilePath :: TagFilePath -> TagFilePath
+fixFilePath = TagFilePath
+            . Text.filter ( ((/= Char.Control) . Char.generalCategory)
                             /\ Char.isPrint)
+            . getRawFilePath
 
-genFilePath :: Gen String
-genFilePath =
+genTagFilePath :: Gen TagFilePath
+genTagFilePath =
     suchThat
-      (fixFilePath <$> arbitrary)
-      (not . null)
+      (fixFilePath . TagFilePath <$> arbitrary)
+      (not . Text.null . getRawFilePath)
 
 genField :: Gen TagField
 genField =
@@ -138,9 +139,9 @@ shrinkTag' tag@Tag {tagName, tagAddr, tagFields} =
 
 
 shrinkTag :: Tag tk -> [Tag tk]
-shrinkTag tag@Tag {tagFilePath} =
+shrinkTag tag@Tag {tagFilePath = TagFilePath tagFilePath} =
       shrinkTag' tag
    ++ [ tag { tagFilePath = tagFilePath' }
-      | tagFilePath' <- fixFilePath `map` shrink tagFilePath
-      , not (null tagFilePath')
+      | tagFilePath' <- (fixFilePath . TagFilePath) `map` shrink tagFilePath
+      , not (Text.null $ getRawFilePath tagFilePath')
       ]

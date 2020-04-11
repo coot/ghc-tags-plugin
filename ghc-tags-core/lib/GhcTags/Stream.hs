@@ -20,7 +20,6 @@ import qualified Data.ByteString.Builder as BS
 import           Data.Functor (($>))
 import           Data.Text (Text)
 import           System.IO
-import           System.FilePath (equalFilePath)
 
 import           Pipes ((>->), (~>))
 import qualified Pipes as Pipes
@@ -53,9 +52,9 @@ tagParser parser producer = void $
 combineTagsPipe
     :: forall m (tk :: TAG_KIND).  Applicative m
     => (Tag tk -> Tag tk -> Ordering)
-    -> FilePath -- ^ file path from which the new tags were obtained
-    -> Tag tk   -- ^ tag read from disc
-    -> [Tag tk] -- ^ new tags
+    -> TagFilePath -- ^ file path from which the new tags were obtained
+    -> Tag tk      -- ^ tag read from disc
+    -> [Tag tk]    -- ^ new tags
     -> Pipes.Producer (Tag tk) m [Tag tk]
 combineTagsPipe compareFn modPath = go
   where
@@ -64,7 +63,7 @@ combineTagsPipe compareFn modPath = go
        -> Pipes.Producer (Tag tk) m [Tag tk]
 
     go tag as
-      | tagFilePath tag `equalFilePath` modPath = pure as
+      | tagFilePath tag == modPath = pure as
 
     go tag as@(a : as')
       | otherwise = case a `compareFn` tag of
@@ -82,7 +81,7 @@ runCombineTagsPipe
     => Handle
     -> (Tag tk -> Tag tk -> Ordering)
     -> (Tag tk -> Builder)
-    -> FilePath
+    -> TagFilePath
     -> Tag tk
     -> Pipes.Effect (StateT [Tag tk] m) ()
 runCombineTagsPipe writeHandle compareFn formatTag modPath =
