@@ -4,8 +4,9 @@
 
 module Test.CTag (tests) where
 
-import qualified Data.Attoparsec.Text as AT
+import qualified Data.Attoparsec.ByteString.Char8 as AChar
 import qualified Data.ByteString.Builder as BB
+import qualified Data.ByteString.Char8 as BS.Char8
 import qualified Data.ByteString.Lazy as BL
 import           Data.Text (Text)
 import qualified Data.Text as Text
@@ -68,12 +69,11 @@ roundTripCTagProp (ArbCTag tag) =
              . BB.toLazyByteString
              . CTag.formatTag
              $ tag
-        mtag = AT.parseOnly CTag.parseTag
-             . Text.decodeUtf8
+        mtag = AChar.parseOnly CTag.parseTag
              $ bs
     in case mtag of
       Left  err  -> counterexample
-                      ("parser error: " ++ err ++ " bs: " ++ (Text.unpack (Text.decodeUtf8 bs)))
+                      ("parser error: " ++ err ++ " bs: " ++ BS.Char8.unpack bs)
                       (property False)
       Right tag' -> counterexample
                       (show $ Text.decodeUtf8 bs)
@@ -195,17 +195,15 @@ roundTripHeaderProp (ArbHeader h) =
            . BB.toLazyByteString
            . CTag.formatHeader
            $ h
-        mh = AT.parseOnly CTag.parseHeader
-           . Text.decodeUtf8
+        mh = AChar.parseOnly CTag.parseHeader
            $ bs
     in case mh of
       Left  err  -> counterexample
-                      ("parser error: " ++ err ++ " bs: " ++ (Text.unpack (Text.decodeUtf8 bs)))
+                      ("parser error: " ++ err ++ " bs: " ++ BS.Char8.unpack bs)
                       (property False)
       Right h'   -> counterexample
                       (show $ Text.decodeUtf8 bs)
                       (h === h')
-
 
 --
 --
