@@ -45,6 +45,7 @@ import           Data.Function (on)
 import           Data.Text   (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
+import           System.FilePath.ByteString (RawFilePath)
 
 -- GHC imports
 import           DynFlags     ( DynFlags (pprUserLength) )
@@ -315,17 +316,18 @@ compareTags t0 t1 = on compare tagName t0 t1
 -- complexity: /O(max n m)/
 --
 combineTags :: (Tag tk -> Tag tk -> Ordering)
-            -> TagFilePath
+            -> RawFilePath
             -> [Tag tk] -> [Tag tk] -> [Tag tk]
 combineTags compareFn modPath = go
   where
+    modPathText = Text.decodeUtf8 modPath
     go as@(a : as') bs@(b : bs')
-      | tagFilePath b == modPath = go as bs'
+      | getRawFilePath (tagFilePath b) == modPathText = go as bs'
       | otherwise = case a `compareFn` b of
           LT -> a : go as' bs
           EQ -> a : go as' bs'
           GT -> b : go as  bs'
-    go [] bs = filter (\b -> not (tagFilePath b == modPath)) bs
+    go [] bs = filter (\b -> not (getRawFilePath (tagFilePath b) == modPathText)) bs
     go as [] = as
     {-# INLINE go #-}
 
