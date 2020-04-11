@@ -20,11 +20,17 @@ module GhcTags.CTag.Parser
 
 import           Control.Arrow ((***))
 import           Control.Applicative (many, (<|>))
-import           Data.Attoparsec.Text  (Parser, (<?>))
-import qualified Data.Attoparsec.Text  as AT
+import           Control.Monad (guard)
+import           Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
+import           Data.Attoparsec.ByteString  (Parser, (<?>))
+import qualified Data.Attoparsec.ByteString  as AB
+import qualified Data.Attoparsec.ByteString.Char8  as AChar
 import           Data.Functor (void, ($>))
+import           Data.Function (on)
 import           Data.Text          (Text)
 import qualified Data.Text          as Text
+import qualified Data.Text.Encoding as Text
 
 import           GhcTags.Tag
 import qualified GhcTags.Utils as Utils
@@ -72,7 +78,7 @@ parseTag =
           -- kind encoded as a single letter, followed by a list
           -- of fields or end of line.
           <|> curry (charToTagKind *** id)
-                  <$> ( separator *> AT.satisfy notTabOrNewLine )
+                  <$> ( separator *> AChar.satisfy notTabOrNewLine )
                   <*> ( separator *> parseFields <* endOfLine
                         <|>
                         endOfLine $> mempty
@@ -82,19 +88,20 @@ parseTag =
 
   where
     separator :: Parser Char
-    separator = AT.char '\t'
+    separator = AChar.char '\t'
 
     parseTagName :: Parser TagName
-    parseTagName = TagName <$> AT.takeWhile (/= '\t')
-                           <?> "parsing tag name failed"
+    parseTagName = TagName . Text.decodeUtf8
+                    <$> AChar.takeWhile (/= '\t')
+                    <?> "parsing tag name failed"
 
     parseTagFileName :: Parser TagFilePath
-    parseTagFileName = TagFilePath <$> AT.takeWhile (/= '\t')
+    parseTagFileName = TagFilePath . Text.decodeUtf8 <$> AChar.takeWhile (/= '\t')
 
     parseExCommand :: Parser ExCommand
-    parseExCommand = (\x -> ExCommand $ Text.take (Text.length x - 1) x)
-                 <$> AT.scan "" go
-                 <*  AT.anyChar
+    parseExCommand = (\x -> ExCommand $ Text.decodeUtf8 $ BS.take (BS.length x - 1) x)
+                 <$> AChar.scan "" go
+                 <*  AChar.anyChar
       where
         -- go until either eol or ';"' sequence is found.
         go :: String -> Char -> Maybe String
@@ -114,25 +121,28 @@ parseTag =
     -- We only parse `TagLine` or `TagCommand`.
     parseTagAddress :: Parser CTagAddress
     parseTagAddress =
-          TagLine <$> AT.decimal <* (endOfLine <|> void (AT.string ";\""))
+          TagLine <$> AChar.decimal <* (endOfLine <|> void (AB.string ";\""))
       <|>
           TagCommand <$> parseExCommand
 
     parseKindField :: Parser CTagKind
-    parseKindField =
-      charToTagKind <$>
-        (AT.string "kind:" *> AT.satisfy notTabOrNewLine)
+    parseKindField = do
+      x <-
+        Text.decodeUtf8
+          <$> (AB.string "kind:" *> AChar.takeWhile notTabOrNewLine)
+      guard (Text.length x == 1)
+      pure $ charToTagKind (Text.head x)
 
     parseFields :: Parser CTagFields
-    parseFields = TagFields <$> AT.sepBy parseField separator
+    parseFields = TagFields <$> AChar.sepBy parseField separator
 
 
 parseField :: Parser TagField
 parseField =
-         TagField
-     <$> AT.takeWhile (\x -> x /= ':' && notTabOrNewLine x)
-     <*  AT.char ':'
-     <*> AT.takeWhile notTabOrNewLine
+         on TagField Text.decodeUtf8
+     <$> AChar.takeWhile (\x -> x /= ':' && notTabOrNewLine x)
+     <*  AChar.char ':'
+     <*> AChar.takeWhile notTabOrNewLine
 
 
 -- | A vim-style tag file parser.
@@ -145,60 +155,61 @@ parseTags = many parseTagLine
 --
 parseTagLine :: Parser (Either Header CTag)
 parseTagLine =
-    AT.eitherP
+    AChar.eitherP
       (parseHeader <?> "failed parsing tag")
       (parseTag    <?> "failed parsing header")
 
 
 parseHeader :: Parser Header
 parseHeader = do
-    e <- AT.string "!_TAG_" $> False
+    e <- AB.string "!_TAG_" $> False
          <|>
-         AT.string "!_" $> True
+         AB.string "!_" $> True
     case e of
       True ->
-               flip parsePseudoTagArgs (AT.takeWhile notTabOrNewLine)
+               flip parsePseudoTagArgs (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
              . PseudoTag
-         =<< AT.takeWhile (\x -> notTabOrNewLine x && x /= '!')
+             . Text.decodeUtf8
+         =<< AChar.takeWhile (\x -> notTabOrNewLine x && x /= '!')
       False -> do
         headerType <-
-              AT.string "FILE_ENCODING"     $> SomeHeaderType FileEncoding
-          <|> AT.string "FILE_FORMAT"       $> SomeHeaderType FileFormat
-          <|> AT.string "FILE_SORTED"       $> SomeHeaderType FileSorted
-          <|> AT.string "OUTPUT_MODE"       $> SomeHeaderType OutputMode
-          <|> AT.string "KIND_DESCRIPTION"  $> SomeHeaderType KindDescription
-          <|> AT.string "KIND_SEPARATOR"    $> SomeHeaderType KindSeparator
-          <|> AT.string "PROGRAM_AUTHOR"    $> SomeHeaderType ProgramAuthor
-          <|> AT.string "PROGRAM_NAME"      $> SomeHeaderType ProgramName
-          <|> AT.string "PROGRAM_URL"       $> SomeHeaderType ProgramUrl
-          <|> AT.string "PROGRAM_VERSION"   $> SomeHeaderType ProgramVersion
-          <|> AT.string "EXTRA_DESCRIPTION" $> SomeHeaderType ExtraDescription
-          <|> AT.string "FIELD_DESCRIPTION" $> SomeHeaderType FieldDescription
+              AB.string "FILE_ENCODING"     $> SomeHeaderType FileEncoding
+          <|> AB.string "FILE_FORMAT"       $> SomeHeaderType FileFormat
+          <|> AB.string "FILE_SORTED"       $> SomeHeaderType FileSorted
+          <|> AB.string "OUTPUT_MODE"       $> SomeHeaderType OutputMode
+          <|> AB.string "KIND_DESCRIPTION"  $> SomeHeaderType KindDescription
+          <|> AB.string "KIND_SEPARATOR"    $> SomeHeaderType KindSeparator
+          <|> AB.string "PROGRAM_AUTHOR"    $> SomeHeaderType ProgramAuthor
+          <|> AB.string "PROGRAM_NAME"      $> SomeHeaderType ProgramName
+          <|> AB.string "PROGRAM_URL"       $> SomeHeaderType ProgramUrl
+          <|> AB.string "PROGRAM_VERSION"   $> SomeHeaderType ProgramVersion
+          <|> AB.string "EXTRA_DESCRIPTION" $> SomeHeaderType ExtraDescription
+          <|> AB.string "FIELD_DESCRIPTION" $> SomeHeaderType FieldDescription
         case headerType of
           SomeHeaderType ht@FileEncoding ->
-              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
           SomeHeaderType ht@FileFormat ->
-              parsePseudoTagArgs ht AT.decimal
+              parsePseudoTagArgs ht AChar.decimal
           SomeHeaderType ht@FileSorted ->
-              parsePseudoTagArgs ht AT.decimal
+              parsePseudoTagArgs ht AChar.decimal
           SomeHeaderType ht@OutputMode ->
-              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
           SomeHeaderType ht@KindDescription ->
-              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
           SomeHeaderType ht@KindSeparator ->
-              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
           SomeHeaderType ht@ProgramAuthor ->
-              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
           SomeHeaderType ht@ProgramName ->
-              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
           SomeHeaderType ht@ProgramUrl ->
-              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
           SomeHeaderType ht@ProgramVersion ->
-              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
           SomeHeaderType ht@ExtraDescription ->
-              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
           SomeHeaderType ht@FieldDescription ->
-              parsePseudoTagArgs ht (AT.takeWhile notTabOrNewLine)
+              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
           SomeHeaderType PseudoTag {} ->
               error "parseHeader: impossible happened"
 
@@ -209,27 +220,27 @@ parseHeader = do
                        -> Parser Header
     parsePseudoTagArgs ht parseArg =
               Header ht
-          <$> ( (Just <$> (AT.char '!' *> AT.takeWhile notTabOrNewLine))
+          <$> ( (Just . Text.decodeUtf8 <$> (AChar.char '!' *> AChar.takeWhile notTabOrNewLine))
                 <|> pure Nothing
               )
-          <*> (AT.char '\t' *> parseArg)
-          <*> (AT.char '\t' *> parseComment)
+          <*> (AChar.char '\t' *> parseArg)
+          <*> (AChar.char '\t' *> parseComment)
 
     parseComment :: Parser Text
     parseComment =
-         AT.char '/'
-      *> (Text.init <$> AT.takeWhile notNewLine)
+         AChar.char '/'
+      *> (Text.init . Text.decodeUtf8 <$> AChar.takeWhile notNewLine)
       <* endOfLine
 
 
 
 -- | Parse a vim-style tag file.
 --
-parseTagsFile :: Text
+parseTagsFile :: ByteString
               -> IO (Either String [Either Header CTag])
 parseTagsFile =
-      fmap AT.eitherResult
-    . AT.parseWith (pure mempty) parseTags
+      fmap AChar.eitherResult
+    . AChar.parseWith (pure mempty) parseTags
 
 
 --
@@ -237,13 +248,13 @@ parseTagsFile =
 --
 
 
--- | Unlike 'AT.endOfLine', it also matches for a single '\r' characters (which
+-- | Unlike 'AChar.endOfLine', it also matches for a single '\r' characters (which
 -- marks enf of lines on darwin).
 --
 endOfLine :: Parser ()
-endOfLine = AT.string "\r\n" $> ()
-        <|> AT.char '\r' $> ()
-        <|> AT.char '\n' $> ()
+endOfLine = AB.string "\r\n" $> ()
+        <|> AChar.char '\r' $> ()
+        <|> AChar.char '\n' $> ()
 
 
 notTabOrNewLine :: Char -> Bool

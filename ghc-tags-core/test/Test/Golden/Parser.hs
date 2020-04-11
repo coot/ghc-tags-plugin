@@ -8,7 +8,6 @@ import           Control.Monad ((>=>))
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BS
-import qualified Data.Text.Encoding as Text
 import           System.IO
 import           System.FilePath
 
@@ -114,7 +113,7 @@ parseGoldenCTagsFile
     -> IO ()
 parseGoldenCTagsFile input output = do
     res <- withBinaryFile input ReadMode
-      (BS.hGetContents >=> CTag.parseTagsFile . Text.decodeUtf8)
+      (BS.hGetContents >=> CTag.parseTagsFile)
     case res of
       Left  err  -> throwIO (userError err)
       Right tags ->
@@ -128,7 +127,7 @@ parseGoldenETagsFile
     -> IO ()
 parseGoldenETagsFile input output = do
     res <- withBinaryFile input ReadMode
-      (BS.hGetContents >=> ETag.parseTagsFile . Text.decodeUtf8)
+      (BS.hGetContents >=> ETag.parseTagsFile)
     case res of
       Left  err  -> throwIO (userError err)
       Right tags ->

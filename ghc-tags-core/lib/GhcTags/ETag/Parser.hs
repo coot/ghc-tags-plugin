@@ -16,10 +16,13 @@ module GhcTags.ETag.Parser
   ) where
 
 import           Control.Applicative (many, (<|>))
-import           Data.Attoparsec.Text  (Parser, (<?>))
-import qualified Data.Attoparsec.Text  as AT
+import           Data.ByteString (ByteString)
+import           Data.Attoparsec.ByteString  (Parser, (<?>))
+import qualified Data.Attoparsec.ByteString  as AB
+import qualified Data.Attoparsec.ByteString.Char8  as AChar
 import           Data.Functor (($>))
 import           Data.Text (Text)
+import qualified Data.Text.Encoding as Text
 
 import           GhcTags.Tag
 import qualified GhcTags.Utils as Utils
@@ -27,11 +30,11 @@ import qualified GhcTags.Utils as Utils
 
 -- | Parse whole etags file
 --
-parseTagsFile :: Text
+parseTagsFile :: ByteString
               -> IO (Either String [ETag])
 parseTagsFile =
-      fmap AT.eitherResult
-    . AT.parseWith (pure mempty)
+      fmap AB.eitherResult
+    . AB.parseWith (pure mempty)
                    (concat <$> many parseTagFileSection)
 
 
@@ -40,16 +43,16 @@ parseTagsFile =
 parseTagFileSection :: Parser [ETag]
 parseTagFileSection = do
       tagFilePath <-
-        AT.char '\x0c' *> endOfLine
-                       *> parseTagFilePath
+        AChar.char '\x0c' *> endOfLine
+                          *> parseTagFilePath
       many (parseTag tagFilePath)
 
-parseTagFilePath :: AT.Parser TagFilePath
+parseTagFilePath :: Parser TagFilePath
 parseTagFilePath =
-      TagFilePath
-  <$> AT.takeWhile (\x -> x /= ',' && Utils.notNewLine x)
-  <*  AT.char ','
-  <*  (AT.decimal :: Parser Int)
+      TagFilePath . Text.decodeUtf8
+  <$> AChar.takeWhile (\x -> x /= ',' && Utils.notNewLine x)
+  <*  AChar.char ','
+  <*  (AChar.decimal :: Parser Int)
   <*  endOfLine
   <?> "parsing tag file name failed"
 
@@ -61,9 +64,9 @@ parseTag tagFilePath =
           mkTag
       <$> parseTagDefinition
       <*> ((Just <$> parseTagName) <|> pure Nothing)
-      <*> AT.decimal
-      <*  AT.char ','
-      <*> AT.decimal
+      <*> AChar.decimal
+      <*  AChar.char ','
+      <*> AChar.decimal
       <*  endOfLine
       <?> "parsing tag failed"
   where
@@ -82,16 +85,20 @@ parseTag tagFilePath =
           }
 
     parseTagName :: Parser TagName
-    parseTagName = TagName <$> AT.takeWhile (\x -> x /= '\SOH' && Utils.notNewLine x)
-                           <*  AT.char '\SOH'
-                           <?> "parsing tag name failed"
+    parseTagName =
+          TagName . Text.decodeUtf8
+      <$> AChar.takeWhile (\x -> x /= '\SOH' && Utils.notNewLine x)
+      <*  AChar.char '\SOH'
+      <?> "parsing tag name failed"
 
     parseTagDefinition :: Parser Text
-    parseTagDefinition = AT.takeWhile (\x -> x /= '\DEL' && Utils.notNewLine x)
-                     <*  AT.char '\DEL'
-                     <?> "parsing tag definition failed"
+    parseTagDefinition =
+          Text.decodeUtf8
+      <$> AChar.takeWhile (\x -> x /= '\DEL' && Utils.notNewLine x)
+      <*  AChar.char '\DEL'
+      <?> "parsing tag definition failed"
 
 endOfLine :: Parser ()
-endOfLine = AT.string "\r\n" $> ()
-        <|> AT.char '\r' $> ()
-        <|> AT.char '\n' $> ()
+endOfLine = AChar.string "\r\n" $> ()
+        <|> AChar.char '\r' $> ()
+        <|> AChar.char '\n' $> ()
