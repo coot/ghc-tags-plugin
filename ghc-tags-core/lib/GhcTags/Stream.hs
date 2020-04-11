@@ -14,12 +14,14 @@ module GhcTags.Stream
     ) where
 
 import           Control.Monad.State.Strict
-import           Data.Attoparsec.Text  (Parser)
+import           Data.ByteString (ByteString)
+import           Data.Attoparsec.ByteString (Parser)
 import           Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as BS
 import           Data.Functor (($>))
-import           Data.Text (Text)
+import qualified Data.Text.Encoding as Text
 import           System.IO
+import           System.FilePath.ByteString (RawFilePath)
 
 import           Pipes ((>->), (~>))
 import qualified Pipes as Pipes
@@ -36,7 +38,7 @@ tagParser :: MonadIO m
           => Parser (Maybe (Tag tk))
           -- ^ Parse a single tag.  For Vim this returns should parse a single
           -- line and return the tag, e.g  'parseTagLine'.
-          -> Pipes.Producer Text m ()
+          -> Pipes.Producer ByteString m ()
           -> Pipes.Producer (Tag tk) m ()
 tagParser parser producer = void $
   Pipes.for
@@ -52,18 +54,19 @@ tagParser parser producer = void $
 combineTagsPipe
     :: forall m (tk :: TAG_KIND).  Applicative m
     => (Tag tk -> Tag tk -> Ordering)
-    -> TagFilePath -- ^ file path from which the new tags were obtained
+    -> RawFilePath -- ^ file path from which the new tags were obtained, it should be normalised
     -> Tag tk      -- ^ tag read from disc
     -> [Tag tk]    -- ^ new tags
     -> Pipes.Producer (Tag tk) m [Tag tk]
 combineTagsPipe compareFn modPath = go
   where
+    modPathText = Text.decodeUtf8 modPath
 
     go :: Tag tk -> [Tag tk]
        -> Pipes.Producer (Tag tk) m [Tag tk]
 
     go tag as
-      | tagFilePath tag == modPath = pure as
+      | getRawFilePath (tagFilePath tag) == modPathText = pure as
 
     go tag as@(a : as')
       | otherwise = case a `compareFn` tag of
@@ -81,7 +84,7 @@ runCombineTagsPipe
     => Handle
     -> (Tag tk -> Tag tk -> Ordering)
     -> (Tag tk -> Builder)
-    -> TagFilePath
+    -> RawFilePath
     -> Tag tk
     -> Pipes.Effect (StateT [Tag tk] m) ()
 runCombineTagsPipe writeHandle compareFn formatTag modPath =
