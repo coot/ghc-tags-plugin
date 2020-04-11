@@ -31,6 +31,7 @@ import           Data.Function (on)
 import           Data.Text          (Text)
 import qualified Data.Text          as Text
 import qualified Data.Text.Encoding as Text
+import qualified System.FilePath.ByteString as FilePath
 
 import           GhcTags.Tag
 import qualified GhcTags.Utils as Utils
@@ -96,7 +97,9 @@ parseTag =
                     <?> "parsing tag name failed"
 
     parseTagFileName :: Parser TagFilePath
-    parseTagFileName = TagFilePath . Text.decodeUtf8 <$> AChar.takeWhile (/= '\t')
+    parseTagFileName =
+          TagFilePath . Text.decodeUtf8 . FilePath.normalise
+      <$> AChar.takeWhile (/= '\t')
 
     parseExCommand :: Parser ExCommand
     parseExCommand = (\x -> ExCommand $ Text.decodeUtf8 $ BS.take (BS.length x - 1) x)

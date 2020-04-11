@@ -23,6 +23,7 @@ import qualified Data.Attoparsec.ByteString.Char8  as AChar
 import           Data.Functor (($>))
 import           Data.Text (Text)
 import qualified Data.Text.Encoding as Text
+import qualified System.FilePath.ByteString as FilePath
 
 import           GhcTags.Tag
 import qualified GhcTags.Utils as Utils
@@ -49,7 +50,7 @@ parseTagFileSection = do
 
 parseTagFilePath :: Parser TagFilePath
 parseTagFilePath =
-      TagFilePath . Text.decodeUtf8
+      TagFilePath . Text.decodeUtf8 . FilePath.normalise
   <$> AChar.takeWhile (\x -> x /= ',' && Utils.notNewLine x)
   <*  AChar.char ','
   <*  (AChar.decimal :: Parser Int)
