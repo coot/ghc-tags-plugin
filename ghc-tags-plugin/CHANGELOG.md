@@ -42,7 +42,7 @@
   constructors, rhs of type synonyms, kinds of type or data families.
 * expanded ctags pseudo tags with descriptions of fields and tag kinds
 
-## 0.1.6.1 -- 2020-04-12
+## 0.2.0.0 -- 2020-04-12
 
 * Fixed bug #37
 * Added `--debug` flag
