@@ -29,6 +29,11 @@ filePathParser =
          help "tags file: default tags or TAGS (when --etags is specified)"
       <> metavar "file_path"
 
+debugParser :: Parser Bool
+debugParser = switch $
+       long "debug"
+    <> showDefault
+    <> help "debug"
 
 -- | /ghc-tags-plugin/ options
 --
@@ -39,6 +44,7 @@ data Options f = Options
   , filePath :: f FilePath
     -- ^ file path to the tags file (relative to the @*.cabal@ file).  The
     -- default is either 'tags' (if 'etags' if 'False') or 'TAGS' otherwise.
+  , debug :: Bool
   }
 
 deriving instance Show (Options Identity)
@@ -49,6 +55,7 @@ parseOtions = Options
          <$> etagsParser
          -- allow to pass the argument multiple times
          <*> (foldMap (Last . Just) <$> many filePathParser)
+         <*> debugParser
 
 
 parserInfo :: ParserInfo (Options Last)
@@ -62,10 +69,11 @@ runOptionParser :: [String]
 runOptionParser = fmap defaultOptions . execParserPure defaultPrefs parserInfo
   where
     defaultOptions :: Options Last -> Options Identity
-    defaultOptions Options { etags, filePath } =
+    defaultOptions Options { etags, filePath, debug } =
         Options {
             etags,
-            filePath = Identity filePath'
+            filePath = Identity filePath',
+            debug
           }
       where
         filePath' =
