@@ -31,6 +31,13 @@ import           System.FilePath.ByteString (RawFilePath)
 import qualified System.FilePath.ByteString as FilePath
 import           System.IO
 
+#if !defined(mingw32_HOST_OS)
+import           Foreign.C.Types (CInt (..))
+import           Foreign.C.Error (throwErrnoIfMinus1_)
+import           System.Posix.Types (Fd (..))
+import           System.Posix.IO (handleToFd)
+#endif
+
 import           Options.Applicative.Types (ParserFailure (..))
 
 import qualified Pipes as Pipes
@@ -270,6 +277,11 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
           -- write the remaining tags'
           traverse_ (BSL.hPut writeHandle . BB.toLazyByteString . CTag.formatTag) tags'
 
+          hFlush writeHandle
+          -- hDataSync is necessary, otherwise next read will not get all the
+          -- data, and the tags file will get truncated. Issue #37.
+          hDataSync writeHandle
+
           when debug
             $ printMessageDoc dynFlags DebugMessage ms_mod
                 (concat [ "parsed: "
@@ -410,3 +422,20 @@ putDocLn dynFlags sdoc =
 
 printMessageDoc :: DynFlags -> MessageType -> Module -> String -> IO ()
 printMessageDoc dynFlags = (fmap . fmap . fmap) (putDocLn dynFlags) messageDoc
+
+--
+-- Syscalls
+--
+
+#if !defined(mingw32_HOST_OS)
+hDataSync ::  Handle -> IO ()
+hDataSync h = do
+    fd <- handleToFd h
+    throwErrnoIfMinus1_ "ghc-tags-plugin" (c_fdatasync fd)
+
+foreign import ccall safe "fdatasync"
+    c_fdatasync :: Fd -> IO CInt 
+#else
+hDataSync :: Handle -> IO ()
+hDataSync _ = pure ()
+#endif
