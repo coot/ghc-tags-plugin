@@ -34,8 +34,8 @@ import           System.IO
 #if !defined(mingw32_HOST_OS)
 import           Foreign.C.Types (CInt (..))
 import           Foreign.C.Error (throwErrnoIfMinus1_)
-import           System.Posix.Types (Fd (..))
-import           System.Posix.IO (handleToFd)
+import           GHC.IO.FD (FD (..))
+import           GHC.IO.Handle.FD (handleToFd)
 #endif
 
 import           Options.Applicative.Types (ParserFailure (..))
@@ -430,11 +430,11 @@ printMessageDoc dynFlags = (fmap . fmap . fmap) (putDocLn dynFlags) messageDoc
 #if !defined(mingw32_HOST_OS)
 hDataSync ::  Handle -> IO ()
 hDataSync h = do
-    fd <- handleToFd h
-    throwErrnoIfMinus1_ "ghc-tags-plugin" (c_fdatasync fd)
+    FD { fdFD } <- handleToFd h
+    throwErrnoIfMinus1_ "ghc-tags-plugin" (c_fdatasync fdFD)
 
 foreign import ccall safe "fdatasync"
-    c_fdatasync :: Fd -> IO CInt 
+    c_fdatasync :: CInt -> IO CInt 
 #else
 hDataSync :: Handle -> IO ()
 hDataSync _ = pure ()
