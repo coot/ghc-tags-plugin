@@ -344,7 +344,7 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
       UnhelpfulSpan {} -> Nothing
       RealSrcSpan realSrcSpan ->
         Just $ Tag
-          { tagName       = TagName tagName 
+          { tagName       = TagName (Text.decodeUtf8 gtTag)
           , tagFilePath   = TagFilePath
                           $ Text.decodeUtf8
                           $ fs_bs
@@ -367,8 +367,6 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
           }
 
   where
-    tagName = Text.decodeUtf8 $ fs_bs gtTag
-
     fromGhcTagKind :: GhcTagKind -> CTagKind
     fromGhcTagKind = \case
       GtkTerm                   -> TkTerm
