@@ -16,8 +16,7 @@ module GhcTags.Ghc
 
 import           Data.Maybe    (mapMaybe)
 import           Data.Foldable (foldl')
-import           Data.Text   (Text)
-import qualified Data.Text as Text
+import           Data.ByteString (ByteString)
 
 -- Ghc imports
 import           BasicTypes   ( SourceText (..)
@@ -115,8 +114,8 @@ data GhcTagKind
 data GhcTag = GhcTag {
     gtSrcSpan    :: !SrcSpan
     -- ^ term location
-  , gtTag        :: !FastString
-    -- ^ tag's name
+  , gtTag        :: !ByteString
+    -- ^ utf8 encoded tag's name
   , gtKind       :: !GhcTagKind
     -- ^ tag's kind
   , gtIsExported :: !Bool
@@ -188,7 +187,7 @@ mkGhcTag :: Located RdrName
 mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
     case rdrName of
       Unqual occName ->
-        GhcTag { gtTag = occNameFS occName
+        GhcTag { gtTag = fs_bs (occNameFS occName)
                , gtSrcSpan
                , gtKind
                , gtIsExported
@@ -196,7 +195,7 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
                }
 
       Qual _ occName ->
-        GhcTag { gtTag = occNameFS occName
+        GhcTag { gtTag = fs_bs (occNameFS occName)
                , gtSrcSpan
                , gtKind
                , gtIsExported
@@ -205,7 +204,7 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
 
       -- Orig is the only one we are interested in
       Orig _ occName ->
-        GhcTag { gtTag = occNameFS occName
+        GhcTag { gtTag = fs_bs (occNameFS occName)
                , gtSrcSpan
                , gtKind
                , gtIsExported
@@ -213,7 +212,7 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
                }
 
       Exact eName -> 
-        GhcTag { gtTag = occNameFS $ nameOccName eName
+        GhcTag { gtTag = fs_bs (occNameFS (nameOccName eName))
                , gtSrcSpan
                , gtKind
                , gtIsExported
