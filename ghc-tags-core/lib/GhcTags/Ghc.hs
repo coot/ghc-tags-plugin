@@ -120,7 +120,7 @@ data GhcTag = GhcTag {
     -- ^ tag's kind
   , gtIsExported :: !Bool
     -- ^ 'True' iff the term is exported
-  , gtFFI        :: !(Maybe Text)
+  , gtFFI        :: !(Maybe String)
     -- ^ @ffi@ import
   }
 
@@ -386,7 +386,7 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
                 case sourceText of
                   NoSourceText -> tag
                   -- TODO: add header information from '_mheader'
-                  SourceText s -> tag { gtFFI = Just (Text.pack s) }
+                  SourceText s -> tag { gtFFI = Just s }
               : tags
             where
               tag = mkGhcTag' fd_name GtkForeignImport

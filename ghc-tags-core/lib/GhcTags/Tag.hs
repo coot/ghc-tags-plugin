@@ -338,7 +338,8 @@ combineTags compareFn modPath = go
 
 -- | Create a 'Tag' from 'GhcTag'.
 --
-ghcTagToTag :: SingTagKind tk -> DynFlags -> GhcTag -> Maybe (Tag tk)
+ghcTagToTag :: SingTagKind tk -> DynFlags
+            -> GhcTag -> Maybe (Tag tk)
 ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI } =
     case gtSrcSpan of
       UnhelpfulSpan {} -> Nothing
@@ -406,7 +407,7 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
         TagFields $
           case gtFFI of
             Nothing  -> mempty
-            Just ffi -> [TagField "ffi" ffi]
+            Just ffi -> [TagField "ffi" (Text.pack ffi)]
 
 
     -- 'TagFields' from 'GhcTagKind'
