@@ -11,7 +11,6 @@ module Plugin.GhcTags.Options
 import           Data.Bool (bool)
 import           Data.Monoid (Last (..))
 import           Data.Functor.Identity (Identity (..))
-import           System.IO (FilePath)
 import           Options.Applicative
 
 
