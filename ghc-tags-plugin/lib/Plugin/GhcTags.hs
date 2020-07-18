@@ -144,7 +144,7 @@ ghcTagsPlugin options
                 -- file.  This is needed when `cabal` compiles in parallel.
                 -- We take the lock on the copy, otherwise the lock would be removed when
                 -- we move the file.
-                withFileLock lockFile ExclusiveLock WriteMode $ \_ -> do
+                withFileLock lockFile ExclusiveLock $ \_ -> do
                     mbInSize <-
                       if debug
                         then Just <$> getFileSize tagsFile
