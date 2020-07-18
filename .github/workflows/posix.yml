@@ -1,0 +1,25 @@
+name: "POSIX"
+on: [push]
+
+jobs:
+  tests:
+    name: "ghc-tags-plugin"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: cachix/install-nix-action@v10
+      - name: "cachix"
+        uses: cachix/cachix-action@v6
+        with:
+          name: "ghc-tags-plugin"
+          signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+
+      - name: "ghc-tags-core (ghc 8.6.5)"
+        run: nix-build release.nix --argstr compiler ghc865 -A ghc-tags-core
+      - name: "ghc-tags-plugin (ghc 8.6.5)"
+        run: nix-build release.nix --argstr compiler ghc865 -A ghc-tags-plugin
+
+      - name: "ghc-tags-core (ghc 8.8.3)"
+        run: nix-build release.nix --argstr compiler ghc883 -A ghc-tags-core
+      - name: "ghc-tags-plugin (ghc 8.8.3)"
+        run: nix-build release.nix --argstr compiler ghc883 -A ghc-tags-plugin
