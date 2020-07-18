@@ -10,7 +10,6 @@ import qualified Data.ByteString.Char8 as BSC
 import           System.FilePath
 import           System.IO
 import           System.Environment
-import           GHC.IO.Handle
 
 import           Plugin.GhcTags.FileLock
 
@@ -18,7 +17,7 @@ import           Plugin.GhcTags.FileLock
 main :: IO ()
 main = do
     file :_ <- getArgs
-    withFileLock (lockFile file) ExclusiveLock ReadWriteMode $ \_h -> do
+    withFileLock (lockFile file) ExclusiveLock $ \_h -> do
       numOfLines <- length . BSC.lines <$> BS.readFile file
       putStrLn (show numOfLines)
   where
