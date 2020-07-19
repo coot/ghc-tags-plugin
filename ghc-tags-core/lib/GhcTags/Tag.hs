@@ -378,6 +378,7 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
       GtkRecordField            -> TkRecordField
       GtkTypeSynonym {}         -> TkTypeSynonym
       GtkTypeSignature {}       -> TkTypeSignature
+      GtkTypeKindSignature {}   -> TkTypeSignature
       GtkPatternSynonym         -> TkPatternSynonym
       GtkTypeClass              -> TkTypeClass
       GtkTypeClassMember        -> TkTypeClassMember

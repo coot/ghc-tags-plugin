@@ -1,8 +1,15 @@
 {-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+
+#if __GLASGOW_HASKELL__ < 810
+#define GHC_IMPORT(NAME) Hs ## NAME
+#else
+#define GHC_IMPORT(NAME) GHC.Hs.NAME
+#endif
 
 -- | Generate tags from @'HsModule' 'GhcPs'@ representation.
 --
@@ -25,11 +32,13 @@ import           FastString   ( FastString (..)
                               )
 import           FieldLabel   ( FieldLbl (..)
                               )
-import           HsBinds      ( HsBindLR (..)
+import           GHC_IMPORT(Binds)
+                              ( HsBindLR (..)
                               , PatSynBind (..)
                               , Sig (..)
                               )
-import           HsDecls      ( ForeignImport (..)
+import           GHC_IMPORT(Decls)
+                              ( ForeignImport (..)
                               , ClsInstDecl (..)
                               , ConDecl (..)
                               , DataFamInstDecl (..)
@@ -47,22 +56,27 @@ import           HsDecls      ( ForeignImport (..)
                               , TyFamInstDecl (..)
                               , hsConDeclArgTys
                               )
-import           HsImpExp     ( IE (..)
+#if __GLASGOW_HASKELL__ >= 810
+import           GHC.Hs.Decls ( StandaloneKindSig (..) )
+#endif
+import           GHC_IMPORT(ImpExp)
+                              ( IE (..)
                               , IEWildcard (..)
                               , ieWrappedName
                               )
-import           HsSyn        ( FieldOcc (..)
-                              , GhcPs
-                              , HsModule (..)
-                              , LFieldOcc
+import           GHC_IMPORT(Extension)
+                              ( GhcPs
                               )
-import           HsTypes      ( ConDeclField (..)
+import           GHC_IMPORT(Types)
+                              ( ConDeclField (..)
+                              , FieldOcc (..)
                               , HsConDetails (..)
                               , HsImplicitBndrs (..)
                               , HsKind
                               , HsType (..)
                               , HsWildCardBndrs
                               , LConDeclField
+                              , LFieldOcc
                               , LHsType
                               , LHsSigType
                               , HsTyVarBndr (..)
@@ -78,6 +92,11 @@ import           RdrName      ( RdrName (..)
 import           Name         ( nameOccName
                               , occNameFS
                               )
+#if __GLASGOW_HASKELL__ < 810
+import           HsSyn        ( HsModule (..) )
+#else
+import           GHC.Hs       ( HsModule (..) )
+#endif
 
 
 -- | Kind of the term.
@@ -96,6 +115,7 @@ data GhcTagKind
     | GtkRecordField
     | GtkTypeSynonym                   (HsType GhcPs)
     | GtkTypeSignature                 (HsWildCardBndrs GhcPs (LHsSigType GhcPs))
+    | GtkTypeKindSignature             (LHsSigType GhcPs)
     | GtkPatternSynonym
     | GtkTypeClass
     | GtkTypeClassMember
@@ -315,7 +335,11 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
             -- associated type defaults (data type families, type families
             -- (open or closed)
             ++ foldl'
+#if __GLASGOW_HASKELL__ < 810
                 (\tags' (L _ tyFamDeflEqn) ->
+#else
+                (\tags' (L _ (TyFamInstDecl (HsIB { hsib_body = tyFamDeflEqn }))) ->
+#endif
                   case tyFamDeflEqn of
                     FamEqn { feqn_rhs } -> 
                       case hsTypeTagName (unLoc feqn_rhs) of
@@ -375,6 +399,16 @@ getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
 
       -- signature declaration
       SigD _ sig -> mkSigTags sig ++ tags
+
+#if __GLASGOW_HASKELL__ >= 810
+      -- standalone kind signatures
+      KindSigD _ stdKindSig ->
+        case stdKindSig of
+          StandaloneKindSig _ ksName sigType ->
+           mkGhcTag' ksName  (GtkTypeKindSignature sigType) : tags
+
+          XStandaloneKindSig {} -> tags
+#endif
 
       -- default declaration
       DefD {} -> tags

@@ -23,3 +23,8 @@ jobs:
         run: nix-build default.nix --argstr compiler ghc883 -A ghc-tags-core.components.all
       - name: "[GHC 8.8.3]  ghc-tags-plugin"
         run: nix-build default.nix --argstr compiler ghc883 -A ghc-tags-plugin.components.all
+
+      - name: "[GHC 8.10.1] ghc-tags-core"
+        run: nix-build default.nix --argstr compiler ghc8101 -A ghc-tags-core.components.all
+      - name: "[GHC 8.10.1] ghc-tags-plugin"
+        run: nix-build default.nix --argstr compiler ghc8101 -A ghc-tags-plugin.components.all
