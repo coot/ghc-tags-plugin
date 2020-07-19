@@ -160,14 +160,14 @@ ordAntiSymmetryProp (EqTags a b) = a `compareTags` b == EQ
 -- We don't provide 'Ord' instance, since it's not compatible with 'compare',
 -- see 'weakConsistency'.
 --
-(≤), (≥) :: Ord (TagAddress tk) => Tag tk -> Tag tk -> Bool
+(≤), (≥) :: Tag tk -> Tag tk -> Bool
 a ≤ b = a `compareTags` b /= GT
 a ≥ b = a `compareTags` b /= LT
 
-ordReflexivityyProp :: Ord (TagAddress tk) => Tag tk -> Tag tk -> Bool
+ordReflexivityyProp :: Tag tk -> Tag tk -> Bool
 ordReflexivityyProp a b = a ≤ b || a ≥ b
 
-ordTransitiveProp :: Ord (TagAddress tk) => Tag tk -> Tag tk -> Tag tk -> Property
+ordTransitiveProp :: Tag tk -> Tag tk -> Tag tk -> Property
 ordTransitiveProp a b c =
        a ≤ b && b ≤ c
     || a ≥ b && b ≥ c ==>
@@ -188,7 +188,7 @@ sortIdempotentProp ts =
 -- prop> a == b ==> a `compare` b == EQ`
 --
 -- But since 'Tag' is using derived 'Eq' instance, it is equivalent to
-weakConsistency :: Ord (TagAddress tk) => Tag tk -> Bool
+weakConsistency :: Tag tk -> Bool
 weakConsistency a = a `compareTags` a == EQ
 
 
