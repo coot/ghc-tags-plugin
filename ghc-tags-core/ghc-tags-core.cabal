@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                ghc-tags-core
-version:             0.2.0.0
+version:             0.2.2.0
 synopsis:            a library to work with tags created from Haskell parsed tree
 description:
   === library scope
@@ -64,7 +64,7 @@ library
                        transformers
 
   default-language:    Haskell2010
-  build-tools:         cpphs               >=1.20
+  build-tool-depends:  cpphs:cpphs         >=1.20
   ghc-options:         -pgmP cpphs
                        -optP --cpp
                        -Wall
