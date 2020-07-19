@@ -7,6 +7,8 @@
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeApplications    #-}
 
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
+
 module Plugin.GhcTags ( plugin, Options (..) ) where
 
 import           Control.Exception
