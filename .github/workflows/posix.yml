@@ -14,6 +14,9 @@ jobs:
           name: "ghc-tags-plugin"
           signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
 
+      - name: "cachix iohk"
+        run: cachix use iohk
+
       - name: "[GHC 8.6.5]  ghc-tags-core"
         run: nix-build default.nix --argstr compiler ghc865 -A ghc-tags-core.components.all
       - name: "[GHC 8.6.5]  ghc-tags-plugin"
