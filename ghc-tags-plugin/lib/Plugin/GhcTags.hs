@@ -56,8 +56,12 @@ import           GhcPlugins ( CommandLineOption
                             , Plugin (..)
                             )
 import qualified GhcPlugins
+#if __GLASGOW_HASKELL__ >= 810
+import           GHC.Hs (GhcPs, HsModule (..))
+#else
 import           HsExtension (GhcPs)
 import           HsSyn (HsModule (..))
+#endif
 import           Outputable (($+$), ($$))
 import qualified Outputable as Out
 import qualified PprColour
