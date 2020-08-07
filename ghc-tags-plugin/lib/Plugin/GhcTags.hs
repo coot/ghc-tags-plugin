@@ -25,6 +25,9 @@ import           Data.Functor (void, (<$))
 #endif
 import           Data.Functor.Identity (Identity (..))
 import           Data.List (sortBy)
+#if __GLASGOW_HASKELL__ >= 810
+import           Data.Either (partitionEithers)
+#endif
 import           Data.Foldable (traverse_)
 import           Data.Maybe (mapMaybe)
 import           System.Directory
@@ -48,7 +51,7 @@ import qualified Pipes.Safe as Pipes.Safe
 import qualified Pipes.ByteString as Pipes.BS
 
 import           GhcPlugins ( CommandLineOption
-                            , DynFlags
+                            , DynFlags (..)
                             , Hsc
                             , HsParsedModule (..)
                             , Located
@@ -56,10 +59,18 @@ import           GhcPlugins ( CommandLineOption
                             , ModSummary (..)
                             , ModLocation (..)
                             , Plugin (..)
+#if __GLASGOW_HASKELL__ >= 810
+                            , MetaHook
+                            , MetaRequest (..)
+                            , MetaResult
+#endif
                             )
 import qualified GhcPlugins
 #if __GLASGOW_HASKELL__ >= 810
-import           GHC.Hs (GhcPs, HsModule (..))
+import           GHC.Hs (GhcPs, GhcTc, HsModule (..), LHsDecl, LHsExpr)
+import           TcSplice
+import           TcRnMonad
+import           Hooks
 #else
 import           HsExtension (GhcPs)
 import           HsSyn (HsModule (..))
@@ -109,6 +120,9 @@ import qualified Plugin.GhcTags.CTag as CTag
 plugin :: Plugin
 plugin = GhcPlugins.defaultPlugin {
       parsedResultAction = ghcTagsPlugin,
+#if __GLASGOW_HASKELL__ >= 810
+      dynflagsPlugin     = ghcTagsDynflagsPlugin,
+#endif
       pluginRecompile    = GhcPlugins.purePlugin
    }
 
@@ -143,7 +157,7 @@ ghcTagsPlugin options
 
             -- wrap 'IOException's
             handle (\ioerr -> do
-                   putDocLn dynFlags (messageDoc UnhandledException ms_mod (displayException ioerr))
+                   putDocLn dynFlags (messageDoc UnhandledException (Just ms_mod) (displayException ioerr))
                    throwIO $ GhcTagsPluginIOExceptino ioerr) $
              flip finally (void $ try @IOException $ removeFile sourceFile) $
                 -- Take advisory exclusive lock (a BSD lock using `flock`) on the tags
@@ -175,7 +189,7 @@ ghcTagsPlugin options
             putDocLn dynFlags
                      (messageDoc
                        OptionParserFailure
-                       ms_mod
+                       (Just ms_mod)
                        (show (case f "<ghc-tags-plugin>" of (h, _, _) -> h)
                          ++ " " ++ show options))
 
@@ -236,7 +250,7 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
                       Pipes.lift $ Pipes.liftIO $
                         -- don't re-throw; this would kill `ghc`, error
                         -- loudly and continue.
-                        putDocLn dynFlags (messageDoc ReadException ms_mod (displayException e))
+                        putDocLn dynFlags (messageDoc ReadException (Just ms_mod) (displayException e))
                 | otherwise      = pure ()
 
               -- tags pipe
@@ -248,7 +262,7 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
                       Pipes.lift $ Pipes.liftIO $
                         -- don't re-throw; this would kill `ghc`, error
                         -- loudly and continue.
-                        putDocLn dynFlags $ messageDoc ParserException ms_mod (displayException e)
+                        putDocLn dynFlags $ messageDoc ParserException (Just ms_mod) (displayException e)
                   )
                   $
                   -- merge tags
@@ -264,7 +278,7 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
                         Pipes.lift $ Pipes.liftIO $
                           -- don't re-throw; this would kill `ghc`, error
                           -- loudly and continue.
-                          putDocLn dynFlags $ messageDoc WriteException ms_mod (displayException e)
+                          putDocLn dynFlags $ messageDoc WriteException (Just ms_mod) (displayException e)
                   )
 
           let tags :: [CTag]
@@ -289,7 +303,7 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
           hDataSync writeHandle
 
           when debug
-            $ printMessageDoc dynFlags DebugMessage ms_mod
+            $ printMessageDoc dynFlags DebugMessage (Just ms_mod)
                 (concat [ "parsed: "
                         , show parsedTags
                         , " found: "
@@ -306,16 +320,16 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
           try @IOException (BS.hGetContents readHandle)
             >>= \case
               Left err ->
-                putDocLn dynFlags $ messageDoc ReadException ms_mod (displayException err)
+                putDocLn dynFlags $ messageDoc ReadException (Just ms_mod) (displayException err)
 
               Right txt -> do
                 pres <- try @IOException $ ETag.parseTagsFile txt
                 case pres of
                   Left err   -> 
-                    putDocLn dynFlags $ messageDoc ParserException ms_mod (displayException err)
+                    putDocLn dynFlags $ messageDoc ParserException (Just ms_mod) (displayException err)
 
                   Right (Left err) ->
-                    printMessageDoc dynFlags ParserException ms_mod err
+                    printMessageDoc dynFlags ParserException (Just ms_mod) err
 
                   Right (Right tags) -> do
 
@@ -342,7 +356,7 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
                                   (sortBy ETag.compareTags tags)
 
                     when debug
-                      $ printMessageDoc dynFlags DebugMessage ms_mod
+                      $ printMessageDoc dynFlags DebugMessage (Just ms_mod)
                           (concat [ "parsed: "
                                   , show (length tags)
                                   , " found: "
@@ -373,6 +387,95 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
           }
 
 
+#if __GLASGOW_HASKELL__ >= 810
+--
+-- Tags for Template-Haskell splices
+--
+
+-- | DynFlags plugin which extract tags from TH splices.
+--
+ghcTagsDynflagsPlugin :: [CommandLineOption] -> DynFlags -> IO DynFlags
+ghcTagsDynflagsPlugin options dynFlags =
+    pure dynFlags
+      { hooks =
+          (hooks dynFlags)
+            { runMetaHook = Just ghcTagsMetaHook }
+      }
+  where
+    ghcTagsMetaHook :: MetaHook TcM
+    ghcTagsMetaHook request expr =
+      case runOptionParser options of
+        Success Options { filePath = Identity tagsFile
+                        , etags
+                        } -> do
+          let sourceFile = case splitFileName tagsFile of
+                (dir, name) -> dir </> "." ++ name
+              lockFile = sourceFile ++ ".lock"
+
+          withMetaD defaultRunMeta request expr $ \decls ->
+            GhcPlugins.liftIO $ withFileLock lockFile ExclusiveLock $ \_ -> do
+              tagsContent <- BSC.readFile tagsFile
+              if etags
+                then do
+                  pr <- ETag.parseTagsFile tagsContent
+                  case pr of
+                    Left err -> 
+                      printMessageDoc dynFlags ParserException Nothing err
+
+                    Right tags -> do
+                      let tags' :: [ETag]
+                          tags' = sortBy ETag.compareTags $
+                                    tags
+                                    ++
+                                    ghcTagToTag SingETag dynFlags
+                                      `mapMaybe`
+                                       hsDeclsToGhcTags Nothing decls
+                      BSL.writeFile tagsFile (BB.toLazyByteString $ ETag.formatTagsFile tags')
+                else do
+                  pr <- fmap partitionEithers <$> CTag.parseTagsFile tagsContent
+                  case pr of
+                    Left err ->
+                      printMessageDoc dynFlags ParserException Nothing err
+
+                    Right (headers, tags) -> do
+                      let tags' :: [Either CTag.Header CTag]
+                          tags' = Left `map` headers
+                               ++ Right `map`
+                                 sortBy CTag.compareTags
+                                 ( tags
+                                   ++ 
+                                   ghcTagToTag SingCTag dynFlags
+                                     `mapMaybe`
+                                     hsDeclsToGhcTags Nothing decls
+                                 )
+                      BSL.writeFile tagsFile (BB.toLazyByteString $ CTag.formatTagsFile tags')
+
+        Failure (ParserFailure f)  ->
+          withMetaD defaultRunMeta request expr $ \_ ->
+          GhcPlugins.liftIO $
+            putDocLn dynFlags
+                     (messageDoc
+                       OptionParserFailure
+                       Nothing
+                       (show (case f "<ghc-tags-plugin>" of (h, _, _) -> h)
+                         ++ " " ++ show options))
+
+        CompletionInvoked {} -> error "ghc-tags-plugin: impossible happend"
+
+    -- run the hook and call call the callback with new declarations
+    withMetaD :: MetaHook TcM -> MetaRequest -> LHsExpr GhcTc
+                    -> ([LHsDecl GhcPs] -> TcM a)
+                    -> TcM (MetaResult)
+    withMetaD h req e f = case req of
+      MetaE  k -> k <$> GhcPlugins.metaRequestE h e
+      MetaP  k -> k <$> GhcPlugins.metaRequestP h e
+      MetaT  k -> k <$> GhcPlugins.metaRequestT h e
+      MetaD  k -> do
+        res <- GhcPlugins.metaRequestD h e
+        k res <$ f res
+      MetaAW k -> k <$> GhcPlugins.metaRequestAW h e
+#endif
+
 --
 -- Error Formatting
 --
@@ -382,15 +485,18 @@ data MessageSeverity
       | Warning
       | Error
 
-messageDoc :: MessageType -> Module -> String -> Out.SDoc
-messageDoc errorType mod_ errorMessage =
+messageDoc :: MessageType -> Maybe Module -> String -> Out.SDoc
+messageDoc errorType mb_mod errorMessage =
     Out.blankLine
       $+$
         Out.coloured PprColour.colBold
           ((Out.text "GhcTagsPlugin: ")
             Out.<> (Out.coloured messageColour (Out.text $ show errorType)))
       $$
-        Out.coloured PprColour.colBold (Out.nest 4 $ Out.ppr mod_)
+        case mb_mod of
+          Just mod_ ->
+            Out.coloured PprColour.colBold (Out.nest 4 $ Out.ppr mod_)
+          Nothing -> Out.empty
       $$
         (Out.nest 8 $ Out.coloured messageColour (Out.text errorMessage))
       $+$
@@ -426,7 +532,7 @@ putDocLn dynFlags sdoc =
         (Out.setStyleColoured True $ Out.defaultErrStyle dynFlags)
 
 
-printMessageDoc :: DynFlags -> MessageType -> Module -> String -> IO ()
+printMessageDoc :: DynFlags -> MessageType -> Maybe Module -> String -> IO ()
 printMessageDoc dynFlags = (fmap . fmap . fmap) (putDocLn dynFlags) messageDoc
 
 --
