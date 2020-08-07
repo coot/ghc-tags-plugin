@@ -18,6 +18,7 @@ module GhcTags.Ghc
   , GhcTags
   , GhcTagKind (..)
   , getGhcTags
+  , hsDeclsToGhcTags
   ) where
 
 
@@ -257,14 +258,21 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
 --  * /data type families instances/
 --  * /data type family instances constructors/
 --
-getGhcTags ::Located (HsModule GhcPs)
+getGhcTags :: Located (HsModule GhcPs)
            -> GhcTags
 getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) = 
-    reverse $ foldl' go [] hsmodDecls
+    hsDeclsToGhcTags mies hsmodDecls
   where
     mies :: Maybe [IE GhcPs]
     mies = map unLoc . unLoc <$> hsmodExports
 
+
+hsDeclsToGhcTags :: Maybe [IE GhcPs]
+                 -> [LHsDecl GhcPs]
+                 -> GhcTags
+hsDeclsToGhcTags mies =
+    reverse . foldl' go []
+  where
     -- like 'mkGhcTag' but checks if the identifier is exported
     mkGhcTag' :: Located RdrName
               -- ^ @RdrName ~ IdP GhcPs@ it *must* be a name of a top level identifier.
