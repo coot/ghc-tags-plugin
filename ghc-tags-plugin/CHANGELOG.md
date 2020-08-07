@@ -46,3 +46,8 @@
 
 * Fixed bug #37
 * Added `--debug` flag
+
+## 0.2.3.0 -- 2020-08-07
+
+* Generate tags for template haskell splices (requires at least `GHC-8.10`).
+* Include types of class methods.
