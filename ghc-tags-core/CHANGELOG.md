@@ -12,3 +12,7 @@
 * Use `Text` to represent file names; Parsers are using `ByteString` as input
   rather than `Text`, which allows to normalise `FilePath` when parsing data
   using `filepath-bytestring` library.
+
+## 0.2.3.0 -- 2020-08-07
+
+* Added `hsDeclsToGhcTags`.
