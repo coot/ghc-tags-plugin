@@ -15,9 +15,8 @@ which generates tags for each compiled module or component.
 ● Requirements
 --------------
 
-```
-ghc >= 8.6
-```
+The plugin requires at least: `ghc >= 8.6`; `ghc-tags-plugin` can generate tags
+for template-haskell splices, but it requires: `ghc >= 8.10`.
 
 
 ● Plugin options
