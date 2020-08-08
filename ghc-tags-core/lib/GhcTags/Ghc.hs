@@ -119,7 +119,7 @@ data GhcTagKind
     | GtkTypeKindSignature             (LHsSigType GhcPs)
     | GtkPatternSynonym
     | GtkTypeClass
-    | GtkTypeClassMember
+    | GtkTypeClassMember               (HsType GhcPs)
     | GtkTypeClassInstance             (HsType GhcPs)
     | GtkTypeFamily             (Maybe (HsKind GhcPs))
     | GtkTypeFamilyInstance
@@ -517,8 +517,8 @@ hsDeclsToGhcTags mies =
     mkClsMemberTags clsName (PatSynSig _ lhs _) =
       (\n -> mkGhcTagForMember n clsName GtkPatternSynonym)
       `map` lhs
-    mkClsMemberTags clsName (ClassOpSig _ _ lhs _) =
-      (\n ->  mkGhcTagForMember n clsName GtkTypeClassMember)
+    mkClsMemberTags clsName (ClassOpSig _ _ lhs HsIB { hsib_body = L _ hsType}) =
+      (\n ->  mkGhcTagForMember n clsName (GtkTypeClassMember hsType))
       `map` lhs
     mkClsMemberTags _ _ = []
 
@@ -528,7 +528,10 @@ hsDeclsToGhcTags mies =
                                      = flip mkGhcTag' (GtkTypeSignature hsSigWcType)
                                          `map` lhs
     mkSigTags (PatSynSig _ lhs _)    = flip mkGhcTag' GtkPatternSynonym  `map` lhs
-    mkSigTags (ClassOpSig _ _ lhs _) = flip mkGhcTag' GtkTypeClassMember `map` lhs
+    mkSigTags (ClassOpSig _ _ lhs HsIB { hsib_body = L _ hsType })
+                                     = flip mkGhcTag' (GtkTypeClassMember hsType) `map` lhs
+    mkSigTags (ClassOpSig _ _ _ XHsImplicitBndrs {})
+                                     = []
     mkSigTags IdSig {}               = []
     -- TODO: generate theses with additional info (fixity)
     mkSigTags FixSig {}              = []

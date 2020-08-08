@@ -381,7 +381,7 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
       GtkTypeKindSignature {}   -> TkTypeSignature
       GtkPatternSynonym         -> TkPatternSynonym
       GtkTypeClass              -> TkTypeClass
-      GtkTypeClassMember        -> TkTypeClassMember
+      GtkTypeClassMember {}     -> TkTypeClassMember
       GtkTypeClassInstance {}   -> TkTypeClassInstance
       GtkTypeFamily {}          -> TkTypeFamily
       GtkTypeFamilyInstance     -> TkTypeFamilyInstance
@@ -442,8 +442,10 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
                 , fieldValue = Text.intercalate " -> " (map render fields ++ [render ty])
                 }]
 
-
           GtkGADTConstructor hsType ->
+            mkField typeFieldName hsType
+
+          GtkTypeClassMember hsType ->
             mkField typeFieldName hsType
 
           _ -> mempty
