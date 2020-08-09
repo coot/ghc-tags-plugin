@@ -3,6 +3,7 @@
 #
 
 GHC_VERSION=8.10.1
+GHC=ghc-${GHC_VERSION}
 GHC_PKG=ghc-pkg-${GHC_VERSION}
 
 PACKAGE_DB = ${HOME}/.cabal/store/ghc-${GHC_VERSION}/package.db
@@ -18,11 +19,16 @@ uninstall:
 	  --package-db=${PACKAGE_DB} \
 	  --force \
 	  ghc-tags-plugin
+	${GHC_PKG} unregister \
+	  --package-db=${PACKAGE_DB} \
+	  --force \
+	  ghc-tags-core
 
 install:
 	# avoid changing the default environment
 	cabal install --package-db=${PACKAGE_DB} \
 	  	      --package-env=${ENV} \
+		      --with-compiler=${GHC} \
 		      --lib \
 		      ghc-tags-plugin
 	rm ${ENV}
