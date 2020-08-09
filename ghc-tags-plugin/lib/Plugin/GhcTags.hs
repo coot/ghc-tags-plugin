@@ -119,7 +119,7 @@ import qualified Plugin.GhcTags.CTag as CTag
 --
 plugin :: Plugin
 plugin = GhcPlugins.defaultPlugin {
-      parsedResultAction = ghcTagsPlugin,
+      parsedResultAction = ghcTagsParserPlugin,
 #if __GLASGOW_HASKELL__ >= 810
       dynflagsPlugin     = ghcTagsDynflagsPlugin,
 #endif
@@ -130,8 +130,9 @@ plugin = GhcPlugins.defaultPlugin {
 -- | IOExcption wrapper; it is useful for the user to know that it's the plugin
 -- not `ghc` that thrown the error.
 --
-data GhcTagsPluginException =
-      GhcTagsPluginIOExceptino IOException
+data GhcTagsPluginException
+    = GhcTagsParserPluginIOException IOException
+    | GhcTagsDynFlagsPluginIOException IOException
     deriving Show
 
 instance Exception GhcTagsPluginException
@@ -139,10 +140,10 @@ instance Exception GhcTagsPluginException
 
 -- | The plugin does not change the 'HsParedModule', it only runs side effects.
 --
-ghcTagsPlugin :: [CommandLineOption] -> ModSummary -> HsParsedModule -> Hsc HsParsedModule
-ghcTagsPlugin options
-              moduleSummary@ModSummary {ms_mod, ms_hspp_opts = dynFlags}
-              hsParsedModule@HsParsedModule {hpm_module} =
+ghcTagsParserPlugin :: [CommandLineOption] -> ModSummary -> HsParsedModule -> Hsc HsParsedModule
+ghcTagsParserPlugin options
+                    moduleSummary@ModSummary {ms_mod, ms_hspp_opts = dynFlags}
+                    hsParsedModule@HsParsedModule {hpm_module} =
 
     hsParsedModule <$
       case runOptionParser options of
@@ -157,8 +158,10 @@ ghcTagsPlugin options
 
             -- wrap 'IOException's
             handle (\ioerr -> do
-                   putDocLn dynFlags (messageDoc UnhandledException (Just ms_mod) (displayException ioerr))
-                   throwIO $ GhcTagsPluginIOExceptino ioerr) $
+                     putDocLn dynFlags
+                              (messageDoc UnhandledException (Just ms_mod)
+                                (displayException ioerr))
+                     throwIO (GhcTagsParserPluginIOException ioerr)) $
              flip finally (void $ try @IOException $ removeFile sourceFile) $
                 -- Take advisory exclusive lock (a BSD lock using `flock`) on the tags
                 -- file.  This is needed when `cabal` compiles in parallel.
@@ -204,6 +207,7 @@ data MessageType =
     | OptionParserFailure
     | DebugMessage
 
+
 instance Show MessageType where
     show ReadException       = "read error"
     show ParserException     = "tags parser error"
@@ -211,6 +215,7 @@ instance Show MessageType where
     show UnhandledException  = "unhandled error"
     show OptionParserFailure = "plugin options parser error"
     show DebugMessage        = ""
+
 
 -- | Extract tags from a module and update tags file
 --
@@ -366,27 +371,6 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
                     BB.hPutBuilder writeHandle (ETag.formatETagsFile tags')
 
 
-  where
-
-    fixFilePath :: RawFilePath -- curent directory
-                -> RawFilePath -- tags directory
-                -> RawFilePath -> RawFilePath
-    fixFilePath cwd tagsDir =
-        FilePath.normalise
-      . FilePath.makeRelative tagsDir
-      . (cwd FilePath.</>)
-
-    -- we are missing `Text` based `FilePath` library!
-    fixTagFilePath :: RawFilePath -> RawFilePath -> Tag tk -> Tag tk
-    fixTagFilePath cwd tagsDir tag@Tag { tagFilePath = TagFilePath fp } =
-      tag { tagFilePath =
-              TagFilePath
-                (Text.decodeUtf8
-                  (fixFilePath cwd tagsDir
-                    (Text.encodeUtf8 fp)))
-          }
-
-
 #if __GLASGOW_HASKELL__ >= 810
 --
 -- Tags for Template-Haskell splices
@@ -413,7 +397,15 @@ ghcTagsDynflagsPlugin options dynFlags =
               lockFile = sourceFile ++ ".lock"
 
           withMetaD defaultRunMeta request expr $ \decls ->
-            GhcPlugins.liftIO $ withFileLock lockFile ExclusiveLock $ \_ -> do
+            GhcPlugins.liftIO $
+              handle (\ioerr -> do
+                       putDocLn dynFlags
+                               (messageDoc UnhandledException Nothing
+                                 (displayException ioerr))
+                       throwIO (GhcTagsDynFlagsPluginIOException ioerr)) $
+              withFileLock lockFile ExclusiveLock $ \_ -> do
+              cwd <- BSC.pack <$> getCurrentDirectory
+              tagsDir <- BSC.pack <$> canonicalizePath (fst $ splitFileName tagsFile)
               tagsContent <- BSC.readFile tagsFile
               if etags
                 then do
@@ -427,7 +419,8 @@ ghcTagsDynflagsPlugin options dynFlags =
                           tags' = sortBy ETag.compareTags $
                                     tags
                                     ++
-                                    ghcTagToTag SingETag dynFlags
+                                    (fmap (fixTagFilePath  cwd tagsDir)
+                                    . ghcTagToTag SingETag dynFlags)
                                       `mapMaybe`
                                        hsDeclsToGhcTags Nothing decls
                       BSL.writeFile tagsFile (BB.toLazyByteString $ ETag.formatTagsFile tags')
@@ -441,13 +434,14 @@ ghcTagsDynflagsPlugin options dynFlags =
                       let tags' :: [Either CTag.Header CTag]
                           tags' = Left `map` headers
                                ++ Right `map`
-                                 sortBy CTag.compareTags
-                                 ( tags
-                                   ++ 
-                                   ghcTagToTag SingCTag dynFlags
-                                     `mapMaybe`
-                                     hsDeclsToGhcTags Nothing decls
-                                 )
+                                  sortBy CTag.compareTags
+                                  ( tags
+                                    ++ 
+                                    (fmap (fixTagFilePath  cwd tagsDir)
+                                      . ghcTagToTag SingCTag dynFlags)
+                                      `mapMaybe`
+                                      hsDeclsToGhcTags Nothing decls
+                                  )
                       BSL.writeFile tagsFile (BB.toLazyByteString $ CTag.formatTagsFile tags')
 
         Failure (ParserFailure f)  ->
@@ -476,8 +470,40 @@ ghcTagsDynflagsPlugin options dynFlags =
       MetaAW k -> k <$> GhcPlugins.metaRequestAW h e
 #endif
 
+
 --
--- Error Formatting
+-- File path utils
+--
+
+fixFilePath :: RawFilePath
+            -- ^ curent directory
+            -> RawFilePath
+            -- ^ tags file directory
+            -> RawFilePath
+            -- ^ tag's file path
+            -> RawFilePath
+fixFilePath cwd tagsDir =
+    FilePath.normalise
+  . FilePath.makeRelative tagsDir
+  . (cwd FilePath.</>)
+
+
+-- we are missing `Text` based `FilePath` library!
+fixTagFilePath :: RawFilePath
+               -- ^ current directory
+               -> RawFilePath
+               -- ^ tags file directory
+               -> Tag tk -> Tag tk
+fixTagFilePath cwd tagsDir tag@Tag { tagFilePath = TagFilePath fp } =
+  tag { tagFilePath =
+          TagFilePath
+            (Text.decodeUtf8
+              (fixFilePath cwd tagsDir
+                (Text.encodeUtf8 fp)))
+      }
+
+--
+-- Error Formattng
 --
 
 data MessageSeverity
