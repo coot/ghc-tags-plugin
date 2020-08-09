@@ -370,25 +370,25 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
   where
     fromGhcTagKind :: GhcTagKind -> CTagKind
     fromGhcTagKind = \case
-      GtkTerm                   -> TkTerm
-      GtkFunction               -> TkFunction
-      GtkTypeConstructor {}     -> TkTypeConstructor
-      GtkDataConstructor {}     -> TkDataConstructor
-      GtkGADTConstructor {}     -> TkGADTConstructor
-      GtkRecordField            -> TkRecordField
-      GtkTypeSynonym {}         -> TkTypeSynonym
-      GtkTypeSignature {}       -> TkTypeSignature
-      GtkTypeKindSignature {}   -> TkTypeSignature
-      GtkPatternSynonym         -> TkPatternSynonym
-      GtkTypeClass              -> TkTypeClass
-      GtkTypeClassMember {}     -> TkTypeClassMember
-      GtkTypeClassInstance {}   -> TkTypeClassInstance
-      GtkTypeFamily {}          -> TkTypeFamily
-      GtkTypeFamilyInstance     -> TkTypeFamilyInstance
-      GtkDataTypeFamily {}      -> TkDataTypeFamily
-      GtkDataTypeFamilyInstance -> TkDataTypeFamilyInstance
-      GtkForeignImport          -> TkForeignImport
-      GtkForeignExport          -> TkForeignExport
+      GtkTerm                      -> TkTerm
+      GtkFunction                  -> TkFunction
+      GtkTypeConstructor {}        -> TkTypeConstructor
+      GtkDataConstructor {}        -> TkDataConstructor
+      GtkGADTConstructor {}        -> TkGADTConstructor
+      GtkRecordField               -> TkRecordField
+      GtkTypeSynonym {}            -> TkTypeSynonym
+      GtkTypeSignature {}          -> TkTypeSignature
+      GtkTypeKindSignature {}      -> TkTypeSignature
+      GtkPatternSynonym            -> TkPatternSynonym
+      GtkTypeClass                 -> TkTypeClass
+      GtkTypeClassMember {}        -> TkTypeClassMember
+      GtkTypeClassInstance {}      -> TkTypeClassInstance
+      GtkTypeFamily {}             -> TkTypeFamily
+      GtkTypeFamilyInstance {}     -> TkTypeFamilyInstance
+      GtkDataTypeFamily {}         -> TkDataTypeFamily
+      GtkDataTypeFamilyInstance {} -> TkDataTypeFamilyInstance
+      GtkForeignImport             -> TkForeignImport
+      GtkForeignExport             -> TkForeignExport
 
     -- static field (wheather term is exported or not)
     staticField :: SingTagKind tk -> TagFields tk
@@ -420,10 +420,24 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
           GtkTypeClassInstance hsType ->
             mkField "instance" hsType
 
-          GtkTypeFamily (Just hsKind) ->
-            mkField kindFieldName hsKind
+          GtkTypeFamily (Just (hsTyVars, hsKind)) ->
+            TagFields
+              [ TagField
+                 { fieldName  = kindFieldName
+                 , fieldValue = Text.intercalate " -> " (render `map` hsTyVars)
+                             <> case hsTyVars of
+                                  []      ->           either render render hsKind
+                                  (_ : _) -> " -> " <> either render render hsKind
+                                  
+                 }
+              ]
+          GtkTypeFamilyInstance hsType ->
+            mkField "type" hsType
 
           GtkDataTypeFamily (Just hsKind) ->
+            mkField kindFieldName hsKind
+
+          GtkDataTypeFamilyInstance (Just hsKind) ->
             mkField kindFieldName hsKind
 
           GtkTypeSignature hsSigWcType ->
