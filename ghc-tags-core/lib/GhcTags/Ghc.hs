@@ -74,13 +74,14 @@ import           GHC_IMPORT(Types)
                               , HsConDetails (..)
                               , HsImplicitBndrs (..)
                               , HsKind
+                              , HsTyVarBndr (..)
                               , HsType (..)
                               , HsWildCardBndrs
                               , LConDeclField
                               , LFieldOcc
-                              , LHsType
+                              , LHsQTyVars (..)
                               , LHsSigType
-                              , HsTyVarBndr (..)
+                              , LHsType
                               )
 import           SrcLoc       ( GenLocated (..)
                               , Located
@@ -120,10 +121,10 @@ data GhcTagKind
     | GtkTypeClass
     | GtkTypeClassMember               (HsType GhcPs)
     | GtkTypeClassInstance             (HsType GhcPs)
-    | GtkTypeFamily             (Maybe (HsKind GhcPs))
-    | GtkTypeFamilyInstance
-    | GtkDataTypeFamily         (Maybe (HsKind GhcPs))
-    | GtkDataTypeFamilyInstance
+    | GtkTypeFamily             (Maybe ([HsTyVarBndr GhcPs], Either (HsKind GhcPs) (HsTyVarBndr GhcPs)))
+    | GtkTypeFamilyInstance            (HsType GhcPs)
+    | GtkDataTypeFamily         (Maybe ([HsTyVarBndr GhcPs], Either (HsKind GhcPs) (HsTyVarBndr GhcPs)))
+    | GtkDataTypeFamilyInstance (Maybe (HsKind GhcPs))
     | GtkForeignImport
     | GtkForeignExport
 
@@ -359,10 +360,10 @@ hsDeclsToGhcTags mies =
                 (\tags' (L _ (TyFamInstDecl (HsIB { hsib_body = tyFamDeflEqn }))) ->
 #endif
                   case tyFamDeflEqn of
-                    FamEqn { feqn_rhs } -> 
-                      case hsTypeTagName (unLoc feqn_rhs) of
+                    FamEqn { feqn_rhs = L _ hsType } -> 
+                      case hsTypeTagName hsType of
                         -- TODO: add a `default` field
-                        Just a  -> mkGhcTag' decLoc a GtkTypeFamilyInstance : tags'
+                        Just a  -> mkGhcTag' decLoc a (GtkTypeFamilyInstance hsType) : tags'
                         Nothing -> tags'
                     XFamEqn {} -> tags')
                 [] tcdATDefs
@@ -572,15 +573,23 @@ hsDeclsToGhcTags mies =
                      -- if this type family is associate, pass the name of the
                      -- associated class
                      -> Maybe GhcTag
-    mkFamilyDeclTags decLoc FamilyDecl { fdLName, fdInfo, fdResultSig = L _ familyResultSig } assocClsName =
+    mkFamilyDeclTags decLoc FamilyDecl { fdLName, fdInfo, fdTyVars, fdResultSig = L _ familyResultSig } assocClsName =
       case assocClsName of
         Nothing      -> Just $ mkGhcTag' decLoc fdLName tk
         Just clsName -> Just $ mkGhcTagForMember decLoc fdLName clsName tk 
       where
+
+        mb_fdvars = case fdTyVars of
+          HsQTvs { hsq_explicit } -> Just $ unLoc `map` hsq_explicit
+          XLHsQTyVars {} -> Nothing
+        mb_resultsig = famResultKindSignature familyResultSig
+
+        mb_typesig = (,) <$> mb_fdvars <*> mb_resultsig
+
         tk = case fdInfo of
-              DataFamily           -> GtkDataTypeFamily (famResultKindSignature familyResultSig)
-              OpenTypeFamily       -> GtkTypeFamily (famResultKindSignature familyResultSig)
-              ClosedTypeFamily {}  -> GtkTypeFamily (famResultKindSignature familyResultSig)
+              DataFamily           -> GtkDataTypeFamily mb_typesig
+              OpenTypeFamily       -> GtkTypeFamily     mb_typesig
+              ClosedTypeFamily {}  -> GtkTypeFamily     mb_typesig
     mkFamilyDeclTags _ XFamilyDecl {} _ = Nothing
 
 
@@ -619,11 +628,15 @@ hsDeclsToGhcTags mies =
 
         HsIB { hsib_body = FamEqn { feqn_tycon, feqn_rhs } } ->
           case feqn_rhs of
-            HsDataDefn { dd_cons } ->
-                mkGhcTag' decLoc feqn_tycon GtkDataTypeFamilyInstance
-              : (mkConsTags decLoc feqn_tycon . unLoc) `concatMap` dd_cons
+            HsDataDefn { dd_cons, dd_kindSig } ->
+                mkGhcTag' decLoc feqn_tycon
+                          (GtkDataTypeFamilyInstance
+                            (unLoc <$> dd_kindSig))
+              : (mkConsTags decLoc feqn_tycon . unLoc)
+                `concatMap` dd_cons
+
             XHsDataDefn {} ->
-              mkGhcTag' decLoc feqn_tycon GtkDataTypeFamilyInstance : []
+              mkGhcTag' decLoc feqn_tycon (GtkDataTypeFamilyInstance Nothing) : []
 
         HsIB { hsib_body = XFamEqn {} } -> []
 
@@ -636,8 +649,8 @@ hsDeclsToGhcTags mies =
         XHsImplicitBndrs {} -> Nothing
 
         -- TODO: should we check @feqn_rhs :: LHsType GhcPs@ as well?
-        HsIB { hsib_body = FamEqn { feqn_tycon } } ->
-          Just $ mkGhcTag' decLoc feqn_tycon GtkTypeFamilyInstance
+        HsIB { hsib_body = FamEqn { feqn_tycon, feqn_rhs = L _ hsType } } ->
+          Just $ mkGhcTag' decLoc feqn_tycon (GtkTypeFamilyInstance hsType)
 
         HsIB { hsib_body = XFamEqn {} } -> Nothing
 
@@ -645,12 +658,9 @@ hsDeclsToGhcTags mies =
 --
 --
 
-famResultKindSignature :: FamilyResultSig GhcPs -> Maybe (HsKind GhcPs)
-famResultKindSignature (NoSig _) = Nothing
-famResultKindSignature (KindSig _ ki) = Just (unLoc ki)
-famResultKindSignature (TyVarSig _ bndr) =
-  case unLoc bndr of
-    UserTyVar _ _ -> Nothing
-    KindedTyVar _ _ ki -> Just (unLoc ki)
-    XTyVarBndr {} -> Nothing
+famResultKindSignature :: FamilyResultSig GhcPs
+                       -> Maybe (Either (HsKind GhcPs) (HsTyVarBndr GhcPs))
+famResultKindSignature (NoSig _)           = Nothing
+famResultKindSignature (KindSig _ ki)      = Just (Left (unLoc ki))
+famResultKindSignature (TyVarSig _ bndr)   = Just (Right (unLoc bndr))
 famResultKindSignature XFamilyResultSig {} = Nothing
