@@ -17,3 +17,9 @@
 
 * Added `hsDeclsToGhcTags`.
 * Type signatures for class method.
+
+## next version -- not published
+
+* Type family and data type family kind contains all bound type variables (with their kind if they are given)
+* Type family instances: include the resulting type
+* Data type family instances: include the resulting kind
