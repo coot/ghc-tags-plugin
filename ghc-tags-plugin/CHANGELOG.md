@@ -51,3 +51,7 @@
 
 * Generate tags for template haskell splices (requires at least `GHC-8.10`).
 * Include types of class methods.
+
+## next version -- not published
+
+* `ghc-tags-vim` a vim plugin which helps to maintain a `cabal.project.local` file.
