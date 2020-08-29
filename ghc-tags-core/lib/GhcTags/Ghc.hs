@@ -476,6 +476,10 @@ hsDeclsToGhcTags mies =
       ++ mkHsConDeclDetails decLoc tyName con_args
 
     mkConsTags decLoc tyName ConDeclH98  { con_name, con_args } =
+      -- TODO:
+      -- 'ConDeclH98' does not contain the resulting type like 'con_res_ty' on
+      -- 'ConDeclGADT'; we use 'tyName' instead, but this results in wrong type
+      -- tag (it is missing type variables).  One can use 'tcdTyVars' of 'DataDecl'
         mkGhcTagForMember decLoc con_name tyName
           (GtkDataConstructor tyName (map unLoc $ hsConDeclArgTys con_args))
       : mkHsConDeclDetails decLoc tyName con_args
