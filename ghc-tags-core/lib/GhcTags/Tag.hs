@@ -431,8 +431,13 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
                                   
                  }
               ]
-          GtkTypeFamilyInstance hsType ->
-            mkField typeFieldName hsType
+          GtkTypeFamilyInstance decl ->
+            TagFields
+              [ TagField
+                  { fieldName = typeFieldName 
+                  , fieldValue = render decl
+                  }
+              ]
 
           GtkDataTypeFamily (Just hsKind) ->
             mkField kindFieldName hsKind
