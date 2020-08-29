@@ -122,7 +122,8 @@ data GhcTagKind
     | GtkTypeClassMember               (HsType GhcPs)
     | GtkTypeClassInstance             (HsType GhcPs)
     | GtkTypeFamily             (Maybe ([HsTyVarBndr GhcPs], Either (HsKind GhcPs) (HsTyVarBndr GhcPs)))
-    | GtkTypeFamilyInstance            (HsType GhcPs)
+    -- ghc-8.6.5 does not provide 'TyFamInstDecl' for assicated type families
+    | GtkTypeFamilyInstance     (Maybe (TyFamInstDecl GhcPs))
     | GtkDataTypeFamily         (Maybe ([HsTyVarBndr GhcPs], Either (HsKind GhcPs) (HsTyVarBndr GhcPs)))
     | GtkDataTypeFamilyInstance (Maybe (HsKind GhcPs))
     | GtkForeignImport
@@ -356,16 +357,18 @@ hsDeclsToGhcTags mies =
             ++ foldl'
 #if __GLASGOW_HASKELL__ < 810
                 (\tags' (L _ tyFamDeflEqn) ->
+                  let decl = Nothing in
 #else
-                (\tags' (L _ (TyFamInstDecl (HsIB { hsib_body = tyFamDeflEqn }))) ->
+                (\tags' (L _ decl'@(TyFamInstDecl (HsIB { hsib_body = tyFamDeflEqn }))) ->
+                  let decl = Just decl' in
 #endif
-                  case tyFamDeflEqn of
-                    FamEqn { feqn_rhs = L _ hsType } -> 
-                      case hsTypeTagName hsType of
-                        -- TODO: add a `default` field
-                        Just a  -> mkGhcTag' decLoc a (GtkTypeFamilyInstance hsType) : tags'
-                        Nothing -> tags'
-                    XFamEqn {} -> tags')
+                    case tyFamDeflEqn of
+                      FamEqn { feqn_rhs = L _ hsType } -> 
+                        case hsTypeTagName hsType of
+                          -- TODO: add a `default` field
+                          Just a  -> mkGhcTag' decLoc a (GtkTypeFamilyInstance decl) : tags'
+                          Nothing -> tags'
+                      XFamEqn {} -> tags')
                 [] tcdATDefs
             ++ tags
 
@@ -648,13 +651,13 @@ hsDeclsToGhcTags mies =
     -- type family instance declaration
     --
     mkTyFamInstDeclTag :: SrcSpan -> TyFamInstDecl GhcPs -> Maybe GhcTag
-    mkTyFamInstDeclTag decLoc TyFamInstDecl { tfid_eqn } =
+    mkTyFamInstDeclTag decLoc decl@TyFamInstDecl { tfid_eqn } =
       case tfid_eqn of
         XHsImplicitBndrs {} -> Nothing
 
         -- TODO: should we check @feqn_rhs :: LHsType GhcPs@ as well?
-        HsIB { hsib_body = FamEqn { feqn_tycon, feqn_rhs = L _ hsType } } ->
-          Just $ mkGhcTag' decLoc feqn_tycon (GtkTypeFamilyInstance hsType)
+        HsIB { hsib_body = FamEqn { feqn_tycon } } ->
+          Just $ mkGhcTag' decLoc feqn_tycon (GtkTypeFamilyInstance (Just decl))
 
         HsIB { hsib_body = XFamEqn {} } -> Nothing
 
