@@ -55,7 +55,6 @@ import           GHC_IMPORT(Decls)
                               , InstDecl (..)
                               , TyClDecl (..)
                               , TyFamInstDecl (..)
-                              , hsConDeclArgTys
                               )
 #if __GLASGOW_HASKELL__ >= 810
 import           GHC.Hs.Decls ( StandaloneKindSig (..) )
@@ -108,11 +107,10 @@ data GhcTagKind
     | GtkTypeConstructor        (Maybe (HsKind GhcPs))
 
     -- | H98 data construtor
-    | GtkDataConstructor        (Located RdrName) -- ^ type name
-                                [HsType GhcPs]    -- ^ fields type
+    | GtkDataConstructor               (ConDecl GhcPs)
 
     -- | GADT constructor with its type
-    | GtkGADTConstructor               (HsType GhcPs)
+    | GtkGADTConstructor               (ConDecl GhcPs)
     | GtkRecordField
     | GtkTypeSynonym                   (HsType GhcPs)
     | GtkTypeSignature                 (HsWildCardBndrs GhcPs (LHsSigType GhcPs))
@@ -473,18 +471,14 @@ hsDeclsToGhcTags mies =
                -- constructor declaration
                -> GhcTags
 
-    mkConsTags decLoc tyName ConDeclGADT { con_names, con_args, con_res_ty = L _ con_res_ty } =
-         (\n -> mkGhcTagForMember decLoc n tyName (GtkGADTConstructor con_res_ty))
+    mkConsTags decLoc tyName con@ConDeclGADT { con_names, con_args } =
+         (\n -> mkGhcTagForMember decLoc n tyName (GtkGADTConstructor con))
          `map` con_names
       ++ mkHsConDeclDetails decLoc tyName con_args
 
-    mkConsTags decLoc tyName ConDeclH98  { con_name, con_args } =
-      -- TODO:
-      -- 'ConDeclH98' does not contain the resulting type like 'con_res_ty' on
-      -- 'ConDeclGADT'; we use 'tyName' instead, but this results in wrong type
-      -- tag (it is missing type variables).  One can use 'tcdTyVars' of 'DataDecl'
+    mkConsTags decLoc tyName con@ConDeclH98  { con_name, con_args } =
         mkGhcTagForMember decLoc con_name tyName
-          (GtkDataConstructor tyName (map unLoc $ hsConDeclArgTys con_args))
+          (GtkDataConstructor con)
       : mkHsConDeclDetails decLoc tyName con_args
 
     mkConsTags _ _ XConDecl {} = []

@@ -454,15 +454,19 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
           GtkTypeConstructor (Just hsKind) ->
             mkField kindFieldName hsKind
 
-          GtkDataConstructor ty fields ->
+          GtkDataConstructor decl ->
             TagFields
               [TagField
-                { fieldName  = typeFieldName
-                , fieldValue = Text.intercalate " -> " (map render fields ++ [render ty])
+                { fieldName  = termFieldName
+                , fieldValue = render decl
                 }]
 
-          GtkGADTConstructor hsType ->
-            mkField typeFieldName hsType
+          GtkGADTConstructor decl ->
+            TagFields
+              [TagField
+                { fieldName  = termFieldName
+                , fieldValue = render decl
+                }]
 
           GtkTypeClassMember hsType ->
             mkField typeFieldName hsType
@@ -470,9 +474,10 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
           _ -> mempty
 
 
-    kindFieldName, typeFieldName :: Text
+    kindFieldName, typeFieldName, termFieldName :: Text
     kindFieldName = "Kind" -- "kind" is reserverd
     typeFieldName = "type"
+    termFieldName = "term"
 
     --
     -- fields
