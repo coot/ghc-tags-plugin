@@ -18,17 +18,16 @@ jobs:
         run: cachix use iohk
 
       - name: "[GHC 8.6.5]  ghc-tags-core"
-        run: |
-          nix-build default.nix --argstr compiler ghc865 -A ghc-tags-core
+        run: nix-build default.nix --argstr compiler ghc865 -A ghc-tags-core
       - name: "[GHC 8.6.5]  ghc-tags-plugin"
         run: nix-build default.nix --argstr compiler ghc865 -A ghc-tags-plugin
 
-      - name: "[GHC 8.8.3]  ghc-tags-core"
-        run: nix-build default.nix --argstr compiler ghc883 -A ghc-tags-core
-      - name: "[GHC 8.8.3]  ghc-tags-plugin"
-        run: nix-build default.nix --argstr compiler ghc883 -A ghc-tags-plugin
+      - name: "[GHC 8.8.4]  ghc-tags-core"
+        run: nix-build default.nix --argstr compiler ghc884 -A ghc-tags-core
+      - name: "[GHC 8.8.4]  ghc-tags-plugin"
+        run: nix-build default.nix --argstr compiler ghc884 -A ghc-tags-plugin
 
-      - name: "[GHC 8.10.1] ghc-tags-core"
-        run: nix-build default.nix --argstr compiler ghc8101 -A ghc-tags-core
-      - name: "[GHC 8.10.1] ghc-tags-plugin"
-        run: nix-build default.nix --argstr compiler ghc8101 -A ghc-tags-plugin
+      - name: "[GHC 8.10.2] ghc-tags-core"
+        run: nix-build default.nix --argstr compiler ghc8102 -A ghc-tags-core
+      - name: "[GHC 8.10.2] ghc-tags-plugin"
+        run: nix-build default.nix --argstr compiler ghc8102 -A ghc-tags-plugin
