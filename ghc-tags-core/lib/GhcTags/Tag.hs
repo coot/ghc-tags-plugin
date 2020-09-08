@@ -258,7 +258,7 @@ instance Eq (Tag tk) where
             && on (==) tagAddr t0 t1
             && on (==) tagDefinition t0 t1
             && on (==) tagFields t0 t1
-            
+
 
 type CTag = Tag CTAG
 type ETag = Tag ETAG
@@ -277,7 +277,7 @@ type ETag = Tag ETAG
 -- * anti-symmetry
 -- * reflexivity
 -- * transitivity
--- * partial consistency with 'Eq' instance: 
+-- * partial consistency with 'Eq' instance:
 --
 --   prop> a == b => compareTags a b == EQ
 --
@@ -285,7 +285,7 @@ compareTags :: forall (tk :: TAG_KIND). Ord (TagAddress tk) => Tag tk -> Tag tk 
 compareTags t0 t1 = on compare tagName t0 t1
                     -- sort type classes / type families before their instances,
                     -- and take precendence over a file where they are defined.
-                    -- 
+                    --
                     -- This will also sort type classes and instances before any
                     -- other terms.
                  <> on compare getTkClass  t0 t1
@@ -428,13 +428,13 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
                              <> case hsTyVars of
                                   []      ->           either render render hsKind
                                   (_ : _) -> " -> " <> either render render hsKind
-                                  
+
                  }
               ]
           GtkTypeFamilyInstance decl ->
             TagFields
               [ TagField
-                  { fieldName = typeFieldName 
+                  { fieldName = typeFieldName
                   , fieldValue = render decl
                   }
               ]
@@ -477,7 +477,7 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
     --
     -- fields
     --
-    
+
     mkField :: Out.Outputable p => Text -> p -> TagFields CTAG
     mkField fieldName  p =
       TagFields

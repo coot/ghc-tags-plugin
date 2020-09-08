@@ -89,6 +89,6 @@ runCombineTagsPipe
     -> Pipes.Effect (StateT [Tag tk] m) ()
 runCombineTagsPipe writeHandle compareFn formatTag modPath =
       (\tag -> Pipes.stateP $ fmap ((),) . combineTagsPipe compareFn modPath tag)
-    ~> Pipes.yield . BS.toLazyByteString . formatTag 
+    ~> Pipes.yield . BS.toLazyByteString . formatTag
     ~> Pipes.BS.fromLazy
     ~> \bs -> Pipes.yield bs >-> Pipes.BS.toHandle writeHandle

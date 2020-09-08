@@ -101,7 +101,7 @@ import qualified Plugin.GhcTags.CTag as CTag
 -- compiled module.
 --
 -- __The syntax tree is left unchanged.__
--- 
+--
 -- The tags file will contain location information about:
 --
 --  * /top level terms/
@@ -180,7 +180,7 @@ ghcTagsParserPlugin options
                       when (inSize > outSize)
                         $ throwIO (userError $ concat
                                     [ "tags file '"
-                                    , tagsFile 
+                                    , tagsFile
                                     , "' size shrinked: "
                                     , show inSize
                                     , "→"
@@ -330,7 +330,7 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
               Right txt -> do
                 pres <- try @IOException $ ETag.parseTagsFile txt
                 case pres of
-                  Left err   -> 
+                  Left err   ->
                     putDocLn dynFlags $ messageDoc ParserException (Just ms_mod) (displayException err)
 
                   Right (Left err) ->
@@ -411,7 +411,7 @@ ghcTagsDynflagsPlugin options dynFlags =
                 then do
                   pr <- ETag.parseTagsFile tagsContent
                   case pr of
-                    Left err -> 
+                    Left err ->
                       printMessageDoc dynFlags ParserException Nothing err
 
                     Right tags -> do
@@ -436,7 +436,7 @@ ghcTagsDynflagsPlugin options dynFlags =
                                ++ Right `map`
                                   sortBy CTag.compareTags
                                   ( tags
-                                    ++ 
+                                    ++
                                     (fmap (fixTagFilePath  cwd tagsDir)
                                       . ghcTagToTag SingCTag dynFlags)
                                       `mapMaybe`
@@ -572,7 +572,7 @@ hDataSync h = do
     throwErrnoIfMinus1_ "ghc-tags-plugin" (c_fdatasync fdFD)
 
 foreign import ccall safe "fdatasync"
-    c_fdatasync :: CInt -> IO CInt 
+    c_fdatasync :: CInt -> IO CInt
 #else
 hDataSync :: Handle -> IO ()
 hDataSync _ = pure ()

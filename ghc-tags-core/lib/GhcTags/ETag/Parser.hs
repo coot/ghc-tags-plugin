@@ -72,7 +72,7 @@ parseTag tagFilePath =
       <?> "parsing tag failed"
   where
     mkTag :: Text -> Maybe TagName -> Int -> Int -> ETag
-    mkTag tagDefinition mTagName lineNo byteOffset = 
+    mkTag tagDefinition mTagName lineNo byteOffset =
       Tag { tagName       = case mTagName of
                               Nothing   -> TagName tagDefinition
                               Just name -> name

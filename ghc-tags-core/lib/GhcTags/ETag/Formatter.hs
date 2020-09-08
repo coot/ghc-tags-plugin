@@ -6,7 +6,7 @@
 --
 module GhcTags.ETag.Formatter
   ( withByteOffset
-  , formatETagsFile 
+  , formatETagsFile
   , formatTagsFile
   , formatTag
   , BuilderWithSize (..)
@@ -110,7 +110,7 @@ formatTagsFile ts@(Tag {tagFilePath} : _) =
 --
 formatETagsFile :: [ETag] -> Builder
 formatETagsFile =
-      foldMap formatTagsFile 
+      foldMap formatTagsFile
     . groupBy (on (==) tagFilePath)
 
 
