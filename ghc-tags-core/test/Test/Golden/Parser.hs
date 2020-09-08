@@ -65,11 +65,11 @@ tests goldenTestDir =
                  golden
                  output
                  (parseGoldenCTagsFile input output)
-         
+
           , let input  = goldenTestDir </> "ouroboros-network.tags"
                 golden = goldenTestDir </> "ouroboros-network.tags" <.> ext <.> "golden"
                 output = goldenTestDir </> "ouroboros-network.tags.out"
-            in goldenVsFile 
+            in goldenVsFile
                 "ouroboros-network tags"
                  golden
                  output
@@ -98,7 +98,7 @@ tests goldenTestDir =
           [ let input  = goldenTestDir </> "ouroboros-consensus.ETAGS"
                 golden = goldenTestDir </> "ouroboros-consensus.ETAGS" <.> ext <.> "golden"
                 output = goldenTestDir </> "ouroboros-consensus.ETAGS.out"
-            in goldenVsFile 
+            in goldenVsFile
                 "ouroboros-consensus TAGS"
                  golden
                  output
@@ -107,7 +107,7 @@ tests goldenTestDir =
           , let input  = goldenTestDir </> "vim.ETAGS"
                 golden = goldenTestDir </> "vim.ETAGS" <.> ext <.> "golden"
                 output = goldenTestDir </> "vim.ETAGS.out"
-            in goldenVsFile 
+            in goldenVsFile
                 "vim tags"
                  golden
                  output
@@ -116,7 +116,7 @@ tests goldenTestDir =
           , let input  = goldenTestDir </> "ghc.ETAGS"
                 golden = goldenTestDir </> "ghc.ETAGS" <.> ext <.> "golden"
                 output = goldenTestDir </> "ghc.ETAGS.out"
-            in goldenVsFile 
+            in goldenVsFile
                 "ghc tags"
                  golden
                  output

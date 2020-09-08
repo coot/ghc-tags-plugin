@@ -279,7 +279,7 @@ combineTags_identity (ArbTagsFromFile fp as) =
 combineTags_preserve :: ArbTagsFromFile -> ArbTagList -> Bool
 combineTags_preserve (ArbTagsFromFile fp as) (ArbTagList bs) =
        filter (\t -> not $ tagFilePath t == fp) (combineTags CTag.compareTags (encodeTagFilePath fp) as bs)
-    == 
+    ==
        filter (\t -> not $ tagFilePath t == fp) bs
 
 
@@ -288,7 +288,7 @@ combineTags_preserve (ArbTagsFromFile fp as) (ArbTagList bs) =
 combineTags_substitution :: ArbTagsFromFile -> ArbTagList -> Bool
 combineTags_substitution (ArbTagsFromFile fp as) (ArbTagList bs) =
        filter (\t -> tagFilePath t == fp) (combineTags CTag.compareTags (encodeTagFilePath fp) as bs)
-    == 
+    ==
        as
 
 -- | 'combineTags' must preserver order of tags.
@@ -359,7 +359,7 @@ instance Arbitrary ArbTagsFromFileAndTagList where
       [ ArbTagsFromFileAndTagList (TagFilePath rawPath')
                                   ((\t -> t { tagFilePath = TagFilePath rawPath' }) `map` as)
                                   bs
-      | rawPath' <- shrink rawPath 
+      | rawPath' <- shrink rawPath
       , not (Text.null rawPath')
       ]
       ++

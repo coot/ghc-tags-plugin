@@ -170,7 +170,7 @@ instance Arbitrary ArbHeader where
       , let headerLanguage' =
               lang >>= (\x -> if Text.null x then Nothing else Just x)
       ]
-      ++ 
+      ++
       [ ArbHeader $ CTag.Header headerType headerLanguage headerArg' headerComment
       | headerArg' <-
           case CTag.headerTypeSing headerType of

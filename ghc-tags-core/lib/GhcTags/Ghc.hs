@@ -192,7 +192,7 @@ isMemberExported (Just ies) memberName  className  = any go ies
         -- list and passed member or type class names (constructor / type
         -- constructor names, respectively)
         isInWrappedNames = any ((== occNameFS (rdrNameOcc (unLoc memberName))) . occNameFS . rdrNameOcc . ieWrappedName . unLoc) ns
-        isInFieldLbls    = any ((== occNameFS (rdrNameOcc (unLoc memberName))) . occNameFS . rdrNameOcc . flSelector. unLoc) lfls 
+        isInFieldLbls    = any ((== occNameFS (rdrNameOcc (unLoc memberName))) . occNameFS . rdrNameOcc . flSelector. unLoc) lfls
 
     go _ = False
 
@@ -233,7 +233,7 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
                , gtFFI = Nothing
                }
 
-      Exact eName -> 
+      Exact eName ->
         GhcTag { gtTag = fs_bs (occNameFS (nameOccName eName))
                , gtSrcSpan
                , gtKind
@@ -261,7 +261,7 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
 --
 getGhcTags :: Located (HsModule GhcPs)
            -> GhcTags
-getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) = 
+getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
     hsDeclsToGhcTags mies hsmodDecls
   where
     mies :: Maybe [IE GhcPs]
@@ -291,7 +291,7 @@ hsDeclsToGhcTags mies =
               -> GhcTag
     mkGhcTag' l a k = fixLoc l $ mkGhcTag a k (isExported mies a)
 
-                      
+
     mkGhcTagForMember :: SrcSpan
                       -- ^ declartion's 'SrcSpan'
                       -> Located RdrName -- member name
@@ -326,7 +326,7 @@ hsDeclsToGhcTags mies =
           --   constructors,
           --   record fields
           --
-          DataDecl { tcdLName, tcdDataDefn } -> 
+          DataDecl { tcdLName, tcdDataDefn } ->
             case tcdDataDefn of
               HsDataDefn { dd_cons, dd_kindSig } ->
                      mkGhcTag' decLoc tcdLName (GtkTypeConstructor (unLoc <$> dd_kindSig))
@@ -363,7 +363,7 @@ hsDeclsToGhcTags mies =
                   let decl = Just decl' in
 #endif
                     case tyFamDeflEqn of
-                      FamEqn { feqn_rhs = L _ hsType } -> 
+                      FamEqn { feqn_rhs = L _ hsType } ->
                         case hsTypeTagName hsType of
                           -- TODO: add a `default` field
                           Just a  -> mkGhcTag' decLoc a (GtkTypeFamilyInstance decl) : tags'
@@ -583,7 +583,7 @@ hsDeclsToGhcTags mies =
     mkFamilyDeclTags decLoc FamilyDecl { fdLName, fdInfo, fdTyVars, fdResultSig = L _ familyResultSig } assocClsName =
       case assocClsName of
         Nothing      -> Just $ mkGhcTag' decLoc fdLName tk
-        Just clsName -> Just $ mkGhcTagForMember decLoc fdLName clsName tk 
+        Just clsName -> Just $ mkGhcTagForMember decLoc fdLName clsName tk
       where
 
         mb_fdvars = case fdTyVars of
@@ -614,7 +614,7 @@ hsDeclsToGhcTags mies =
     hsTypeTagName hsType =
       case hsType of
         HsForAllTy {hst_body} -> hsTypeTagName (unLoc hst_body)
-        
+
         HsQualTy {hst_body}   -> hsTypeTagName (unLoc hst_body)
 
         HsTyVar _ _ a         -> Just $ a

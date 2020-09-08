@@ -131,13 +131,13 @@ benchReadParseFormat path = do
 
 benchStreamParseFormat :: FilePath -> IO ()
 benchStreamParseFormat fp =
-    withFile "/dev/null" WriteMode $ \devNull -> 
+    withFile "/dev/null" WriteMode $ \devNull ->
       withFile fp ReadMode $ \h ->
         Pipes.void $ Pipes.runEffect $ Pipes.for
           (Pipes.AP.parsed
             CTag.parseTag
             (Pipes.BS.fromHandle h `Pipes.for` Pipes.yield))
-          (\tag -> 
+          (\tag ->
             (Pipes.BS.fromLazy . BB.toLazyByteString . CTag.formatTag) tag
             Pipes.>->
             Pipes.BS.toHandle devNull)
@@ -145,7 +145,7 @@ benchStreamParseFormat fp =
 
 benchStreamTags :: FilePath -> RawFilePath -> [CTag] -> IO ()
 benchStreamTags filePath modPath tags =
-    withFile filePath ReadMode $ \readHandle -> 
+    withFile filePath ReadMode $ \readHandle ->
       withFile "/tmp/bench.stream.tags" WriteMode $ \writeHandle -> do
         let producer :: Pipes.Producer ByteString IO ()
             producer = void (Pipes.BS.fromHandle readHandle)
@@ -165,7 +165,7 @@ benchStreamTags filePath modPath tags =
 
 benchReadTags :: FilePath -> RawFilePath -> [CTag] -> IO ()
 benchReadTags filePath modPath tags = do
-     withFile filePath ReadMode $ \readHandle -> 
+     withFile filePath ReadMode $ \readHandle ->
        withFile "/tmp/bench.stream.tags" WriteMode $ \writeHandle -> do
          Right tags' <-
            BS.hGetContents readHandle >>= CTag.parseTagsFile

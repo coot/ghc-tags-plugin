@@ -45,7 +45,7 @@ formatTag Tag { tagName, tagFilePath, tagAddr, tagKind, tagFields = TagFields ta
     <> formatKindChar tagKind
 
     -- tag fields
-    <> foldMap ((BS.charUtf8 '\t' <>) . formatField) tagFields 
+    <> foldMap ((BS.charUtf8 '\t' <>) . formatField) tagFields
 
     <> BS.stringUtf8 endOfLine
 
@@ -58,7 +58,7 @@ formatTag Tag { tagName, tagFilePath, tagAddr, tagKind, tagFields = TagFields ta
     formatTagAddress (TagLine lineNo) =
       BS.intDec lineNo
     formatTagAddress (TagCommand exCommand) =
-      BS.byteString . Text.encodeUtf8 . getExCommand $ exCommand     
+      BS.byteString . Text.encodeUtf8 . getExCommand $ exCommand
 
     formatKindChar :: CTagKind -> Builder
     formatKindChar tk =
