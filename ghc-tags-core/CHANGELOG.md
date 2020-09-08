@@ -18,8 +18,10 @@
 * Added `hsDeclsToGhcTags`.
 * Type signatures for class method.
 
-## next version -- not published
+## 0.2.4.0 -- 2020-09-08
 
-* Type family and data type family kind contains all bound type variables (with their kind if they are given)
+* Type family and data type family kind contains all bound type variables (with
+  their kind if they are given)
 * Type family instances: include the resulting type
 * Data type family instances: include the resulting kind
+* Data constructor tags cary the contstructor declaration 
