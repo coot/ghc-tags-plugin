@@ -29,7 +29,20 @@ install:
 	cabal install --package-db=${PACKAGE_DB} \
 	  	      --package-env=${ENV} \
 		      --with-compiler=${GHC} \
+		      --disable-documentation \
 		      --lib \
+		      ghc-tags-plugin
+	rm ${ENV}
+	${GHC_PKG} describe --package-db=${PACKAGE_DB} ghc-tags-plugin | grep -A1 ^id
+
+prof-install:
+	# avoid changing the default environment
+	cabal install --package-db=${PACKAGE_DB} \
+	  	      --package-env=${ENV} \
+		      --with-compiler=${GHC} \
+		      --lib \
+		      --disable-documentation \
+		      --enable-profiling \
 		      ghc-tags-plugin
 	rm ${ENV}
 	${GHC_PKG} describe --package-db=${PACKAGE_DB} ghc-tags-plugin | grep -A1 ^id
