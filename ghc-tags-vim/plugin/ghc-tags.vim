@@ -1,6 +1,6 @@
 " Update `ghc-tags-plugin` version in a `cabal.project` file
 "
-fun! UpdateGhcTagsPlugin(ghcVersion)
+fun! UpdateGhcTagsPlugin(ghcVersion) abort
   let view = winsaveview()
   if empty(a:ghcVersion)
     let ghcVersion = matchstr(system("ghc --numeric-version"), '[0-9.]*')
@@ -8,8 +8,8 @@ fun! UpdateGhcTagsPlugin(ghcVersion)
     let ghcVersion = a:ghcVersion
   endif
 
-  let output = split(system("ghc-pkg-".ghcVersion." --package-db=".$HOME."/.cabal/store/ghc-".ghcVersion."/package.db describe ghc-tags-plugin"), "\n")
-  let ghcTagsPluginIds = map(filter(output, {id, v -> v =~# '^id:'}), {id, v -> v[4:]})
+  let output = system("ghc-pkg-".ghcVersion." --package-db=".$HOME."/.cabal/store/ghc-".ghcVersion."/package.db describe ghc-tags-plugin")
+  let ghcTagsPluginIds = filter(matchlist(output, 'id:\_s*\zs\(.\{-}\)\n')[:1], {id, v -> !empty(v)})
   if !empty(ghcTagsPluginIds)
     let v = sort(ghcTagsPluginIds, "GTPCompareIds")[0]
     try
