@@ -3,7 +3,7 @@
 # nix-build -A ghc-tags-core
 # nix-build -A ghc-tags-plugin
 
-{ compiler ? "ghc8102"
+{ compiler ? "ghc8104"
 }:
 let compiler-nix-name = compiler;
 
