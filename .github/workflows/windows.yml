@@ -1,14 +1,14 @@
-name: "Windows GHC-8.10.3"
+name: "Windows GHC-8.10.4"
 on: [push]
 
 jobs:
-  test-windows-8_10_3:
+  test-windows-8_10_4:
     name: "ghc-tags-plugin"
     runs-on: windows-latest
     steps:
       - name: Install GHC
         run: |
-          choco install -y ghc --version 8.10.3 --allow-downgrade
+          choco install -y ghc --version 8.10.4 --allow-downgrade
       - name: Print version
         run: |
           cabal --version
@@ -22,7 +22,7 @@ jobs:
       - uses: actions/cache@v1
         with:
           path: C:\SR
-          key: cabal-store-8.10.3
+          key: cabal-store-8.10.4
       - uses: actions/checkout@v2
       - name: Update Hackage index
         run: cabal v2-update
