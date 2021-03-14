@@ -50,23 +50,65 @@ import           Pipes.Safe (SafeT)
 import qualified Pipes.Safe as Pipes.Safe
 import qualified Pipes.ByteString as Pipes.BS
 
-import           GhcPlugins ( CommandLineOption
-                            , DynFlags (..)
-                            , Hsc
+#if __GLASGOW_HASKELL__ >= 900
+import           GHC.Driver.Plugins
+#else
+import           GhcPlugins
+#endif
+                            ( CommandLineOption
+                            , Plugin (..)
+                            )
+#if __GLASGOW_HASKELL__ >= 900
+import qualified GHC.Driver.Plugins as GhcPlugins
+import           GHC.Driver.Types ( Hsc
+                                  , HsParsedModule (..)
+                                  , ModSummary (..)
+                                  , MetaHook
+                                  , MetaRequest (..)
+                                  , MetaResult
+                                  , metaRequestAW
+                                  , metaRequestD
+                                  , metaRequestE
+                                  , metaRequestP
+                                  , metaRequestT
+                                  )
+import           GHC.Driver.Hooks (Hooks (..))
+import           GHC.Unit.Types   (Module)
+import           GHC.Unit.Module.Location   (ModLocation (..))
+import           GHC.Tc.Types (TcM)
+import           GHC.Tc.Gen.Splice (defaultRunMeta)
+import           GHC.Types.SrcLoc (Located)
+#else
+import qualified GhcPlugins
+import           GhcPlugins ( Hsc
                             , HsParsedModule (..)
                             , Located
                             , Module
-                            , ModSummary (..)
                             , ModLocation (..)
-                            , Plugin (..)
+                            , ModSummary (..)
 #if __GLASGOW_HASKELL__ >= 810
                             , MetaHook
                             , MetaRequest (..)
                             , MetaResult
+                            , metaRequestAW
+                            , metaRequestD
+                            , metaRequestE
+                            , metaRequestP
+                            , metaRequestT
 #endif
                             )
-import qualified GhcPlugins
-#if __GLASGOW_HASKELL__ >= 810
+#endif
+#if   __GLASGOW_HASKELL__ >= 900
+import           GHC.Driver.Session (DynFlags (hooks))
+#elif __GLASGOW_HASKELL__ >= 810
+import           DynFlags (DynFlags (hooks))
+#else
+import           DynFlags (DynFlags)
+#endif
+
+#if   __GLASGOW_HASKELL__ >= 900
+import           GHC.Hs (GhcPs, GhcTc, HsModule (..), LHsDecl, LHsExpr)
+#elif __GLASGOW_HASKELL__ >= 810
 import           GHC.Hs (GhcPs, GhcTc, HsModule (..), LHsDecl, LHsExpr)
 import           TcSplice
 import           TcRnMonad
@@ -75,9 +117,15 @@ import           Hooks
 import           HsExtension (GhcPs)
 import           HsSyn (HsModule (..))
 #endif
+#if __GLASGOW_HASKELL__ >= 900
+import           GHC.Utils.Outputable (($+$), ($$))
+import qualified GHC.Utils.Outputable as Out
+import qualified GHC.Utils.Ppr.Colour as PprColour
+#else
 import           Outputable (($+$), ($$))
 import qualified Outputable as Out
 import qualified PprColour
+#endif
 
 import           GhcTags.Ghc
 import           GhcTags.Tag
@@ -88,6 +136,13 @@ import qualified GhcTags.ETag as ETag
 import           Plugin.GhcTags.Options
 import           Plugin.GhcTags.FileLock
 import qualified Plugin.GhcTags.CTag as CTag
+
+
+#if   __GLASGOW_HASKELL__ >= 900
+type GhcPsModule = HsModule
+#else
+type GhcPsModule = HsModule GhcPs
+#endif
 
 
 -- | The GhcTags plugin.  It will run for every compiled module and have access
@@ -151,7 +206,7 @@ ghcTagsParserPlugin options
                              , debug
                              } ->
 
-           GhcPlugins.liftIO $ do
+           liftIO $ do
             let sourceFile = case splitFileName tagsFile of
                   (dir, name) -> dir </> "." ++ name
                 lockFile = sourceFile ++ ".lock"
@@ -188,7 +243,7 @@ ghcTagsParserPlugin options
                                     ])
 
         Failure (ParserFailure f)  ->
-          GhcPlugins.liftIO $
+          liftIO $
             putDocLn dynFlags
                      (messageDoc
                        OptionParserFailure
@@ -221,7 +276,7 @@ instance Show MessageType where
 --
 updateTags :: Options Identity
            -> ModSummary
-           -> Located (HsModule GhcPs)
+           -> Located GhcPsModule
            -> FilePath
            -> IO ()
 updateTags Options { etags, filePath = Identity tagsFile, debug }
@@ -397,7 +452,7 @@ ghcTagsDynflagsPlugin options dynFlags =
               lockFile = sourceFile ++ ".lock"
 
           withMetaD defaultRunMeta request expr $ \decls ->
-            GhcPlugins.liftIO $
+            liftIO $
               handle (\ioerr -> do
                        putDocLn dynFlags
                                (messageDoc UnhandledException Nothing
@@ -446,7 +501,7 @@ ghcTagsDynflagsPlugin options dynFlags =
 
         Failure (ParserFailure f)  ->
           withMetaD defaultRunMeta request expr $ \_ ->
-          GhcPlugins.liftIO $
+          liftIO $
             putDocLn dynFlags
                      (messageDoc
                        OptionParserFailure
@@ -461,13 +516,13 @@ ghcTagsDynflagsPlugin options dynFlags =
                     -> ([LHsDecl GhcPs] -> TcM a)
                     -> TcM (MetaResult)
     withMetaD h req e f = case req of
-      MetaE  k -> k <$> GhcPlugins.metaRequestE h e
-      MetaP  k -> k <$> GhcPlugins.metaRequestP h e
-      MetaT  k -> k <$> GhcPlugins.metaRequestT h e
+      MetaE  k -> k <$> metaRequestE h e
+      MetaP  k -> k <$> metaRequestP h e
+      MetaT  k -> k <$> metaRequestT h e
       MetaD  k -> do
-        res <- GhcPlugins.metaRequestD h e
+        res <- metaRequestD h e
         k res <$ f res
-      MetaAW k -> k <$> GhcPlugins.metaRequestAW h e
+      MetaAW k -> k <$> metaRequestAW h e
 #endif
 
 
@@ -552,10 +607,19 @@ messageDoc errorType mb_mod errorMessage =
 putDocLn :: DynFlags -> Out.SDoc -> IO ()
 putDocLn dynFlags sdoc =
     putStrLn $
+#if __GLASGOW_HASKELL__ >= 900
+      Out.renderWithStyle
+        (Out.initSDocContext
+          dynFlags
+          (Out.setStyleColoured False
+            $ Out.mkErrStyle Out.neverQualify))
+        sdoc
+#else
       Out.renderWithStyle
         dynFlags
         sdoc
         (Out.setStyleColoured True $ Out.defaultErrStyle dynFlags)
+#endif
 
 
 printMessageDoc :: DynFlags -> MessageType -> Maybe Module -> String -> IO ()
