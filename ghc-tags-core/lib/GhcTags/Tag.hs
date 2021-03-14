@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
@@ -42,25 +43,56 @@ module GhcTags.Tag
   ) where
 
 import           Data.Function (on)
+#if   __GLASGOW_HASKELL__ < 810
+import           Data.ByteString (ByteString)
+#endif
 import           Data.Text   (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import           System.FilePath.ByteString (RawFilePath)
 
 -- GHC imports
-import           DynFlags     ( DynFlags (pprUserLength) )
-import           FastString   ( FastString (..) )
+#if   __GLASGOW_HASKELL__ >= 900
+import           GHC.Driver.Session (DynFlags)
+#else
+import           DynFlags           (DynFlags (pprUserLength))
+#endif
+#if   __GLASGOW_HASKELL__ >= 900
+import           GHC.Data.FastString (bytesFS)
+#elif __GLASGOW_HASKELL__ >= 810
+import           FastString          (bytesFS)
+#else
+import           FastString          (FastString (fs_bs))
+#endif
 
+#if   __GLASGOW_HASKELL__ >= 900
+import           GHC.Types.SrcLoc
+                              ( SrcSpan (..)
+                              , srcSpanFile
+                              , srcSpanStartLine
+                              , srcSpanStartCol
+                              )
+#else
 import           SrcLoc       ( SrcSpan (..)
                               , srcSpanFile
                               , srcSpanStartLine
                               , srcSpanStartCol
                               )
+#endif
 
 import           GhcTags.Ghc  ( GhcTag (..)
                               , GhcTagKind (..)
                               )
+#if   __GLASGOW_HASKELL__ >= 900
+import qualified GHC.Utils.Outputable as Out
+#else
 import qualified Outputable as Out
+#endif
+
+#if   __GLASGOW_HASKELL__ < 810
+bytesFS :: FastString -> ByteString
+bytesFS = fs_bs
+#endif
 
 --
 -- Tag
@@ -343,12 +375,16 @@ ghcTagToTag :: SingTagKind tk -> DynFlags
 ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI } =
     case gtSrcSpan of
       UnhelpfulSpan {} -> Nothing
+#if   __GLASGOW_HASKELL__ >= 900
+      RealSrcSpan realSrcSpan _ ->
+#else
       RealSrcSpan realSrcSpan ->
+#endif
         Just $ Tag
           { tagName       = TagName (Text.decodeUtf8 gtTag)
           , tagFilePath   = TagFilePath
                           $ Text.decodeUtf8
-                          $ fs_bs
+                          $ bytesFS
                           $ srcSpanFile realSrcSpan
 
           , tagAddr       = TagLineCol (srcSpanStartLine realSrcSpan)
@@ -496,8 +532,18 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
         Text.intercalate " " -- remove all line breaks, tabs and multiple spaces
       . Text.words
       . Text.pack
+#if   __GLASGOW_HASKELL__ >= 900
+      $ Out.renderWithStyle
+          (Out.initSDocContext
+            dynFlags
+            (Out.setStyleColoured False
+              $ Out.mkErrStyle Out.neverQualify))
+          (Out.ppr hsType)
+          
+#else
       $ Out.renderWithStyle
           (dynFlags { pprUserLength = 1 })
           (Out.ppr hsType)
           (Out.setStyleColoured False
             $ Out.mkErrStyle dynFlags Out.neverQualify)
+#endif

@@ -1,4 +1,5 @@
 index-state: 2021-03-07T00:00:00Z
+allow-newer: filepath-bytestring:base
 
 packages: ghc-tags-plugin
           ghc-tags-core
