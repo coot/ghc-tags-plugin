@@ -25,3 +25,8 @@
 * Type family instances: include the resulting type
 * Data type family instances: include the resulting kind
 * Data constructor tags cary the contstructor declaration 
+
+## 0.2.4.1 -- 2021-03-15
+
+* Support for `ghc-9.0.1`
+* vim-plugin: better parser of ghc-pkg output

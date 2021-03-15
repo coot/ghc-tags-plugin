@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                ghc-tags-plugin
-version:             0.2.4.0
+version:             0.2.4.1
 synopsis:            A compiler plugin which generates tags file from GHC parsed syntax tree.
 description:
   A [GHC compiler plugin](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/extending_ghc.html?highlight=compiler%20plugin#compiler-plugins)
@@ -10,8 +10,8 @@ description:
 license:             MPL-2.0
 license-file:        LICENSE
 author:              Marcin Szamotulski
-maintainer:          profunctor@pm.me
-copyright:           (c) 2020, Marcin Szamotulski
+maintainer:          coot@coot.me
+copyright:           (c) 2020-2021, Marcin Szamotulski
 category:            Development
 stability:           alpha
 extra-source-files:  CHANGELOG.md

@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                ghc-tags-core
-version:             0.2.4.0
+version:             0.2.4.1
 synopsis:            a library to work with tags created from Haskell parsed tree
 description:
   === library scope
@@ -24,8 +24,8 @@ description:
 license:             MPL-2.0
 license-file:        LICENSE
 author:              Marcin Szamotulski
-maintainer:          profunctor@pm.me
-copyright:           (c) 2020, Marcin Szamotulski
+maintainer:          coot@coot.me
+copyright:           (c) 2020-2021, Marcin Szamotulski
 category:            Development
 stability:           experimental
 extra-source-files:  CHANGELOG.md
