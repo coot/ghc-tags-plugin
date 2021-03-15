@@ -185,6 +185,11 @@ ghc: panic! (the 'impossible' happened)
   to parse a large `tags` file.  Working with tag files of size 10000 tags (or
   ~1.5MB) is ok - though this will depend on the hardware.
 
+- If you're working on a project that is using `safe-haskell`, you will likely
+  need to pass
+  [-fplugin-trustworthy](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/extending_ghc.html?highlight=plugin#ghc-flag--fplugin-trustworthy)
+  `ghc` flag.
+
 
 ● Security implications of compiler plugins
 -------------------------------------------
