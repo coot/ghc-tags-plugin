@@ -11,6 +11,7 @@ jobs:
           choco install -y ghc --version 8.10.4 --allow-downgrade
       - name: Print version
         run: |
+          ghc --version
           cabal --version
       - name: Cabal config
         run: |

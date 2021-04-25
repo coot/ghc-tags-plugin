@@ -1,5 +1,3 @@
-with-compiler: C:\\ProgramData\\chocolatey\\lib\\ghc.8.6.5\\tools\\ghc-8.6.5\\bin\\ghc
-
 package ghc-tags-core
   ghc-options: -Werror
 
