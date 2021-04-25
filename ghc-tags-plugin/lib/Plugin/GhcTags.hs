@@ -392,18 +392,12 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
                     printMessageDoc dynFlags ParserException (Just ms_mod) err
 
                   Right (Right tags) -> do
-
-                    -- read the source file to calculate byteoffsets
-                    ll <- map (succ . BS.length) . BSC.lines <$> BS.readFile sourcePath
-
                     let sourcePathBS = Text.encodeUtf8 (Text.pack sourcePath)
 
                         newTags  :: [ETag]
                         newTags =
                             (sortBy ETag.compareTags
-                          . map ( ETag.withByteOffset ll
-                                . fixTagFilePath cwd tagsDir
-                                )
+                          . map (fixTagFilePath cwd tagsDir)
                           . mapMaybe (ghcTagToTag SingETag dynFlags)
                           . getGhcTags
                           $ lmodule)

@@ -21,7 +21,7 @@ import           Data.Attoparsec.ByteString  (Parser, (<?>))
 import qualified Data.Attoparsec.ByteString  as AB
 import qualified Data.Attoparsec.ByteString.Char8  as AChar
 import           Data.Functor (($>))
-import           Data.Text (Text)
+import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import qualified System.FilePath.ByteString as FilePath
 
@@ -64,24 +64,29 @@ parseTag :: TagFilePath -> Parser ETag
 parseTag tagFilePath =
           mkTag
       <$> parseTagDefinition
-      <*> ((Just <$> parseTagName) <|> pure Nothing)
-      <*> AChar.decimal
-      <*  AChar.char ','
-      <*> AChar.decimal
-      <*  endOfLine
+      <*> parseTagName
+      <*> parseAddress
       <?> "parsing tag failed"
   where
-    mkTag :: Text -> Maybe TagName -> Int -> Int -> ETag
-    mkTag tagDefinition mTagName lineNo byteOffset =
-      Tag { tagName       = case mTagName of
-                              Nothing   -> TagName tagDefinition
-                              Just name -> name
+    parseAddress :: Parser ETagAddress
+    parseAddress =
+          TagLine    <$> AChar.decimal
+                     <*  AChar.char ','
+                     <*  endOfLine
+      <|> TagLineCol <$> AChar.decimal
+                     <*  AChar.char ','
+                     <*> AChar.decimal
+                     <*  endOfLine
+      <|> NoAddress  <$  AChar.char ','
+                     <*  endOfLine
+
+    mkTag :: TagDefinition ETAG -> TagName -> ETagAddress -> ETag
+    mkTag tagDefinition tagName tagAddr =
+      Tag { tagName       = tagName
           , tagKind       = NoKind
           , tagFilePath
-          , tagAddr       = TagLineCol lineNo byteOffset
-          , tagDefinition = case mTagName of
-                              Nothing -> NoTagDefinition
-                              Just _  -> TagDefinition tagDefinition
+          , tagAddr
+          , tagDefinition
           , tagFields     = NoTagFields
           }
 
@@ -92,9 +97,12 @@ parseTag tagFilePath =
       <*  AChar.char '\SOH'
       <?> "parsing tag name failed"
 
-    parseTagDefinition :: Parser Text
+    parseTagDefinition :: Parser (TagDefinition ETAG)
     parseTagDefinition =
-          Text.decodeUtf8
+            (\t -> if Text.null t
+                     then NoTagDefinition
+                     else TagDefinition t)
+          . Text.decodeUtf8
       <$> AChar.takeWhile (\x -> x /= '\DEL' && Utils.notNewLine x)
       <*  AChar.char '\DEL'
       <?> "parsing tag definition failed"
