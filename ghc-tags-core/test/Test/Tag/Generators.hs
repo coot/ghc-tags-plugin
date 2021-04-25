@@ -120,6 +120,7 @@ shrinkTag' tag@Tag {tagName, tagAddr, tagFields} =
               TagLine 0
             : (TagCommand . ExCommand . wrap '/' . fixAddr)
               `map` (shrink . stripEnds) addr
+          NoAddress -> []
       ,  addr /= tagAddr -- wrap might restore the same address!
       ]
    ++ case tagFields of

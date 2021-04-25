@@ -38,7 +38,11 @@ instance Arbitrary ArbETag where
       <$> (TagName <$> genTextNonEmpty)
       <*> genTagKind SingETag
       <*> genTagFilePath
-      <*> (TagLineCol <$> (getPositive <$> arbitrary) <*> (getPositive <$> arbitrary))
+      <*> oneof [ TagLine    <$> (getPositive <$> arbitrary)
+                , TagLineCol <$> (getPositive <$> arbitrary)
+                             <*> (getPositive <$> arbitrary)
+                , return NoAddress
+                ]
       <*> (TagDefinition <$> genTextNonEmpty)
       <*> pure NoTagFields
     shrink = map ArbETag . shrinkTag . getArbETag

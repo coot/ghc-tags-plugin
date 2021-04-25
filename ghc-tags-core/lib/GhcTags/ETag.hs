@@ -20,5 +20,5 @@ import           GhcTags.Tag ( Tag (..)
 compareTags :: ETag -> ETag -> Ordering
 compareTags t0 t1 =
        on compare tagFilePath t0 t1
-    <> on compare (\Tag {tagAddr = TagLineCol _ byteOffset} -> byteOffset) t0 t1
+    <> on compare (\Tag {tagAddr = TagLine line} -> line) t0 t1
     <> on compare tagName t0 t1

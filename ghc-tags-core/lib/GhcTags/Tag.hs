@@ -189,11 +189,15 @@ data TagAddress (tk :: TAG_KIND) where
       -- them separated by `;`). We parse line number specifically, since they
       -- are useful for ordering tags.
       --
-      TagLine :: !Int -> TagAddress CTAG
+      TagLine :: !Int -> TagAddress tk
 
       -- | A tag address can be just an ex command.
       --
       TagCommand :: !ExCommand -> TagAddress CTAG
+
+      -- | etags file format allows to discard the address
+      --
+      NoAddress :: TagAddress ETAG
 
 
 -- | 'CTag' addresses.
@@ -387,7 +391,10 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
                           $ bytesFS
                           $ srcSpanFile realSrcSpan
 
-          , tagAddr       = TagLineCol (srcSpanStartLine realSrcSpan)
+          , tagAddr       =
+              case sing of
+                SingETag -> TagLine    (srcSpanStartLine realSrcSpan)
+                SingCTag -> TagLineCol (srcSpanStartLine realSrcSpan)
                                        (srcSpanStartCol realSrcSpan)
 
           , tagKind       =
