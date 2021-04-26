@@ -1,11 +1,11 @@
 
-cardano-client/src/Cardano/Client/Subscription.hs,79
+cardano-client\src\Cardano\Client\Subscription.hs,79
 subscribe57,
 subscribe69,
 versionedProtocols80,
 versionedProtocols100,
 
-io-sim-classes/src/Control/Monad/Class/MonadAsync.hs,2156
+io-sim-classes\src\Control\Monad\Class\MonadAsync.hs,2156
 MonadAsyncSTM44,
 waitSTM47,
 pollSTM48,
@@ -125,7 +125,7 @@ io-sim-classes/src/Control/Monad/Class/MonadAsync.hs,2156
 tryAll434,
 tryAll435,
 
-io-sim-classes/src/Control/Monad/Class/MonadEventlog.hs,164
+io-sim-classes\src\Control\Monad\Class\MonadEventlog.hs,164
 MonadEventlog11,
 traceEventIO15,
 traceMarkerIO22,
@@ -136,7 +136,7 @@ io-sim-classes/src/Control/Monad/Class/MonadEventlog.hs,164
 MonadEventlog39,
 MonadEventlog47,
 
-io-sim-classes/src/Control/Monad/Class/MonadFork.hs,352
+io-sim-classes\src\Control\Monad\Class\MonadFork.hs,352
 MonadThread24,
 ThreadId26,
 myThreadId28,
@@ -160,14 +160,14 @@ io-sim-classes/src/Control/Monad/Class/MonadFork.hs,352
 labelThisThread75,
 labelThisThread76,
 
-io-sim-classes/src/Control/Monad/Class/MonadST.hs,68
+io-sim-classes\src\Control\Monad\Class\MonadST.hs,68
 MonadST26,
 withLiftST27,
 MonadST29,
 MonadST32,
 MonadST35,
 
-io-sim-classes/src/Control/Monad/Class/MonadSTM.hs,3783
+io-sim-classes\src\Control\Monad\Class\MonadSTM.hs,3783
 LazyTVar91,
 LazyTMVar92,
 MonadSTMTx98,
@@ -353,7 +353,7 @@ io-sim-classes/src/Control/Monad/Class/MonadSTM.hs,3783
 catchSTM622,
 catchSTM624,
 
-io-sim-classes/src/Control/Monad/Class/MonadSTM/Strict.hs,1279
+io-sim-classes\src\Control\Monad\Class\MonadSTM\Strict.hs,1279
 LazyTVar69,
 LazyTMVar70,
 StrictTVar76,
@@ -427,13 +427,13 @@ io-sim-classes/src/Control/Monad/Class/MonadSTM/Strict.hs,1279
 checkInvariant222,
 checkInvariant227,
 
-io-sim-classes/src/Control/Monad/Class/MonadSay.hs,48
+io-sim-classes\src\Control\Monad\Class\MonadSay.hs,48
 MonadSay6,
 say7,
 MonadSay9,
 MonadSay12,
 
-io-sim-classes/src/Control/Monad/Class/MonadThrow.hs,1012
+io-sim-classes\src\Control\Monad\Class\MonadThrow.hs,1012
 MonadThrow35,
 throwIO38,
 bracket40,
@@ -497,7 +497,7 @@ io-sim-classes/src/Control/Monad/Class/MonadThrow.hs,1012
 MonadCatch293,
 MonadMask314,
 
-io-sim-classes/src/Control/Monad/Class/MonadTime.hs,255
+io-sim-classes\src\Control\Monad\Class\MonadTime.hs,255
 Time33,
 Time33,
 diffTime37,
@@ -514,7 +514,7 @@ io-sim-classes/src/Control/Monad/Class/MonadTime.hs,255
 MonadMonotonicTime79,
 MonadTime82,
 
-io-sim-classes/src/Control/Monad/Class/MonadTimer.hs,706
+io-sim-classes\src\Control\Monad\Class\MonadTimer.hs,706
 TimeoutCancelled36,
 TimeoutFired36,
 TimeoutPending36,
@@ -551,13 +551,13 @@ io-sim-classes/src/Control/Monad/Class/MonadTimer.hs,706
 WrapTimeoutReader239,
 unwrapTimeoutReader240,
 
-io-sim-classes/test/Main.hs,40
+io-sim-classes\test\Main.hs,40
 main7,
 main8,
 tests10,
 tests11,
 
-io-sim-classes/test/Test/MonadTimer.hs,316
+io-sim-classes\test\Test\MonadTimer.hs,316
 tests17,
 tests18,
 IntDistr26,
@@ -571,7 +571,7 @@ io-sim-classes/test/Test/MonadTimer.hs,316
 prop_diffTimeToMicrosecondsAsIntRightInverse70,
 prop_diffTimeToMicrosecondsAsIntRightInverse71,
 
-io-sim/src/Control/Monad/IOSim.hs,539
+io-sim\src\Control\Monad\IOSim.hs,539
 selectTraceEvents58,
 selectTraceEvents62,
 selectTraceEventsDynamic76,
@@ -598,7 +598,7 @@ io-sim/src/Control/Monad/IOSim.hs,539
 runSimTrace169,
 runSimTrace170,
 
-io-sim/src/Control/Monad/IOSim/Internal.hs,4889
+io-sim\src\Control\Monad\IOSim\Internal.hs,4889
 IOSim91,
 IOSim91,
 unIOSim91,
@@ -876,13 +876,13 @@ io-sim/src/Control/Monad/IOSim/Internal.hs,4889
 ordNub1547,
 ordNub1548,
 
-io-sim/test/Main.hs,40
+io-sim\test\Main.hs,40
 main7,
 main8,
 tests10,
 tests11,
 
-io-sim/test/Test/IOSim.hs,2142
+io-sim\test\Test\IOSim.hs,2142
 tests37,
 tests38,
 prop_stm_graph_io92,
@@ -987,7 +987,7 @@ io-sim/test/Test/IOSim.hs,2142
 selectTraceSay863,
 selectTraceSay864,
 
-io-sim/test/Test/STM.hs,2816
+io-sim\test\Test\STM.hs,2816
 Type42,
 TyUnit43,
 TyInt44,
@@ -1170,7 +1170,7 @@ io-sim/test/Test/STM.hs,2816
 showTyRep822,
 showTyRep823,
 
-network-mux/demo/cardano-ping.hs,1423
+network-mux\demo\cardano-ping.hs,1423
 mainnetMagic42,
 mainnetMagic43,
 handshakeNum45,
@@ -1257,7 +1257,7 @@ network-mux/demo/cardano-ping.hs,1423
 pingClient350,
 pingClient351,
 
-network-mux/demo/mux-demo.hs,383
+network-mux\demo\mux-demo.hs,383
 main50,
 main51,
 usage58,
@@ -1283,7 +1283,7 @@ network-mux/demo/mux-demo.hs,383
 echoClient213,
 echoClient215,
 
-network-mux/src/Control/Concurrent/JobPool.hs,192
+network-mux\src\Control\Concurrent\JobPool.hs,192
 JobPool26,
 JobPool26,
 jobsVar27,
@@ -1299,7 +1299,7 @@ network-mux/src/Control/Concurrent/JobPool.hs,192
 collect85,
 collect86,
 
-network-mux/src/Network/Mux.hs,1001
+network-mux\src\Network\Mux.hs,1001
 Mux71,
 Mux72,
 muxMiniProtocols73,
@@ -1351,7 +1351,7 @@ network-mux/src/Network/Mux.hs,1001
 runMiniProtocol526,
 runMiniProtocol534,
 
-network-mux/src/Network/Mux/Bearer/Pipe.hs,165
+network-mux\src\Network\Mux\Bearer\Pipe.hs,165
 PipeChannel45,
 PipeChannel45,
 readHandle46,
@@ -1361,15 +1361,15 @@ network-mux/src/Network/Mux/Bearer/Pipe.hs,165
 pipeAsMuxBearer72,
 pipeAsMuxBearer76,
 
-network-mux/src/Network/Mux/Bearer/Queues.hs,46
+network-mux\src\Network\Mux\Bearer\Queues.hs,46
 queuesAsMuxBearer25,
 queuesAsMuxBearer36,
 
-network-mux/src/Network/Mux/Bearer/Socket.hs,46
+network-mux\src\Network\Mux\Bearer\Socket.hs,46
 socketAsMuxBearer47,
 socketAsMuxBearer52,
 
-network-mux/src/Network/Mux/Channel.hs,514
+network-mux\src\Network\Mux\Channel.hs,514
 Channel37,
 Channel37,
 send43,
@@ -1393,13 +1393,13 @@ network-mux/src/Network/Mux/Channel.hs,514
 loggingChannel224,
 loggingChannel230,
 
-network-mux/src/Network/Mux/Codec.hs,72
+network-mux\src\Network\Mux\Codec.hs,72
 encodeMuxSDU28,
 encodeMuxSDU29,
 decodeMuxSDU45,
 decodeMuxSDU46,
 
-network-mux/src/Network/Mux/Compat.hs,287
+network-mux\src\Network\Mux\Compat.hs,287
 MuxApplication61,
 MuxApplication62,
 MuxMiniProtocol64,
@@ -1414,7 +1414,7 @@ network-mux/src/Network/Mux/Compat.hs,287
 muxStart93,
 muxStart106,
 
-network-mux/src/Network/Mux/DeltaQ/TraceStats.hs,767
+network-mux\src\Network\Mux\DeltaQ\TraceStats.hs,767
 step21,
 step27,
 calcTransitTime48,
@@ -1458,11 +1458,11 @@ network-mux/src/Network/Mux/DeltaQ/TraceStats.hs,767
 nan258,
 nan259,
 
-network-mux/src/Network/Mux/DeltaQ/TraceStatsSupport.hs,32
+network-mux\src\Network\Mux\DeltaQ\TraceStatsSupport.hs,32
 estimateGS21,
 estimateGS22,
 
-network-mux/src/Network/Mux/DeltaQ/TraceTransformer.hs,118
+network-mux\src\Network\Mux\DeltaQ\TraceTransformer.hs,118
 initDeltaQTracer20,
 initDeltaQTracer22,
 initDeltaQTracer'24,
@@ -1470,7 +1470,7 @@ network-mux/src/Network/Mux/DeltaQ/TraceTransformer.hs,118
 dqTracer31,
 dqTracer35,
 
-network-mux/src/Network/Mux/DeltaQ/TraceTypes.hs,72
+network-mux\src\Network\Mux\DeltaQ\TraceTypes.hs,72
 S10,
 SISec10,
 S212,
@@ -1478,7 +1478,7 @@ network-mux/src/Network/Mux/DeltaQ/TraceTypes.hs,72
 squareSISec15,
 squareSISec16,
 
-network-mux/src/Network/Mux/Egress.hs,182
+network-mux\src\Network\Mux\Egress.hs,182
 EgressQueue116,
 TranslocationServiceRequest123,
 TLSRDemand124,
@@ -1490,7 +1490,7 @@ network-mux/src/Network/Mux/Egress.hs,182
 processSingleWanton157,
 processSingleWanton165,
 
-network-mux/src/Network/Mux/Ingress.hs,317
+network-mux\src\Network\Mux\Ingress.hs,317
 flipMiniProtocolDir32,
 flipMiniProtocolDir33,
 MiniProtocolDispatch85,
@@ -1505,7 +1505,7 @@ network-mux/src/Network/Mux/Ingress.hs,317
 setupDispatchTable142,
 setupDispatchTable144,
 
-network-mux/src/Network/Mux/Time.hs,184
+network-mux\src\Network\Mux\Time.hs,184
 diffTimeToMicroseconds16,
 diffTimeToMicroseconds17,
 microsecondsToDiffTime19,
@@ -1513,7 +1513,7 @@ network-mux/src/Network/Mux/Time.hs,184
 timestampMicrosecondsLow32Bits29,
 timestampMicrosecondsLow32Bits30,
 
-network-mux/src/Network/Mux/Timeout.hs,866
+network-mux\src\Network\Mux\Timeout.hs,866
 TimeoutFn39,
 withTimeoutSerial53,
 withTimeoutSerialNative53,
@@ -1553,7 +1553,7 @@ network-mux/src/Network/Mux/Timeout.hs,866
 TimeoutImpossibleMonitorState371,
 Exception374,
 
-network-mux/src/Network/Mux/Trace.hs,1359
+network-mux\src\Network\Mux\Trace.hs,1359
 MuxError38,
 MuxError38,
 errorType39,
@@ -1612,7 +1612,7 @@ network-mux/src/Network/Mux/Trace.hs,1359
 MuxTraceShutdown149,
 Show151,
 
-network-mux/src/Network/Mux/Types.hs,1457
+network-mux\src\Network\Mux\Types.hs,1457
 RemoteClockModel55,
 RemoteClockModel56,
 unRemoteClockModel56,
@@ -1686,13 +1686,13 @@ network-mux/src/Network/Mux/Types.hs,1457
 muxBearerAsChannel222,
 muxBearerAsChannel228,
 
-network-mux/test/Main.hs,40
+network-mux\test\Main.hs,40
 main8,
 main9,
 tests11,
 tests12,
 
-network-mux/test/Test/Mux.hs,3314
+network-mux\test\Test\Mux.hs,3314
 tests70,
 tests71,
 defaultMiniProtocolLimits91,
@@ -1841,7 +1841,7 @@ network-mux/test/Test/Mux.hs,3314
 threadAndTimeTracer1603,
 threadAndTimeTracer1608,
 
-network-mux/test/Test/Mux/ReqResp.hs,381
+network-mux\test\Test\Mux\ReqResp.hs,381
 MsgReqResp29,
 MsgReq33,
 MsgResp37,
@@ -1865,7 +1865,7 @@ network-mux/test/Test/Mux/ReqResp.hs,381
 runServer167,
 runServer180,
 
-network-mux/test/Test/Mux/Timeout.hs,1000
+network-mux\test\Test\Mux\Timeout.hs,1000
 tests32,
 tests33,
 TimeoutConstraints75,
@@ -1910,13 +1910,13 @@ network-mux/test/Test/Mux/Timeout.hs,1000
 counterexamples426,
 counterexamples427,
 
-ntp-client/demo/Main.hs,56
+ntp-client\demo\Main.hs,56
 main17,
 main18,
 testSettings26,
 testSettings27,
 
-ntp-client/src/Network/NTP/Client.hs,223
+ntp-client\src\Network\NTP\Client.hs,223
 NtpClient35,
 NtpClient35,
 ntpGetStatus37,
@@ -1929,7 +1929,7 @@ ntp-client/src/Network/NTP/Client.hs,223
 ntpClientThread88,
 ntpClientThread94,
 
-ntp-client/src/Network/NTP/Client/Packet.hs,548
+ntp-client\src\Network\NTP\Client\Packet.hs,548
 Microsecond26,
 Microsecond26,
 Integral31,
@@ -1961,7 +1961,7 @@ ntp-client/src/Network/NTP/Client/Packet.hs,548
 getCurrentTime164,
 getCurrentTime165,
 
-ntp-client/src/Network/NTP/Client/Query.hs,1052
+ntp-client\src\Network\NTP\Client\Query.hs,1052
 NtpSettings54,
 NtpSettings54,
 ntpServers55,
@@ -2010,7 +2010,7 @@ ntp-client/src/Network/NTP/Client/Query.hs,1052
 NtpTracePacketReceived380,
 NtpTraceWaitingForRepliesTimeout381,
 
-ntp-client/test/Test.hs,602
+ntp-client\test\Test.hs,602
 main31,
 main32,
 NtpPacketWithOffset34,
@@ -2043,7 +2043,7 @@ ntp-client/test/Test.hs,602
 prop_NtpPacket_codec127,
 prop_NtpPacket_codec128,
 
-ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Crypto/DSIGN.hs,407
+ouroboros-consensus-byron\src\Ouroboros\Consensus\Byron\Crypto\DSIGN.hs,407
 ByronSignable47,
 ByronSignable48,
 HasSignTag50,
@@ -2068,13 +2068,13 @@ ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Crypto/DSIGN.hs,407
 Signable93,
 Condense125,
 
-ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/EBBs.hs,40
+ouroboros-consensus-byron\src\Ouroboros\Consensus\Byron\EBBs.hs,40
 h5,
 h6,
 knownEBBs8,
 knownEBBs9,
 
-ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Block.hs,1263
+ouroboros-consensus-byron\src\Ouroboros\Consensus\Byron\Ledger\Block.hs,1263
 ByronHash68,
 ByronHash68,
 unByronHash68,
@@ -2137,7 +2137,7 @@ ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Block.hs,1263
 joinSizeHint307,
 joinSizeHint308,
 
-ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Config.hs,529
+ouroboros-consensus-byron\src\Ouroboros\Consensus\Byron\Ledger\Config.hs,529
 BlockConfig43,
 ByronConfig43,
 byronGenesisConfig45,
@@ -2162,7 +2162,7 @@ ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Config.hs,529
 compactGenesisConfig109,
 compactGenesisConfig110,
 
-ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Conversions.hs,514
+ouroboros-consensus-byron\src\Ouroboros\Consensus\Byron\Ledger\Conversions.hs,514
 fromByronSlotNo37,
 fromByronSlotNo38,
 fromByronBlockNo40,
@@ -2186,7 +2186,7 @@ ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Conversions.hs,51
 genesisSlotLength86,
 genesisSlotLength87,
 
-ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Forge.hs,270
+ouroboros-consensus-byron\src\Ouroboros\Consensus\Byron\Ledger\Forge.hs,270
 forgeByronBlock47,
 forgeByronBlock56,
 forgeEBB58,
@@ -2202,7 +2202,7 @@ ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Forge.hs,270
 forgeRegularBlock122,
 forgeRegularBlock131,
 
-ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/HeaderValidation.hs,169
+ouroboros-consensus-byron\src\Ouroboros\Consensus\Byron\Ledger\HeaderValidation.hs,169
 HasAnnTip33,
 TipInfo34,
 ByronOtherHeaderEnvelopeError38,
@@ -2211,7 +2211,7 @@ ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/HeaderValidation.
 ValidateEnvelope58,
 OtherHeaderEnvelopeError59,
 
-ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Inspect.hs,422
+ouroboros-consensus-byron\src\Ouroboros\Consensus\Byron\Ledger\Inspect.hs,422
 ProtocolUpdate55,
 ProtocolUpdate55,
 protocolUpdateVersion56,
@@ -2232,7 +2232,7 @@ ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Inspect.hs,422
 LedgerWarning258,
 LedgerUpdate259,
 
-ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Integrity.hs,160
+ouroboros-consensus-byron\src\Ouroboros\Consensus\Byron\Ledger\Integrity.hs,160
 verifyHeaderSignature24,
 verifyHeaderSignature25,
 verifyHeaderIntegrity46,
@@ -2240,7 +2240,7 @@ ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Integrity.hs,160
 verifyBlockIntegrity63,
 verifyBlockIntegrity64,
 
-ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Ledger.hs,1715
+ouroboros-consensus-byron\src\Ouroboros\Consensus\Byron\Ledger\Ledger.hs,1715
 ByronLedgerState93,
 LedgerState93,
 byronLedgerTipBlockNo94,
@@ -2313,7 +2313,7 @@ ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Ledger.hs,1715
 decodeByronResult498,
 decodeByronResult500,
 
-ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Mempool.hs,986
+ouroboros-consensus-byron\src\Ouroboros\Consensus\Byron\Ledger\Mempool.hs,986
 GenTx88,
 ByronTx89,
 ByronDlg90,
@@ -2364,7 +2364,7 @@ ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Mempool.hs,986
 countByronGenTxs306,
 countByronGenTxs307,
 
-ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/NetworkProtocolVersion.hs,273
+ouroboros-consensus-byron\src\Ouroboros\Consensus\Byron\Ledger\NetworkProtocolVersion.hs,273
 ByronNodeToNodeVersion16,
 ByronNodeToNodeVersion118,
 ByronNodeToNodeVersion221,
@@ -2375,7 +2375,7 @@ ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/NetworkProtocolVe
 BlockNodeToClientVersion30,
 SupportedNetworkProtocolVersion32,
 
-ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Orphans.hs,204
+ouroboros-consensus-byron\src\Ouroboros\Consensus\Byron\Ledger\Orphans.hs,204
 Serialise35,
 Serialise39,
 Condense47,
@@ -2391,7 +2391,7 @@ ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Orphans.hs,204
 Condense121,
 Condense131,
 
-ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/PBFT.hs,364
+ouroboros-consensus-byron\src\Ouroboros\Consensus\Byron\Ledger\PBFT.hs,364
 BlockProtocol39,
 mkByronContextDSIGN42,
 mkByronContextDSIGN45,
@@ -2407,7 +2407,7 @@ ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/PBFT.hs,364
 decodeByronChainDepState93,
 decodeByronChainDepState95,
 
-ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Serialisation.hs,1139
+ouroboros-consensus-byron\src\Ouroboros\Consensus\Byron\Ledger\Serialisation.hs,1139
 Serialise69,
 RawBoundaryHeader77,
 RawHeader78,
@@ -2453,7 +2453,7 @@ ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Ledger/Serialisation.hs,
 decodeUnsizedHeader326,
 decodeUnsizedHeader328,
 
-ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Node.hs,1067
+ouroboros-consensus-byron\src\Ouroboros\Consensus\Byron\Node.hs,1067
 ByronLeaderCredentials69,
 ByronLeaderCredentials69,
 blcSignKey70,
@@ -2496,7 +2496,7 @@ ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Node.hs,1067
 BlockSupportsMetrics284,
 RunNode287,
 
-ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Node/Serialisation.hs,685
+ouroboros-consensus-byron\src\Ouroboros\Consensus\Byron\Node\Serialisation.hs,685
 HasBinaryBlockInfo45,
 SerialiseDiskConstraints48,
 EncodeDisk50,
@@ -2527,7 +2527,7 @@ ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Node/Serialisation.hs,68
 DecodeDiskDepIx223,
 DecodeDiskDep231,
 
-ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Protocol.hs,240
+ouroboros-consensus-byron\src\Ouroboros\Consensus\Byron\Protocol.hs,240
 PBftByronCrypto26,
 PBftCrypto28,
 PBftDSIGN29,
@@ -2540,7 +2540,7 @@ ouroboros-consensus-byron/src/Ouroboros/Consensus/Byron/Protocol.hs,240
 genesisKeyHashes62,
 genesisKeyHashes63,
 
-ouroboros-consensus-byron/tools/db-converter/Main.hs,200
+ouroboros-consensus-byron\tools\db-converter\Main.hs,200
 Args38,
 Args38,
 epochDir39,
@@ -2555,7 +2555,7 @@ ouroboros-consensus-byron/tools/db-converter/Main.hs,200
 convertChunkFile68,
 convertChunkFile74,
 
-ouroboros-consensus-byronspec/src/Ouroboros/Consensus/ByronSpec/Ledger/Accessors.hs,592
+ouroboros-consensus-byronspec\src\Ouroboros\Consensus\ByronSpec\Ledger\Accessors.hs,592
 GetChainState36,
 ModChainState37,
 getChainStateSlot40,
@@ -2581,7 +2581,7 @@ ouroboros-consensus-byronspec/src/Ouroboros/Consensus/ByronSpec/Ledger/Accessors
 modDIStateDSState82,
 modDIStateDSState85,
 
-ouroboros-consensus-byronspec/src/Ouroboros/Consensus/ByronSpec/Ledger/Block.hs,462
+ouroboros-consensus-byronspec\src\Ouroboros\Consensus\ByronSpec\Ledger\Block.hs,462
 ByronSpecBlock39,
 ByronSpecBlock39,
 byronSpecBlock40,
@@ -2606,7 +2606,7 @@ ouroboros-consensus-byronspec/src/Ouroboros/Consensus/ByronSpec/Ledger/Block.hs,
 ByronSpecStorageConfig103,
 StorageConfig103,
 
-ouroboros-consensus-byronspec/src/Ouroboros/Consensus/ByronSpec/Ledger/Conversions.hs,150
+ouroboros-consensus-byronspec\src\Ouroboros\Consensus\ByronSpec\Ledger\Conversions.hs,150
 fromByronSpecPrevHash21,
 fromByronSpecPrevHash23,
 fromByronSpecSlotNo27,
@@ -2614,11 +2614,11 @@ ouroboros-consensus-byronspec/src/Ouroboros/Consensus/ByronSpec/Ledger/Conversio
 toByronSpecSlotNo34,
 toByronSpecSlotNo35,
 
-ouroboros-consensus-byronspec/src/Ouroboros/Consensus/ByronSpec/Ledger/Forge.hs,50
+ouroboros-consensus-byronspec\src\Ouroboros\Consensus\ByronSpec\Ledger\Forge.hs,50
 forgeByronSpecBlock24,
 forgeByronSpecBlock30,
 
-ouroboros-consensus-byronspec/src/Ouroboros/Consensus/ByronSpec/Ledger/GenTx.hs,239
+ouroboros-consensus-byronspec\src\Ouroboros\Consensus\ByronSpec\Ledger\GenTx.hs,239
 ByronSpecGenTx41,
 ByronSpecGenTxDCert42,
 ByronSpecGenTxTx43,
@@ -2632,7 +2632,7 @@ ouroboros-consensus-byronspec/src/Ouroboros/Consensus/ByronSpec/Ledger/GenTx.hs,
 partition71,
 partition77,
 
-ouroboros-consensus-byronspec/src/Ouroboros/Consensus/ByronSpec/Ledger/Genesis.hs,562
+ouroboros-consensus-byronspec\src\Ouroboros\Consensus\ByronSpec\Ledger\Genesis.hs,562
 ByronSpecGenesis41,
 ByronSpecGenesis41,
 byronSpecGenesisDelegators42,
@@ -2659,7 +2659,7 @@ ouroboros-consensus-byronspec/src/Ouroboros/Consensus/ByronSpec/Ledger/Genesis.h
 fromChainEnv159,
 fromChainEnv160,
 
-ouroboros-consensus-byronspec/src/Ouroboros/Consensus/ByronSpec/Ledger/Ledger.hs,549
+ouroboros-consensus-byronspec\src\Ouroboros\Consensus\ByronSpec\Ledger\Ledger.hs,549
 ByronSpecLedgerState44,
 LedgerState44,
 byronSpecLedgerTip48,
@@ -2686,14 +2686,14 @@ ouroboros-consensus-byronspec/src/Ouroboros/Consensus/ByronSpec/Ledger/Ledger.hs
 getPParams149,
 getPParams150,
 
-ouroboros-consensus-byronspec/src/Ouroboros/Consensus/ByronSpec/Ledger/Mempool.hs,96
+ouroboros-consensus-byronspec\src\Ouroboros\Consensus\ByronSpec\Ledger\Mempool.hs,96
 ByronSpecGenTx26,
 GenTx26,
 unByronSpecGenTx27,
 ApplyTxErr33,
 LedgerSupportsMempool35,
 
-ouroboros-consensus-byronspec/src/Ouroboros/Consensus/ByronSpec/Ledger/Orphans.hs,1120
+ouroboros-consensus-byronspec\src\Ouroboros\Consensus\ByronSpec\Ledger\Orphans.hs,1120
 Serialise46,
 Serialise47,
 Serialise48,
@@ -2768,7 +2768,7 @@ ouroboros-consensus-byronspec/src/Ouroboros/Consensus/ByronSpec/Ledger/Orphans.h
 unToFromCBOR174,
 Serialise178,
 
-ouroboros-consensus-byronspec/src/Ouroboros/Consensus/ByronSpec/Ledger/Rules.hs,730
+ouroboros-consensus-byronspec\src\Ouroboros\Consensus\ByronSpec\Ledger\Rules.hs,730
 applyChainTick73,
 applyChainTick77,
 liftCHAIN97,
@@ -2813,11 +2813,11 @@ ouroboros-consensus-byronspec/src/Ouroboros/Consensus/ByronSpec/Ledger/Rules.hs,
 initStateCHAIN259,
 initStateCHAIN260,
 
-ouroboros-consensus-cardano/src/Ouroboros/Consensus/Cardano.hs,40
+ouroboros-consensus-cardano\src\Ouroboros\Consensus\Cardano.hs,40
 ProtocolByron40,
 ProtocolCardano41,
 
-ouroboros-consensus-cardano/src/Ouroboros/Consensus/Cardano/Block.hs,3231
+ouroboros-consensus-cardano\src\Ouroboros\Consensus\Cardano\Block.hs,3231
 CardanoEras98,
 ShelleyBasedEras106,
 CardanoBlock123,
@@ -2954,13 +2954,13 @@ ouroboros-consensus-cardano/src/Ouroboros/Consensus/Cardano/Block.hs,3231
 ChainDepStateMary744,
 ChainDepStateMary747,
 
-ouroboros-consensus-cardano/src/Ouroboros/Consensus/Cardano/ByronHFC.hs,91
+ouroboros-consensus-cardano\src\Ouroboros\Consensus\Cardano\ByronHFC.hs,91
 ByronBlockHFC30,
 NoHardForks36,
 SupportedNetworkProtocolVersion52,
 SerialiseHFC70,
 
-ouroboros-consensus-cardano/src/Ouroboros/Consensus/Cardano/CanHardFork.hs,1194
+ouroboros-consensus-cardano\src\Ouroboros\Consensus\Cardano\CanHardFork.hs,1194
 byronTransition129,
 byronTransition133,
 SingleEraBlock205,
@@ -2994,12 +2994,12 @@ ouroboros-consensus-cardano/src/Ouroboros/Consensus/Cardano/CanHardFork.hs,1194
 translateTxAllegraToMaryWrapper493,
 translateTxAllegraToMaryWrapper498,
 
-ouroboros-consensus-cardano/src/Ouroboros/Consensus/Cardano/Condense.hs,75
+ouroboros-consensus-cardano\src\Ouroboros\Consensus\Cardano\Condense.hs,75
 CondenseConstraints22,
 CondenseConstraints24,
 CondenseConstraints26,
 
-ouroboros-consensus-cardano/src/Ouroboros/Consensus/Cardano/Node.hs,1056
+ouroboros-consensus-cardano\src\Ouroboros\Consensus\Cardano\Node.hs,1056
 SerialiseConstraintsHFC93,
 SerialiseHFC122,
 prependTag183,
@@ -3035,11 +3035,11 @@ ouroboros-consensus-cardano/src/Ouroboros/Consensus/Cardano/Node.hs,1056
 mkPartialLedgerConfigShelley672,
 mkPartialLedgerConfigShelley677,
 
-ouroboros-consensus-cardano/src/Ouroboros/Consensus/Cardano/ShelleyBased.hs,66
+ouroboros-consensus-cardano\src\Ouroboros\Consensus\Cardano\ShelleyBased.hs,66
 overShelleyBasedLedgerState22,
 overShelleyBasedLedgerState30,
 
-ouroboros-consensus-cardano/tools/db-analyser/Analysis.hs,643
+ouroboros-consensus-cardano\tools\db-analyser\Analysis.hs,643
 AnalysisName36,
 ShowSlotBlockNo37,
 CountTxOutputs38,
@@ -3075,7 +3075,7 @@ ouroboros-consensus-cardano/tools/db-analyser/Analysis.hs,643
 processAllImmutableDB208,
 processAllImmutableDB216,
 
-ouroboros-consensus-cardano/tools/db-analyser/Block/Byron.hs,479
+ouroboros-consensus-cardano\tools\db-analyser\Block\Byron.hs,479
 HasAnalysis38,
 HasProtocolInfo43,
 Args44,
@@ -3100,7 +3100,7 @@ ouroboros-consensus-cardano/tools/db-analyser/Block/Byron.hs,479
 mkByronProtocolInfo133,
 mkByronProtocolInfo136,
 
-ouroboros-consensus-cardano/tools/db-analyser/Block/Cardano.hs,340
+ouroboros-consensus-cardano\tools\db-analyser\Block\Cardano.hs,340
 analyseBlock44,
 analyseBlock47,
 HasProtocolInfo56,
@@ -3119,7 +3119,7 @@ ouroboros-consensus-cardano/tools/db-analyser/Block/Cardano.hs,340
 castChainHash129,
 castChainHash132,
 
-ouroboros-consensus-cardano/tools/db-analyser/Block/Shelley.hs,231
+ouroboros-consensus-cardano\tools\db-analyser\Block\Shelley.hs,231
 HasAnalysis44,
 HasProtocolInfo58,
 Args59,
@@ -3132,7 +3132,7 @@ ouroboros-consensus-cardano/tools/db-analyser/Block/Shelley.hs,231
 parseShelleyArgs88,
 parseShelleyArgs89,
 
-ouroboros-consensus-cardano/tools/db-analyser/HasAnalysis.hs,137
+ouroboros-consensus-cardano\tools\db-analyser\HasAnalysis.hs,137
 HasAnalysis19,
 countTxOutputs20,
 blockTxSizes21,
@@ -3142,7 +3142,7 @@ ouroboros-consensus-cardano/tools/db-analyser/HasAnalysis.hs,137
 argsParser26,
 mkProtocolInfo27,
 
-ouroboros-consensus-cardano/tools/db-analyser/Main.hs,676
+ouroboros-consensus-cardano\tools\db-analyser\Main.hs,676
 main36,
 main37,
 CmdLine44,
@@ -3181,7 +3181,7 @@ ouroboros-consensus-cardano/tools/db-analyser/Main.hs,676
 analyse154,
 analyse163,
 
-ouroboros-consensus-shelley-test/src/Test/Consensus/Shelley/Examples.hs,2060
+ouroboros-consensus-shelley-test\src\Test\Consensus\Shelley\Examples.hs,2060
 testEpochInfo130,
 testEpochInfo131,
 testShelleyGenesis134,
@@ -3273,7 +3273,7 @@ ouroboros-consensus-shelley-test/src/Test/Consensus/Shelley/Examples.hs,2060
 examplePoolParams668,
 examplePoolParams669,
 
-ouroboros-consensus-shelley-test/src/Test/Consensus/Shelley/Generators.hs,345
+ouroboros-consensus-shelley-test\src\Test\Consensus\Shelley\Generators.hs,345
 Arbitrary53,
 Arbitrary56,
 Arbitrary59,
@@ -3297,7 +3297,7 @@ ouroboros-consensus-shelley-test/src/Test/Consensus/Shelley/Generators.hs,345
 Arbitrary171,
 Arbitrary178,
 
-ouroboros-consensus-shelley-test/src/Test/Consensus/Shelley/MockCrypto.hs,139
+ouroboros-consensus-shelley-test\src\Test\Consensus\Shelley\MockCrypto.hs,139
 MockCrypto42,
 Crypto44,
 ADDRHASH45,
@@ -3310,7 +3310,7 @@ ouroboros-consensus-shelley-test/src/Test/Consensus/Shelley/MockCrypto.hs,139
 Block55,
 CanMock58,
 
-ouroboros-consensus-shelley-test/src/Test/ThreadNet/Infra/Shelley.hs,1259
+ouroboros-consensus-shelley-test\src\Test\ThreadNet\Infra\Shelley.hs,1259
 DecentralizationParam106,
 DecentralizationParam107,
 decentralizationParamToRational107,
@@ -3370,7 +3370,7 @@ ouroboros-consensus-shelley-test/src/Test/ThreadNet/Infra/Shelley.hs,1259
 eraIndTxBodyHash'654,
 eraIndTxBodyHash'663,
 
-ouroboros-consensus-shelley-test/src/Test/ThreadNet/TxGen/Shelley.hs,231
+ouroboros-consensus-shelley-test\src\Test\ThreadNet\TxGen\Shelley.hs,231
 ShelleyTxGenExtra42,
 ShelleyTxGenExtra42,
 stgeGenEnv44,
@@ -3385,19 +3385,19 @@ ouroboros-consensus-shelley-test/src/Test/ThreadNet/TxGen/Shelley.hs,231
 mkGenEnv128,
 mkGenEnv133,
 
-ouroboros-consensus-shelley-test/test/Main.hs,42
+ouroboros-consensus-shelley-test\test\Main.hs,42
 main12,
 main13,
 tests15,
 tests16,
 
-ouroboros-consensus-shelley-test/test/Test/Consensus/Shelley/Golden.hs,68
+ouroboros-consensus-shelley-test\test\Test\Consensus\Shelley\Golden.hs,68
 tests15,
 tests16,
 ToGoldenDirectory18,
 ToGoldenDirectory21,
 
-ouroboros-consensus-shelley-test/test/Test/Consensus/Shelley/Serialisation.hs,392
+ouroboros-consensus-shelley-test\test\Test\Consensus\Shelley\Serialisation.hs,392
 tests31,
 tests32,
 prop_shelleyBinaryBlockInfo64,
@@ -3413,7 +3413,7 @@ ouroboros-consensus-shelley-test/test/Test/Consensus/Shelley/Serialisation.hs,39
 prop_detectCorruption_Header106,
 prop_detectCorruption_Header107,
 
-ouroboros-consensus-shelley-test/test/Test/ThreadNet/Shelley.hs,447
+ouroboros-consensus-shelley-test\test\Test\ThreadNet\Shelley.hs,447
 Era51,
 TestSetup53,
 TestSetup53,
@@ -3440,7 +3440,7 @@ ouroboros-consensus-shelley-test/test/Test/ThreadNet/Shelley.hs,447
 prop_simple_real_tpraos_convergence169,
 prop_simple_real_tpraos_convergence170,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Eras.hs,189
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\Eras.hs,189
 StandardShelley50,
 StandardAllegra53,
 StandardMary56,
@@ -3451,7 +3451,7 @@ ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Eras.hs,189
 ShelleyBasedEra123,
 ShelleyBasedEra126,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Ledger/Block.hs,1071
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\Ledger\Block.hs,1071
 ShelleyHash63,
 ShelleyHash63,
 unShelleyHash64,
@@ -3506,7 +3506,7 @@ ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Ledger/Block.hs,1071
 Condense244,
 Condense247,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Ledger/Config.hs,470
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\Ledger\Config.hs,470
 BlockConfig44,
 ShelleyConfig44,
 shelleyProtocolVersion47,
@@ -3527,11 +3527,11 @@ ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Ledger/Config.hs,470
 compactGenesis124,
 compactGenesis125,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Ledger/Forge.hs,46
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\Ledger\Forge.hs,46
 forgeShelleyBlock41,
 forgeShelleyBlock52,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Ledger/Inspect.hs,454
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\Ledger\Inspect.hs,454
 ProtocolUpdate43,
 ProtocolUpdate43,
 protocolUpdateProposal44,
@@ -3554,13 +3554,13 @@ ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Ledger/Inspect.hs,45
 LedgerWarning169,
 LedgerUpdate170,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Ledger/Integrity.hs,106
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\Ledger\Integrity.hs,106
 verifyHeaderIntegrity21,
 verifyHeaderIntegrity26,
 verifyBlockIntegrity45,
 verifyBlockIntegrity49,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Ledger/Ledger.hs,1951
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\Ledger\Ledger.hs,1951
 BBodyError92,
 ShelleyLedgerError92,
 NoThunks98,
@@ -3639,7 +3639,7 @@ ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Ledger/Ledger.hs,195
 decodeShelleyLedgerState493,
 decodeShelleyLedgerState496,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Ledger/Mempool.hs,423
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\Ledger\Mempool.hs,423
 GenTx56,
 ShelleyTx56,
 ShowProxy63,
@@ -3666,7 +3666,7 @@ ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Ledger/Mempool.hs,42
 applyShelleyTx173,
 applyShelleyTx180,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Ledger/NetworkProtocolVersion.hs,318
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\Ledger\NetworkProtocolVersion.hs,318
 ShelleyNodeToNodeVersion16,
 ShelleyNodeToNodeVersion116,
 ShelleyNodeToClientVersion19,
@@ -3678,10 +3678,10 @@ ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Ledger/NetworkProtoc
 BlockNodeToClientVersion31,
 SupportedNetworkProtocolVersion34,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Ledger/PeerSelection.hs,33
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\Ledger\PeerSelection.hs,33
 LedgerSupportsPeerSelection34,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Ledger/Query.hs,1039
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\Ledger\Query.hs,1039
 NonMyopicMemberRewards66,
 NonMyopicMemberRewards66,
 unNonMyopicMemberRewards67,
@@ -3726,13 +3726,13 @@ ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Ledger/Query.hs,1039
 decodeShelleyResult447,
 decodeShelleyResult451,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Ledger/TPraos.hs,76
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\Ledger\TPraos.hs,76
 BlockProtocol29,
 BlockSupportsProtocol31,
 Signed88,
 SignedHeader90,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Node.hs,1268
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\Node.hs,1268
 TPraosLeaderCredentials88,
 TPraosLeaderCredentials88,
 tpraosLeaderCredentialsInitSignKey93,
@@ -3780,7 +3780,7 @@ ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Node.hs,1268
 registerInitialFunds471,
 registerInitialFunds479,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Node/Serialisation.hs,799
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\Node\Serialisation.hs,799
 HasBinaryBlockInfo36,
 SerialiseDiskConstraints39,
 EncodeDisk41,
@@ -3816,7 +3816,7 @@ ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Node/Serialisation.h
 DecodeDiskDepIx175,
 DecodeDiskDep176,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Protocol.hs,2121
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\Protocol.hs,2121
 TPraosFields82,
 TPraosFields82,
 tpraosSignature83,
@@ -3913,7 +3913,7 @@ ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Protocol.hs,2121
 tpraosCheckCanForge531,
 Condense554,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Protocol/Crypto.hs,102
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\Protocol\Crypto.hs,102
 StandardCrypto15,
 Crypto17,
 DSIGN18,
@@ -3923,7 +3923,7 @@ ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Protocol/Crypto.hs,1
 ADDRHASH22,
 PraosCrypto24,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Protocol/HotKey.hs,699
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\Protocol\HotKey.hs,699
 KESEvolution46,
 KESInfo48,
 KESInfo48,
@@ -3966,13 +3966,13 @@ ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Protocol/HotKey.hs,6
 evolveKey221,
 evolveKey224,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/Protocol/Util.hs,88
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\Protocol\Util.hs,88
 isNewEpoch21,
 isNewEpoch28,
 firstSlotOfEpochOfSlot44,
 firstSlotOfEpochOfSlot48,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/ShelleyBased.hs,158
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\ShelleyBased.hs,158
 InjectShelley32,
 InjectShelley33,
 injectShelleyNP35,
@@ -3982,7 +3982,7 @@ ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/ShelleyBased.hs,158
 HasCrypto63,
 HasCrypto64,
 
-ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/ShelleyHFC.hs,750
+ouroboros-consensus-shelley\src\Ouroboros\Consensus\Shelley\ShelleyHFC.hs,750
 ShelleyBlockHFC63,
 NoHardForks69,
 SupportedNetworkProtocolVersion88,
@@ -4011,7 +4011,7 @@ ouroboros-consensus-shelley/src/Ouroboros/Consensus/Shelley/ShelleyHFC.hs,750
 TranslateEra306,
 TranslationError307,
 
-ouroboros-consensus/src-unix/Ouroboros/Consensus/Storage/IO.hs,277
+ouroboros-consensus\src-unix\Ouroboros\Consensus\Storage\IO.hs,277
 FHandle34,
 defaultFileFlags44,
 defaultFileFlags45,
@@ -4034,7 +4034,7 @@ ouroboros-consensus/src-unix/Ouroboros/Consensus/Storage/IO.hs,277
 sameError125,
 sameError126,
 
-ouroboros-consensus/src/Data/SOP/Strict.hs,985
+ouroboros-consensus\src\Data\SOP\Strict.hs,985
 NP51,
 Nil52,
 :*53,
@@ -4106,7 +4106,7 @@ ouroboros-consensus/src/Data/SOP/Strict.hs,985
 NoThunks272,
 NoThunks279,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Block/Abstract.hs,879
+ouroboros-consensus\src\Ouroboros\Consensus\Block\Abstract.hs,879
 BlockProtocol90,
 BlockConfig97,
 CodecConfig103,
@@ -4154,7 +4154,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Block/Abstract.hs,879
 succWithOrigin245,
 succWithOrigin246,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Block/EBB.hs,121
+ouroboros-consensus\src\Ouroboros\Consensus\Block\EBB.hs,121
 IsEBB32,
 IsEBB33,
 IsNotEBB34,
@@ -4165,7 +4165,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Block/EBB.hs,121
 fromIsEBB47,
 fromIsEBB48,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Block/Forging.hs,638
+ouroboros-consensus\src\Ouroboros\Consensus\Block\Forging.hs,638
 CannotForge41,
 ForgeStateInfo45,
 ForgeStateUpdateError49,
@@ -4195,7 +4195,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Block/Forging.hs,638
 forgeStateUpdateInfoFromUpdateInfo230,
 forgeStateUpdateInfoFromUpdateInfo233,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Block/NestedContent.hs,446
+ouroboros-consensus\src\Ouroboros\Consensus\Block\NestedContent.hs,446
 HasNestedContent78,
 unnest79,
 nest80,
@@ -4222,7 +4222,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Block/NestedContent.hs,446
 mapSomeNestedCtxt171,
 mapSomeNestedCtxt174,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Block/RealPoint.hs,474
+ouroboros-consensus\src\Ouroboros\Consensus\Block\RealPoint.hs,474
 RealPoint43,
 RealPoint43,
 NoThunks53,
@@ -4246,7 +4246,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Block/RealPoint.hs,474
 pointToWithOriginRealPoint100,
 pointToWithOriginRealPoint101,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Block/SupportsMetrics.hs,189
+ouroboros-consensus\src\Ouroboros\Consensus\Block\SupportsMetrics.hs,189
 WhetherSelfIssued15,
 IsSelfIssued16,
 IsNotSelfIssued17,
@@ -4256,14 +4256,14 @@ ouroboros-consensus/src/Ouroboros/Consensus/Block/SupportsMetrics.hs,189
 isSelfIssuedConstUnknown32,
 isSelfIssuedConstUnknown33,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Block/SupportsProtocol.hs,93
+ouroboros-consensus\src\Ouroboros\Consensus\Block\SupportsProtocol.hs,93
 BlockSupportsProtocol24,
 validateView25,
 selectView29,
 selectView33,
 selectView36,
 
-ouroboros-consensus/src/Ouroboros/Consensus/BlockchainTime/API.hs,162
+ouroboros-consensus\src\Ouroboros\Consensus\BlockchainTime\API.hs,162
 BlockchainTime31,
 BlockchainTime31,
 getCurrentSlot33,
@@ -4273,13 +4273,13 @@ ouroboros-consensus/src/Ouroboros/Consensus/BlockchainTime/API.hs,162
 knownSlotWatcher60,
 knownSlotWatcher64,
 
-ouroboros-consensus/src/Ouroboros/Consensus/BlockchainTime/WallClock/Default.hs,94
+ouroboros-consensus\src\Ouroboros\Consensus\BlockchainTime\WallClock\Default.hs,94
 defaultSystemTime14,
 defaultSystemTime18,
 waitForSystemStart24,
 waitForSystemStart28,
 
-ouroboros-consensus/src/Ouroboros/Consensus/BlockchainTime/WallClock/HardFork.hs,346
+ouroboros-consensus\src\Ouroboros\Consensus\BlockchainTime\WallClock\HardFork.hs,346
 BackoffDelay47,
 BackoffDelay47,
 HardForkBlockchainTimeArgs49,
@@ -4296,7 +4296,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/BlockchainTime/WallClock/HardFork.hs
 getCurrentSlot'156,
 getCurrentSlot'162,
 
-ouroboros-consensus/src/Ouroboros/Consensus/BlockchainTime/WallClock/Simple.hs,234
+ouroboros-consensus\src\Ouroboros\Consensus\BlockchainTime\WallClock\Simple.hs,234
 simpleBlockchainTime30,
 simpleBlockchainTime36,
 slotFromUTCTime67,
@@ -4308,7 +4308,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/BlockchainTime/WallClock/Simple.hs,2
 waitUntilNextSlot100,
 waitUntilNextSlot106,
 
-ouroboros-consensus/src/Ouroboros/Consensus/BlockchainTime/WallClock/Types.hs,664
+ouroboros-consensus\src\Ouroboros\Consensus\BlockchainTime\WallClock\Types.hs,664
 SystemStart45,
 SystemStart45,
 getSystemStart45,
@@ -4343,7 +4343,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/BlockchainTime/WallClock/Types.hs,66
 Serialise139,
 Serialise150,
 
-ouroboros-consensus/src/Ouroboros/Consensus/BlockchainTime/WallClock/Util.hs,197
+ouroboros-consensus\src\Ouroboros\Consensus\BlockchainTime\WallClock\Util.hs,197
 TraceBlockchainTimeEvent28,
 TraceStartTimeInTheFuture32,
 TraceCurrentSlotUnknown47,
@@ -4352,7 +4352,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/BlockchainTime/WallClock/Util.hs,197
 SystemClockMovedBack71,
 Exception74,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Config.hs,511
+ouroboros-consensus\src\Ouroboros\Consensus\Config.hs,511
 TopLevelConfig39,
 TopLevelConfig39,
 topLevelConfigProtocol40,
@@ -4378,17 +4378,17 @@ ouroboros-consensus/src/Ouroboros/Consensus/Config.hs,511
 castTopLevelConfig83,
 castTopLevelConfig92,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Config/SecurityParam.hs,56
+ouroboros-consensus\src\Ouroboros\Consensus\Config\SecurityParam.hs,56
 SecurityParam21,
 SecurityParam21,
 maxRollbacks21,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Config/SupportsNode.hs,65
+ouroboros-consensus\src\Ouroboros\Consensus\Config\SupportsNode.hs,65
 ConfigSupportsNode10,
 getSystemStart11,
 getNetworkMagic12,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Forecast.hs,382
+ouroboros-consensus\src\Ouroboros\Consensus\Forecast.hs,382
 Forecast23,
 Forecast23,
 forecastAt24,
@@ -4408,7 +4408,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Forecast.hs,382
 crossEraForecastBound154,
 crossEraForecastBound160,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Fragment/Diff.hs,370
+ouroboros-consensus\src\Ouroboros\Consensus\Fragment\Diff.hs,370
 ChainDiff49,
 ChainDiff49,
 getRollback50,
@@ -4434,7 +4434,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Fragment/Diff.hs,370
 mapM170,
 mapM179,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Fragment/InFuture.hs,367
+ouroboros-consensus\src\Ouroboros\Consensus\Fragment\InFuture.hs,367
 CheckInFuture46,
 CheckInFuture46,
 checkInFuture50,
@@ -4456,7 +4456,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Fragment/InFuture.hs,367
 miracle170,
 miracle174,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Fragment/Validated.hs,226
+ouroboros-consensus\src\Ouroboros\Consensus\Fragment\Validated.hs,226
 UnsafeValidatedFragment34,
 ValidatedFragment34,
 validatedFragment36,
@@ -4470,7 +4470,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Fragment/Validated.hs,226
 new76,
 new82,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Fragment/ValidatedDiff.hs,257
+ouroboros-consensus\src\Ouroboros\Consensus\Fragment\ValidatedDiff.hs,257
 UnsafeValidatedChainDiff33,
 ValidatedChainDiff33,
 getChainDiff34,
@@ -4484,21 +4484,21 @@ ouroboros-consensus/src/Ouroboros/Consensus/Fragment/ValidatedDiff.hs,257
 rollbackExceedsSuffix78,
 rollbackExceedsSuffix79,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Abstract.hs,128
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Abstract.hs,128
 HasHardForkHistory15,
 HardForkIndices24,
 hardForkSummary52,
 neverForksHardForkSummary64,
 neverForksHardForkSummary68,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Abstract/CanHardFork.hs,107
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Abstract\CanHardFork.hs,107
 CanHardFork29,
 hardForkEraTranslation30,
 hardForkChainSel31,
 hardForkInjectTxs32,
 CanHardFork34,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Abstract/NoHardForks.hs,144
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Abstract\NoHardForks.hs,144
 NoHardForks21,
 getEraParams26,
 toPartialConsensusConfig32,
@@ -4506,7 +4506,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Abstract/NoHardF
 noHardForksEpochInfo42,
 noHardForksEpochInfo44,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Abstract/SingleEraBlock.hs,496
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Abstract\SingleEraBlock.hs,496
 SingleEraBlock77,
 singleEraTransition87,
 singleEraInfo94,
@@ -4534,7 +4534,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Abstract/SingleE
 eraIndexToInt163,
 eraIndexToInt164,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/AcrossEras.hs,2144
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\AcrossEras.hs,2144
 PerEraBlockConfig92,
 PerEraBlockConfig92,
 getPerEraBlockConfig92,
@@ -4627,7 +4627,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/AcrossEras.hs,21
 getSameValue223,
 getSameValue227,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Basics.hs,1088
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Basics.hs,1088
 HardForkProtocol67,
 HardForkBlock69,
 HardForkBlock69,
@@ -4671,7 +4671,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Basics.hs,1088
 distribTopLevelConfig202,
 distribTopLevelConfig206,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Block.hs,414
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Block.hs,414
 HardForkHeader50,
 Header50,
 getHardForkHeader51,
@@ -4697,7 +4697,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Block.hs,414
 Eq264,
 Eq272,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Compat.hs,326
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Compat.hs,326
 HardForkCompatQuery41,
 CompatIfCurrent42,
 CompatAnytime46,
@@ -4713,7 +4713,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Compat.hs,326
 singleEraCompatQuery98,
 singleEraCompatQuery105,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Condense.hs,185
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Condense.hs,185
 CondenseConstraints34,
 pCondense36,
 pCondense37,
@@ -4726,7 +4726,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Condense.hs,185
 Condense65,
 Condense68,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Degenerate.hs,707
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Degenerate.hs,707
 DegenBlock74,
 DegenBlock78,
 DegenHeader82,
@@ -4760,11 +4760,11 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Degenerate.hs,70
 DegenTopLevelConfig212,
 DegenTopLevelConfig216,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Embed/Binary.hs,48
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Embed\Binary.hs,48
 protocolInfoBinary31,
 protocolInfoBinary45,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Embed/Nary.hs,417
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Embed\Nary.hs,417
 Inject47,
 inject48,
 inject'56,
@@ -4791,7 +4791,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Embed/Nary.hs,41
 injectInitialExtLedgerState187,
 injectInitialExtLedgerState192,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Embed/Unary.hs,1256
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Embed\Unary.hs,1256
 Isomorphic82,
 project83,
 inject84,
@@ -4862,7 +4862,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Embed/Unary.hs,1
 injNestedCtxt662,
 injNestedCtxt663,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Forging.hs,488
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Forging.hs,488
 HardForkCannotForge45,
 CannotForge47,
 HardForkForgeStateInfo57,
@@ -4882,7 +4882,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Forging.hs,488
 hardForkForgeBlock285,
 hardForkForgeBlock295,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Info.hs,117
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Info.hs,117
 SingleEraInfo22,
 SingleEraInfo22,
 singleEraName23,
@@ -4890,7 +4890,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Info.hs,117
 LedgerEraInfo32,
 getLedgerEraInfo33,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/InjectTxs.hs,204
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\InjectTxs.hs,204
 InjectTx35,
 InjectTx35,
 injectTxWith36,
@@ -4905,7 +4905,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/InjectTxs.hs,204
 matchTxsNS106,
 matchTxsNS112,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Ledger.hs,1758
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Ledger.hs,1758
 HardForkLedgerError78,
 HardForkLedgerErrorFromEra80,
 HardForkLedgerErrorWrongEra83,
@@ -4983,15 +4983,15 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Ledger.hs,1758
 injectLedgerError741,
 injectLedgerError742,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Ledger/CommonProtocolParams.hs,70
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Ledger\CommonProtocolParams.hs,70
 CommonProtocolParams14,
 askCurrentLedger18,
 askCurrentLedger22,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Ledger/PeerSelection.hs,33
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Ledger\PeerSelection.hs,33
 LedgerSupportsPeerSelection13,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Ledger/Query.hs,1202
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Ledger\Query.hs,1202
 ShowProxy78,
 ShowQuery80,
 HardForkQueryResult88,
@@ -5047,7 +5047,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Ledger/Query.hs,
 shiftMismatch403,
 shiftMismatch404,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Mempool.hs,561
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Mempool.hs,561
 HardForkApplyTxErr52,
 HardForkApplyTxErrFromEra54,
 HardForkApplyTxErrWrongEra57,
@@ -5075,19 +5075,19 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Mempool.hs,561
 injectApplyTxErr204,
 injectApplyTxErr205,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Node.hs,85
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Node.hs,85
 ConfigSupportsNode32,
 getSameConfigValue40,
 getSameConfigValue45,
 RunNode62,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Node/InitStorage.hs,21
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Node\InitStorage.hs,21
 NodeInitStorage19,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Node/Metrics.hs,26
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Node\Metrics.hs,26
 BlockSupportsMetrics14,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/PartialConfig.hs,503
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\PartialConfig.hs,503
 HasPartialConsensusConfig32,
 PartialConsensusConfig33,
 ConsensusConfig34,
@@ -5107,7 +5107,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/PartialConfig.hs
 WrapPartialConsensusConfig80,
 unwrapPartialConsensusConfig80,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Protocol.hs,931
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Protocol.hs,931
 HardForkSelectView65,
 HardForkSelectView65,
 getHardForkSelectView66,
@@ -5152,7 +5152,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Protocol.hs,931
 injectValidationErr357,
 injectValidationErr360,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Protocol/ChainSel.hs,349
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Protocol\ChainSel.hs,349
 AcrossEraSelection31,
 CompareBlockNo36,
 SelectSameProtocol48,
@@ -5172,7 +5172,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Protocol/ChainSe
 invert138,
 invert139,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Protocol/LedgerView.hs,315
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Protocol\LedgerView.hs,315
 HardForkLedgerView32,
 HardForkLedgerView_32,
 hardForkLedgerViewTransition34,
@@ -5187,7 +5187,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Protocol/LedgerV
 dictCurrentOne85,
 dictCurrentOne87,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Serialisation/Common.hs,2432
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Serialisation\Common.hs,2432
 FirstEra112,
 LaterEra115,
 isFirstEra118,
@@ -5282,7 +5282,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Serialisation/Co
 getSerialiseNS683,
 Serialise686,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Serialisation/SerialiseDisk.hs,293
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Serialisation\SerialiseDisk.hs,293
 SerialiseDiskConstraints26,
 ReconstructNestedCtxt32,
 HasBinaryBlockInfo40,
@@ -5299,7 +5299,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Serialisation/Se
 EncodeDisk120,
 DecodeDisk128,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Serialisation/SerialiseNodeToClient.hs,644
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Serialisation\SerialiseNodeToClient.hs,644
 SerialiseNodeToClientConstraints49,
 dispatchEncoder55,
 dispatchEncoder63,
@@ -5326,7 +5326,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Serialisation/Se
 decodeQueryIfCurrentResult328,
 decodeQueryIfCurrentResult334,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Serialisation/SerialiseNodeToNode.hs,300
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Serialisation\SerialiseNodeToNode.hs,300
 SerialiseNodeToNodeConstraints44,
 dispatchEncoder51,
 dispatchEncoder59,
@@ -5341,7 +5341,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Serialisation/Se
 SerialiseNodeToNode143,
 SerialiseNodeToNode148,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/State.hs,338
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\State.hs,338
 getTip66,
 getTip69,
 recover90,
@@ -5357,7 +5357,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/State.hs,338
 extendToSlot175,
 extendToSlot179,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/State/Infra.hs,353
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\State\Infra.hs,353
 initHardForkState56,
 initHardForkState57,
 tip66,
@@ -5381,7 +5381,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/State/Infra.hs,3
 reconstructSummary163,
 reconstructSummary167,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/State/Instances.hs,266
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\State\Instances.hs,266
 Prod49,
 SListIN50,
 AllN51,
@@ -5400,13 +5400,13 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/State/Instances.
 Serialise125,
 Serialise129,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/State/Lift.hs,42
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\State\Lift.hs,42
 lift18,
 lift19,
 liftM21,
 liftM23,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/State/Types.hs,383
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\State\Types.hs,383
 HardForkState37,
 HardForkState37,
 getHardForkState38,
@@ -5429,7 +5429,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/State/Types.hs,3
 TransitionKnown96,
 TransitionImpossible106,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Translation.hs,173
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Translation.hs,173
 EraTranslation23,
 EraTranslation23,
 translateLedgerState24,
@@ -5438,7 +5438,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Translation.hs,1
 trivialEraTranslation31,
 trivialEraTranslation32,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Util/DerivingVia.hs,651
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Util\DerivingVia.hs,651
 proofAll41,
 proofAll44,
 proofLift46,
@@ -5484,7 +5484,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Util/DerivingVia
 showBlockTypes282,
 showBlockTypes283,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Util/InPairs.hs,413
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Util\InPairs.hs,413
 InPairs46,
 PNil47,
 PCons48,
@@ -5517,7 +5517,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Util/InPairs.hs,
 requiringBoth117,
 requiringBoth118,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Util/Match.hs,539
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Util\Match.hs,539
 Mismatch59,
 ML60,
 MR61,
@@ -5554,7 +5554,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Util/Match.hs,53
 bihcmap204,
 NoThunks226,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Util/Tails.hs,174
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Util\Tails.hs,174
 Tails35,
 TNil36,
 TCons37,
@@ -5573,7 +5573,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Util/Tails.hs,17
 hcpure74,
 hcpure77,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Util/Telescope.hs,1222
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Combinator\Util\Telescope.hs,1222
 Telescope103,
 TZ104,
 TS105,
@@ -5655,7 +5655,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Combinator/Util/Telescope.h
 scanl487,
 NoThunks516,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/History/Caching.hs,174
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\History\Caching.hs,174
 RunWithCachedSummary25,
 RunWithCachedSummary25,
 cachedRunQuery33,
@@ -5664,7 +5664,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/History/Caching.hs,174
 runWithCachedSummary49,
 runWithCachedSummary52,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/History/EpochInfo.hs,134
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\History\EpochInfo.hs,134
 summaryToEpochInfo32,
 summaryToEpochInfo34,
 snapshotEpochInfo48,
@@ -5672,7 +5672,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/History/EpochInfo.hs,134
 dummyEpochInfo61,
 dummyEpochInfo62,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/History/EraParams.hs,348
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\History\EraParams.hs,348
 EraParams133,
 EraParams133,
 eraEpochSize134,
@@ -5690,7 +5690,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/History/EraParams.hs,348
 decodeSafeBeforeEpoch223,
 Serialise231,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/History/Qry.hs,1839
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\History\Qry.hs,1839
 Qry151,
 QPure152,
 QExpr153,
@@ -5790,7 +5790,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/History/Qry.hs,1839
 Var565,
 Show570,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/History/Summary.hs,904
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\History\Summary.hs,904
 Bound77,
 Bound77,
 boundTime78,
@@ -5843,7 +5843,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/History/Summary.hs,904
 Serialise478,
 Serialise493,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/History/Util.hs,152
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\History\Util.hs,152
 addSlots20,
 addSlots21,
 subSlots23,
@@ -5855,13 +5855,13 @@ ouroboros-consensus/src/Ouroboros/Consensus/HardFork/History/Util.hs,152
 countEpochs34,
 countEpochs35,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HardFork/Simple.hs,105
+ouroboros-consensus\src\Ouroboros\Consensus\HardFork\Simple.hs,105
 TriggerHardFork13,
 TriggerHardForkAtVersion16,
 TriggerHardForkAtEpoch19,
 TriggerHardForkNever21,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HeaderStateHistory.hs,264
+ouroboros-consensus\src\Ouroboros\Consensus\HeaderStateHistory.hs,264
 HeaderStateHistory47,
 HeaderStateHistory47,
 unHeaderStateHistory48,
@@ -5880,7 +5880,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HeaderStateHistory.hs,264
 fromChain155,
 fromChain162,
 
-ouroboros-consensus/src/Ouroboros/Consensus/HeaderValidation.hs,1961
+ouroboros-consensus\src\Ouroboros\Consensus\HeaderValidation.hs,1961
 AnnTip91,
 AnnTip91,
 annTipSlotNo92,
@@ -5971,7 +5971,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/HeaderValidation.hs,1961
 decodeHeaderState548,
 decodeHeaderState551,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Ledger/Abstract.hs,350
+ouroboros-consensus\src\Ouroboros\Consensus\Ledger\Abstract.hs,350
 ApplyBlock47,
 applyLedgerBlock53,
 reapplyLedgerBlock66,
@@ -5991,7 +5991,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Ledger/Abstract.hs,350
 ledgerTipSlot113,
 ledgerTipSlot116,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Ledger/Basics.hs,265
+ouroboros-consensus\src\Ouroboros\Consensus\Ledger\Basics.hs,265
 GetTip33,
 getTip37,
 HeaderHash39,
@@ -6009,12 +6009,12 @@ ouroboros-consensus/src/Ouroboros/Consensus/Ledger/Basics.hs,265
 LedgerError115,
 TickedLedgerState116,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Ledger/CommonProtocolParams.hs,59
+ouroboros-consensus\src\Ouroboros\Consensus\Ledger\CommonProtocolParams.hs,59
 CommonProtocolParams8,
 maxHeaderSize12,
 maxTxSize16,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Ledger/Dual.hs,3254
+ouroboros-consensus\src\Ouroboros\Consensus\Ledger\Dual.hs,3254
 DualBlock112,
 DualBlock112,
 dualBlockMain113,
@@ -6167,7 +6167,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Ledger/Dual.hs,3254
 decodeDualLedgerState859,
 decodeDualLedgerState862,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Ledger/Extended.hs,629
+ouroboros-consensus\src\Ouroboros\Consensus\Ledger\Extended.hs,629
 ExtLedgerState52,
 ExtLedgerState52,
 ledgerState53,
@@ -6200,7 +6200,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Ledger/Extended.hs,629
 castExtLedgerState209,
 castExtLedgerState217,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Ledger/Inspect.hs,333
+ouroboros-consensus\src\Ouroboros\Consensus\Ledger\Inspect.hs,333
 LedgerEvent24,
 LedgerWarning25,
 LedgerUpdate26,
@@ -6219,13 +6219,13 @@ ouroboros-consensus/src/Ouroboros/Consensus/Ledger/Inspect.hs,333
 inspectLedger79,
 inspectLedger87,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Ledger/Query.hs,53
+ouroboros-consensus\src\Ouroboros\Consensus\Ledger\Query.hs,53
 Query28,
 QueryLedger34,
 answerQuery37,
 Eq39,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Ledger/SupportsMempool.hs,233
+ouroboros-consensus\src\Ouroboros\Consensus\Ledger\SupportsMempool.hs,233
 GenTx28,
 ApplyTxErr32,
 LedgerSupportsMempool39,
@@ -6242,7 +6242,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Ledger/SupportsMempool.hs,233
 HasTxs121,
 extractTxs123,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Ledger/SupportsPeerSelection.hs,156
+ouroboros-consensus\src\Ouroboros\Consensus\Ledger\SupportsPeerSelection.hs,156
 StakePoolRelay22,
 CurrentRelay24,
 FutureRelay27,
@@ -6251,14 +6251,14 @@ ouroboros-consensus/src/Ouroboros/Consensus/Ledger/SupportsPeerSelection.hs,156
 LedgerSupportsPeerSelection34,
 getPeers44,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Ledger/SupportsProtocol.hs,174
+ouroboros-consensus\src\Ouroboros\Consensus\Ledger\SupportsProtocol.hs,174
 LedgerSupportsProtocol19,
 protocolLedgerView24,
 ledgerViewForecastAt63,
 _lemma_ledgerViewForecastAt_applyChainTick70,
 _lemma_ledgerViewForecastAt_applyChainTick80,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Mempool/API.hs,982
+ouroboros-consensus\src\Ouroboros\Consensus\Mempool\API.hs,982
 Mempool53,
 Mempool53,
 tryAddTxs120,
@@ -6306,7 +6306,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Mempool/API.hs,982
 TraceMempoolRemoveTxs350,
 TraceMempoolManuallyRemovedTxs357,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Mempool/Impl.hs,2192
+ouroboros-consensus\src\Ouroboros\Consensus\Mempool\Impl.hs,2192
 MempoolCapacityBytesOverride55,
 NoMempoolCapacityBytesOverride56,
 MempoolCapacityBytesOverride59,
@@ -6404,7 +6404,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Mempool/Impl.hs,2192
 tickLedgerState781,
 tickLedgerState786,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Mempool/TxSeq.hs,776
+ouroboros-consensus\src\Ouroboros\Consensus\Mempool\TxSeq.hs,776
 TicketNo48,
 TicketNo48,
 zeroTicketNo53,
@@ -6453,7 +6453,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Mempool/TxSeq.hs,776
 toMempoolSize241,
 toMempoolSize242,
 
-ouroboros-consensus/src/Ouroboros/Consensus/MiniProtocol/BlockFetch/Server.hs,195
+ouroboros-consensus\src\Ouroboros\Consensus\MiniProtocol\BlockFetch\Server.hs,195
 BlockFetchServerException38,
 BlockGCed52,
 NoGenesisBlock59,
@@ -6463,7 +6463,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/MiniProtocol/BlockFetch/Server.hs,19
 TraceBlockFetchServerEvent133,
 TraceBlockFetchServerSendBlock135,
 
-ouroboros-consensus/src/Ouroboros/Consensus/MiniProtocol/ChainSync/Client.hs,1489
+ouroboros-consensus\src\Ouroboros\Consensus\MiniProtocol\ChainSync\Client.hs,1489
 Consensus83,
 ChainDbView87,
 ChainDbView87,
@@ -6530,7 +6530,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/MiniProtocol/ChainSync/Client.hs,148
 TraceException1237,
 TraceTermination1239,
 
-ouroboros-consensus/src/Ouroboros/Consensus/MiniProtocol/ChainSync/Server.hs,478
+ouroboros-consensus\src\Ouroboros\Consensus\MiniProtocol\ChainSync\Server.hs,478
 chainSyncHeaderServerFollower33,
 chainSyncHeaderServerFollower37,
 chainSyncBlockServerFollower39,
@@ -6547,17 +6547,17 @@ ouroboros-consensus/src/Ouroboros/Consensus/MiniProtocol/ChainSync/Server.hs,478
 TraceChainSyncRollForward154,
 TraceChainSyncRollBackward155,
 
-ouroboros-consensus/src/Ouroboros/Consensus/MiniProtocol/LocalStateQuery/Server.hs,54
+ouroboros-consensus\src\Ouroboros\Consensus\MiniProtocol\LocalStateQuery\Server.hs,54
 localStateQueryServer15,
 localStateQueryServer25,
 
-ouroboros-consensus/src/Ouroboros/Consensus/MiniProtocol/LocalTxSubmission/Server.hs,118
+ouroboros-consensus\src\Ouroboros\Consensus\MiniProtocol\LocalTxSubmission\Server.hs,118
 localTxSubmissionServer24,
 localTxSubmissionServer29,
 TraceLocalTxSubmissionServerEvent51,
 TraceReceivedTx52,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Network/NodeToClient.hs,768
+ouroboros-consensus\src\Ouroboros\Consensus\Network\NodeToClient.hs,768
 Handlers88,
 Handlers88,
 hChainSyncServer89,
@@ -6601,7 +6601,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Network/NodeToClient.hs,768
 responder403,
 responder407,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Network/NodeToNode.hs,1235
+ouroboros-consensus\src\Ouroboros\Consensus\Network\NodeToNode.hs,1235
 Handlers105,
 Handlers105,
 hChainSyncClient106,
@@ -6662,7 +6662,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Network/NodeToNode.hs,1235
 responder689,
 responder694,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Node.hs,1698
+ouroboros-consensus\src\Ouroboros\Consensus\Node.hs,1698
 RunNodeArgs119,
 RunNodeArgs119,
 rnTraceConsensus121,
@@ -6732,7 +6732,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Node.hs,1698
 overBlockFetchConfiguration728,
 overBlockFetchConfiguration732,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Node/DbLock.hs,183
+ouroboros-consensus\src\Ouroboros\Consensus\Node\DbLock.hs,183
 withLockDB26,
 withLockDB27,
 dbLockFsPath35,
@@ -6745,7 +6745,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Node/DbLock.hs,183
 DbLocked82,
 Exception85,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Node/DbMarker.hs,275
+ouroboros-consensus\src\Ouroboros\Consensus\Node\DbMarker.hs,275
 checkDbMarker66,
 checkDbMarker74,
 DbMarkerError111,
@@ -6760,11 +6760,11 @@ ouroboros-consensus/src/Ouroboros/Consensus/Node/DbMarker.hs,275
 dbMarkerParse166,
 dbMarkerParse170,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Node/ErrorPolicy.hs,52
+ouroboros-consensus\src\Ouroboros\Consensus\Node\ErrorPolicy.hs,52
 consensusErrorPolicy36,
 consensusErrorPolicy40,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Node/Exit.hs,278
+ouroboros-consensus\src\Ouroboros\Consensus\Node\Exit.hs,278
 ExitFailure43,
 exitReasontoExitFailure46,
 exitReasontoExitFailure47,
@@ -6780,14 +6780,14 @@ ouroboros-consensus/src/Ouroboros/Consensus/Node/Exit.hs,278
 toExitReason105,
 toExitReason110,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Node/InitStorage.hs,117
+ouroboros-consensus\src\Ouroboros\Consensus\Node\InitStorage.hs,117
 NodeInitStorage10,
 nodeImmutableDbChunkInfo15,
 nodeCheckIntegrity26,
 nodeInitChainDB39,
 nodeInitChainDB40,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Node/NetworkProtocolVersion.hs,301
+ouroboros-consensus\src\Ouroboros\Consensus\Node\NetworkProtocolVersion.hs,301
 HasNetworkProtocolVersion31,
 BlockNodeToNodeVersion32,
 BlockNodeToClientVersion33,
@@ -6798,7 +6798,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Node/NetworkProtocolVersion.hs,301
 latestReleasedNodeVersionDefault59,
 latestReleasedNodeVersionDefault63,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Node/ProtocolInfo.hs,247
+ouroboros-consensus\src\Ouroboros\Consensus\Node\ProtocolInfo.hs,247
 NumCoreNodes25,
 NumCoreNodes25,
 enumCoreNodes28,
@@ -6812,7 +6812,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Node/ProtocolInfo.hs,247
 ProtocolClientInfo45,
 pClientInfoCodecConfig46,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Node/Recovery.hs,404
+ouroboros-consensus\src\Ouroboros\Consensus\Node\Recovery.hs,404
 cleanShutdownMarkerFile25,
 cleanShutdownMarkerFile26,
 createMarkerOnCleanShutdown36,
@@ -6828,13 +6828,13 @@ ouroboros-consensus/src/Ouroboros/Consensus/Node/Recovery.hs,404
 onExceptionIf90,
 onExceptionIf96,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Node/Run.hs,111
+ouroboros-consensus\src\Ouroboros\Consensus\Node\Run.hs,111
 SerialiseNodeToNodeConstraints54,
 estimateBlockSize64,
 SerialiseNodeToClientConstraints74,
 RunNode102,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Node/Serialisation.hs,614
+ouroboros-consensus\src\Ouroboros\Consensus\Node\Serialisation.hs,614
 SerialiseNodeToNode50,
 encodeNodeToNode51,
 decodeNodeToNode52,
@@ -6861,7 +6861,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Node/Serialisation.hs,614
 SerialiseNodeToNode147,
 SerialiseNodeToClient154,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Node/Tracers.hs,979
+ouroboros-consensus\src\Ouroboros\Consensus\Node\Tracers.hs,979
 Tracers51,
 Tracers'51,
 chainSyncClientTracer52,
@@ -6904,7 +6904,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Node/Tracers.hs,979
 TraceLabelCreds335,
 TraceLabelCreds335,
 
-ouroboros-consensus/src/Ouroboros/Consensus/NodeId.hs,169
+ouroboros-consensus\src\Ouroboros\Consensus\NodeId.hs,169
 CoreId29,
 NodeId29,
 RelayId30,
@@ -6917,7 +6917,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/NodeId.hs,169
 fromCoreNodeId49,
 fromCoreNodeId50,
 
-ouroboros-consensus/src/Ouroboros/Consensus/NodeKernel.hs,1370
+ouroboros-consensus\src\Ouroboros\Consensus\NodeKernel.hs,1370
 NodeKernel91,
 NodeKernel91,
 getChainDB93,
@@ -6980,7 +6980,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/NodeKernel.hs,1370
 getPeersFromCurrentLedgerAfterSlot776,
 getPeersFromCurrentLedgerAfterSlot785,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Protocol/Abstract.hs,349
+ouroboros-consensus\src\Ouroboros\Consensus\Protocol\Abstract.hs,349
 ConsensusConfig33,
 ConsensusProtocol50,
 ChainDepState55,
@@ -6999,7 +6999,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Protocol/Abstract.hs,349
 preferCandidate178,
 preferCandidate183,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Protocol/BFT.hs,706
+ouroboros-consensus\src\Ouroboros\Consensus\Protocol\BFT.hs,706
 BftFields53,
 BftFields53,
 bftSignature54,
@@ -7040,7 +7040,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Protocol/BFT.hs,706
 BftDSIGN193,
 Condense199,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Protocol/LeaderSchedule.hs,414
+ouroboros-consensus\src\Ouroboros\Consensus\Protocol\LeaderSchedule.hs,414
 LeaderSchedule36,
 LeaderSchedule36,
 getLeaderSchedule37,
@@ -7064,13 +7064,13 @@ ouroboros-consensus/src/Ouroboros/Consensus/Protocol/LeaderSchedule.hs,414
 CanBeLeader83,
 NoThunks99,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Protocol/MockChainSel.hs,90
+ouroboros-consensus\src\Ouroboros\Consensus\Protocol\MockChainSel.hs,90
 selectChain34,
 selectChain40,
 selectUnvalidatedChain64,
 selectUnvalidatedChain70,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Protocol/ModChainSel.hs,234
+ouroboros-consensus\src\Ouroboros\Consensus\Protocol\ModChainSel.hs,234
 ModChainSel17,
 ConsensusConfig19,
 McsConsensusConfig19,
@@ -7085,7 +7085,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Protocol/ModChainSel.hs,234
 ValidateView37,
 NoThunks45,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Protocol/PBFT.hs,1943
+ouroboros-consensus\src\Ouroboros\Consensus\Protocol\PBFT.hs,1943
 PBftFields79,
 PBftFields79,
 pbftIssuer81,
@@ -7175,7 +7175,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Protocol/PBFT.hs,1943
 pbftCheckCanForge479,
 Condense497,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Protocol/PBFT/Crypto.hs,305
+ouroboros-consensus\src\Ouroboros\Consensus\Protocol\PBFT\Crypto.hs,305
 PBftCrypto48,
 PBftDSIGN49,
 PBftDelegationCert50,
@@ -7192,7 +7192,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Protocol/PBFT/Crypto.hs,305
 PBftMockVerKeyHash70,
 getPBftMockVerKeyHash71,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Protocol/PBFT/State.hs,912
+ouroboros-consensus\src\Ouroboros\Consensus\Protocol\PBFT\State.hs,912
 PBftState83,
 PBftState83,
 inWindow90,
@@ -7244,12 +7244,12 @@ ouroboros-consensus/src/Ouroboros/Consensus/Protocol/PBFT/State.hs,912
 decodePBftState302,
 Serialise308,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Protocol/Signed.hs,48
+ouroboros-consensus\src\Ouroboros\Consensus\Protocol\Signed.hs,48
 Signed12,
 SignedHeader21,
 headerSigned23,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/API.hs,1964
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ChainDB\API.hs,1964
 ChainDB117,
 ChainDB117,
 addBlockAsync134,
@@ -7346,7 +7346,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/API.hs,1964
 InvalidIteratorRange731,
 Exception736,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl.hs,193
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ChainDB\Impl.hs,193
 withDB76,
 withDB88,
 openDB90,
@@ -7360,7 +7360,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl.hs,193
 chunkIndexOfPoint269,
 chunkIndexOfPoint270,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/Args.hs,840
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ChainDB\Impl\Args.hs,840
 ChainDbArgs43,
 ChainDbArgs43,
 cdbHasFSImmutableDB46,
@@ -7401,7 +7401,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/Args.hs,840
 RelativeMountPoint246,
 RelativeMountPoint246,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/Background.hs,728
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ChainDB\Impl\Background.hs,728
 launchBgTasks85,
 launchBgTasks96,
 copyToImmutableDB133,
@@ -7438,7 +7438,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/Background.hs,7
 addBlockRunner520,
 addBlockRunner529,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/BlockCache.hs,140
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ChainDB\Impl\BlockCache.hs,140
 BlockCache24,
 BlockCache24,
 empty26,
@@ -7450,7 +7450,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/BlockCache.hs,1
 lookup35,
 lookup36,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/ChainSel.hs,932
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ChainDB\Impl\ChainSel.hs,932
 initialChainSelection88,
 initialChainSelection99,
 addBlockAsync222,
@@ -7493,7 +7493,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/ChainSel.hs,932
 ignoreInvalidSuc1079,
 ignoreInvalidSuc1085,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/Follower.hs,422
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ChainDB\Impl\Follower.hs,422
 getFollower53,
 getFollower59,
 getFollower170,
@@ -7517,7 +7517,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/Follower.hs,422
 closeAllFollowers571,
 closeAllFollowers575,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/Iterator.hs,809
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ChainDB\Impl\Iterator.hs,809
 stream181,
 stream193,
 IteratorEnv208,
@@ -7558,7 +7558,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/Iterator.hs,809
 closeAllIterators801,
 closeAllIterators802,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/LgrDB.hs,1086
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ChainDB\Impl\LgrDB.hs,1086
 LgrDB98,
 LgrDB98,
 varDB99,
@@ -7617,7 +7617,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/LgrDB.hs,1086
 configLedgerDb464,
 configLedgerDb468,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/Paths.hs,463
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ChainDB\Impl\Paths.hs,463
 LookupBlockInfo49,
 maximalCandidates69,
 maximalCandidates77,
@@ -7640,7 +7640,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/Paths.hs,463
 isReachable376,
 isReachable382,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/Query.hs,585
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ChainDB\Impl\Query.hs,585
 getCurrentChain66,
 getCurrentChain74,
 getLedgerDB79,
@@ -7670,7 +7670,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/Query.hs,585
 mustExist274,
 mustExist275,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/Types.hs,3345
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ChainDB\Impl\Types.hs,3345
 SerialiseDiskConstraints107,
 CDBHandle110,
 ChainDbHandle110,
@@ -7822,7 +7822,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Impl/Types.hs,3345
 BlockGCedFromVolatileDB760,
 SwitchBackToVolatileDB766,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Init.hs,116
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ChainDB\Init.hs,116
 InitChainDB21,
 InitChainDB21,
 addBlock23,
@@ -7832,7 +7832,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ChainDB/Init.hs,116
 map38,
 map43,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/Common.hs,685
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\Common.hs,685
 tipIsGenesis47,
 tipIsGenesis48,
 PrefixLen59,
@@ -7872,7 +7872,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/Common.hs,685
 Functor169,
 Applicative172,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/FS/API.hs,648
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\FS\API.hs,648
 HasFS45,
 HasFS45,
 dumpState47,
@@ -7914,7 +7914,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/FS/API.hs,648
 SomeHasFS303,
 SomeHasFS304,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/FS/API/Types.hs,1555
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\FS\API\Types.hs,1555
 OpenMode72,
 ReadMode73,
 WriteMode74,
@@ -8000,7 +8000,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/FS/API/Types.hs,1555
 Condense368,
 Condense374,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/FS/CRC.hs,230
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\FS\CRC.hs,230
 CRC40,
 CRC40,
 getCRC40,
@@ -8017,7 +8017,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/FS/CRC.hs,230
 hGetAllAtCRC86,
 hGetAllAtCRC91,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/FS/Handle.hs,302
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\FS\Handle.hs,302
 HandleOS24,
 HandleOS24,
 filePath25,
@@ -8035,12 +8035,12 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/FS/Handle.hs,302
 isHandleClosedException68,
 isHandleClosedException69,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/FS/IO.hs,40
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\FS\IO.hs,40
 HandleIO28,
 ioHasFS30,
 ioHasFS31,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/API.hs,1859
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ImmutableDB\API.hs,1859
 ImmutableDB103,
 ImmutableDB103,
 closeDB_109,
@@ -8138,7 +8138,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/API.hs,1859
 getTipSlot563,
 getTipSlot566,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Chunks/Internal.hs,1316
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ImmutableDB\Chunks\Internal.hs,1316
 ChunkInfo57,
 UniformChunkSize64,
 simpleChunkInfo73,
@@ -8200,7 +8200,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Chunks/Internal.
 assertChunkCanContainEBB276,
 assertChunkCanContainEBB278,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Chunks/Layout.hs,1096
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ImmutableDB\Chunks\Layout.hs,1096
 maxRelativeSlot67,
 maxRelativeSlot68,
 relativeSlotIsEBB74,
@@ -8249,7 +8249,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Chunks/Layout.hs
 slotNoOfBlockOrEBB273,
 slotNoOfBlockOrEBB274,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl.hs,685
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ImmutableDB\Impl.hs,685
 ImmutableDbArgs142,
 ImmutableDbArgs142,
 immCacheConfig143,
@@ -8285,7 +8285,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl.hs,685
 startNewChunk550,
 startNewChunk557,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/Index.hs,332
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ImmutableDB\Impl\Index.hs,332
 Index54,
 Index54,
 readOffsets56,
@@ -8306,7 +8306,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/Index.hs,33
 cachedIndex182,
 cachedIndex192,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/Index/Cache.hs,1580
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ImmutableDB\Impl\Index\Cache.hs,1580
 CacheConfig93,
 CacheConfig93,
 pastChunksToCache94,
@@ -8387,7 +8387,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/Index/Cache
 appendEntry859,
 appendEntry866,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/Index/Primary.hs,1280
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ImmutableDB\Impl\Index\Primary.hs,1280
 SecondaryOffset89,
 getSecondaryOffset91,
 getSecondaryOffset92,
@@ -8456,7 +8456,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/Index/Prima
 !643,
 !644,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/Index/Secondary.hs,823
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ImmutableDB\Impl\Index\Secondary.hs,823
 BlockOffset59,
 BlockOffset59,
 unBlockOffset59,
@@ -8507,7 +8507,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/Index/Secon
 putHash352,
 putHash353,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/Iterator.hs,721
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ImmutableDB\Impl\Iterator.hs,721
 IteratorHandle64,
 IteratorHandle64,
 ithHasFS65,
@@ -8543,7 +8543,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/Iterator.hs
 extractBlockComponent563,
 extractBlockComponent580,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/Parser.hs,199
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ImmutableDB\Impl\Parser.hs,199
 BlockSummary44,
 BlockSummary44,
 summaryEntry45,
@@ -8556,7 +8556,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/Parser.hs,1
 mapAccumS0226,
 mapAccumS0232,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/State.hs,707
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ImmutableDB\Impl\State.hs,707
 ImmutableDBEnv61,
 ImmutableDBEnv61,
 hasFS62,
@@ -8596,7 +8596,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/State.hs,70
 cleanUp291,
 cleanUp292,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/Types.hs,881
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ImmutableDB\Impl\Types.hs,881
 BlockOrEBB36,
 Block37,
 EBB38,
@@ -8638,7 +8638,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/Types.hs,88
 TracePastChunkEvict144,
 TracePastChunksExpired147,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/Util.hs,538
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ImmutableDB\Impl\Util.hs,538
 Two57,
 Two57,
 fsPathChunkFile60,
@@ -8666,7 +8666,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/Util.hs,538
 checkChecksum175,
 checkChecksum182,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/Validation.hs,513
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\ImmutableDB\Impl\Validation.hs,513
 ValidateEnv65,
 ValidateEnv65,
 hasFS66,
@@ -8693,7 +8693,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/ImmutableDB/Impl/Validation.
 migrate591,
 migrate592,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/LedgerDB/DiskPolicy.hs,276
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\LedgerDB\DiskPolicy.hs,276
 SnapshotInterval29,
 DefaultSnapshotInterval30,
 RequestedSnapshotInterval31,
@@ -8707,7 +8707,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/LedgerDB/DiskPolicy.hs,276
 defaultDiskPolicy87,
 defaultDiskPolicy88,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/LedgerDB/InMemory.hs,2055
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\LedgerDB\InMemory.hs,2055
 LedgerDB128,
 LedgerDB128,
 ledgerDbCheckpoints130,
@@ -8806,7 +8806,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/LedgerDB/InMemory.hs,2055
 decodeSnapshotBackwardsCompatible551,
 decodeSnapshotBackwardsCompatible557,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/LedgerDB/OnDisk.hs,1198
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\LedgerDB\OnDisk.hs,1198
 LedgerDB'74,
 AnnLedgerError'75,
 NextBlock82,
@@ -8866,7 +8866,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/LedgerDB/OnDisk.hs,1198
 ReplayFromSnapshot520,
 ReplayedBlock526,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/Serialisation.hs,1438
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\Serialisation.hs,1438
 EncodeDisk93,
 encodeDisk94,
 encodeDisk98,
@@ -8932,7 +8932,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/Serialisation.hs,1438
 DecodeDisk346,
 DecodeDisk350,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/VolatileDB/API.hs,755
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\VolatileDB\API.hs,755
 VolatileDB51,
 VolatileDB51,
 closeDB58,
@@ -8974,7 +8974,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/VolatileDB/API.hs,755
 mustExist265,
 mustExist271,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/VolatileDB/Impl.hs,713
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\VolatileDB\Impl.hs,713
 VolatileDbArgs161,
 VolatileDbArgs161,
 volCheckIntegrity162,
@@ -9009,7 +9009,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/VolatileDB/Impl.hs,713
 getterSTM556,
 getterSTM561,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/VolatileDB/Impl/FileInfo.hs,249
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\VolatileDB\Impl\FileInfo.hs,249
 FileInfo43,
 FileInfo43,
 maxSlotNo44,
@@ -9027,7 +9027,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/VolatileDB/Impl/FileInfo.hs,
 maxSlotNoInFiles101,
 maxSlotNoInFiles102,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/VolatileDB/Impl/Index.hs,243
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\VolatileDB\Impl\Index.hs,243
 Index31,
 Index31,
 unIndex31,
@@ -9048,7 +9048,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/VolatileDB/Impl/Index.hs,243
 lastFile60,
 lastFile61,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/VolatileDB/Impl/Parser.hs,203
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\VolatileDB\Impl\Parser.hs,203
 ParsedBlockInfo39,
 ParsedBlockInfo39,
 pbiBlockOffset40,
@@ -9060,7 +9060,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/VolatileDB/Impl/Parser.hs,20
 extractBlockInfo105,
 extractBlockInfo109,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/VolatileDB/Impl/State.hs,845
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\VolatileDB\Impl\State.hs,845
 VolatileDBEnv72,
 VolatileDBEnv72,
 hasFS73,
@@ -9106,7 +9106,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/VolatileDB/Impl/State.hs,845
 addToReverseIndex456,
 addToReverseIndex465,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/VolatileDB/Impl/Types.hs,681
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\VolatileDB\Impl\Types.hs,681
 BlocksPerFile43,
 BlocksPerFile43,
 unBlocksPerFile43,
@@ -9143,7 +9143,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/VolatileDB/Impl/Types.hs,681
 ibiBlockInfo129,
 ibiNestedCtxt130,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Storage/VolatileDB/Impl/Util.hs,268
+ouroboros-consensus\src\Ouroboros\Consensus\Storage\VolatileDB\Impl\Util.hs,268
 parseFd45,
 parseFd46,
 parseAllFds61,
@@ -9161,7 +9161,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Storage/VolatileDB/Impl/Util.hs,268
 deleteMapSet117,
 deleteMapSet123,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Ticked.hs,84
+ouroboros-consensus\src\Ouroboros\Consensus\Ticked.hs,84
 Ticked31,
 Ticked35,
 TickedTrivial35,
@@ -9169,7 +9169,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Ticked.hs,84
 TickedK38,
 getTickedK38,
 
-ouroboros-consensus/src/Ouroboros/Consensus/TypeFamilyWrappers.hs,1643
+ouroboros-consensus\src\Ouroboros\Consensus\TypeFamilyWrappers.hs,1643
 WrapApplyTxErr53,
 WrapApplyTxErr53,
 unwrapApplyTxErr53,
@@ -9243,7 +9243,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/TypeFamilyWrappers.hs,1643
 WrapTickedChainDepState164,
 unwrapTickedChainDepState165,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util.hs,1307
+ouroboros-consensus\src\Ouroboros\Consensus\Util.hs,1307
 Dict93,
 Dict94,
 Empty96,
@@ -9329,7 +9329,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util.hs,1307
 eitherToMaybe386,
 eitherToMaybe387,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/AnchoredFragment.hs,216
+ouroboros-consensus\src\Ouroboros\Consensus\Util\AnchoredFragment.hs,216
 compareHeadBlockNo48,
 compareHeadBlockNo53,
 forksAtMostKBlocks55,
@@ -9339,7 +9339,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util/AnchoredFragment.hs,216
 preferAnchoredCandidate130,
 preferAnchoredCandidate136,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/Args.hs,86
+ouroboros-consensus\src\Ouroboros\Consensus\Util\Args.hs,86
 Defaults41,
 NoDefault41,
 HKD44,
@@ -9348,13 +9348,13 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util/Args.hs,86
 MapHKD51,
 MapHKD54,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/Assert.hs,80
+ouroboros-consensus\src\Ouroboros\Consensus\Util\Assert.hs,80
 assertWithMsg12,
 assertWithMsg14,
 assertEqWithMsg20,
 assertEqWithMsg21,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/CBOR.hs,740
+ouroboros-consensus\src\Ouroboros\Consensus\Util\CBOR.hs,740
 IDecodeIO66,
 Partial67,
 Done68,
@@ -9394,14 +9394,14 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util/CBOR.hs,740
 decodeWithOrigin332,
 decodeWithOrigin333,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/CallStack.hs,94
+ouroboros-consensus\src\Ouroboros\Consensus\Util\CallStack.hs,94
 PrettyCallStack23,
 PrettyCallStack23,
 Show26,
 prettyCallStack29,
 prettyCallStack30,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/Condense.hs,744
+ouroboros-consensus\src\Ouroboros\Consensus\Util\Condense.hs,744
 Condense55,
 condense56,
 Condense162,
@@ -9453,7 +9453,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util/Condense.hs,744
 Condense222,
 Condense225,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/Counting.hs,1342
+ouroboros-consensus\src\Ouroboros\Consensus\Util\Counting.hs,1342
 Exactly67,
 Exactly67,
 getExactly67,
@@ -9527,7 +9527,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util/Counting.hs,1342
 nonEmptyMapTwo357,
 nonEmptyMapTwo361,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/DepPair.hs,364
+ouroboros-consensus\src\Ouroboros\Consensus\Util\DepPair.hs,364
 GenDepPair37,
 GenDepPair38,
 DepPair44,
@@ -9548,7 +9548,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util/DepPair.hs,364
 toTrivialDependency78,
 toTrivialDependency79,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/EarlyExit.hs,615
+ouroboros-consensus\src\Ouroboros\Consensus\Util\EarlyExit.hs,615
 WithEarlyExit47,
 WithEarlyExit47,
 unWithEarlyExit48,
@@ -9588,14 +9588,14 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util/EarlyExit.hs,615
 MonadEventlog223,
 IOLike240,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/FileLock.hs,72
+ouroboros-consensus\src\Ouroboros\Consensus\Util\FileLock.hs,72
 FileLock9,
 FileLock9,
 lockFile18,
 ioFileLock27,
 ioFileLock28,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/HList.hs,442
+ouroboros-consensus\src\Ouroboros\Consensus\Util\HList.hs,442
 HList45,
 Nil46,
 :*47,
@@ -9632,12 +9632,12 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util/HList.hs,442
 afterFn161,
 afterFn162,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/IOLike.hs,46
+ouroboros-consensus\src\Ouroboros\Consensus\Util\IOLike.hs,46
 IOLike79,
 forgetSignKeyKES83,
 IOLike85,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/MonadSTM/NormalForm.hs,236
+ouroboros-consensus\src\Ouroboros\Consensus\Util\MonadSTM\NormalForm.hs,236
 newTVarIO30,
 newTVarIO32,
 newMVar34,
@@ -9651,7 +9651,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util/MonadSTM/NormalForm.hs,236
 uncheckedNewEmptyMVar53,
 uncheckedNewEmptyMVar54,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/MonadSTM/RAWLock.hs,1259
+ouroboros-consensus\src\Ouroboros\Consensus\Util\MonadSTM\RAWLock.hs,1259
 RAWLock147,
 RAWLock147,
 new150,
@@ -9709,7 +9709,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util/MonadSTM/RAWLock.hs,1259
 poisonPure481,
 poisonPure483,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/MonadSTM/StrictMVar.hs,737
+ouroboros-consensus\src\Ouroboros\Consensus\Util\MonadSTM\StrictMVar.hs,737
 StrictMVar63,
 StrictMVar63,
 invariant64,
@@ -9753,7 +9753,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util/MonadSTM/StrictMVar.hs,737
 modifyMVar_193,
 NoThunks199,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/OptNP.hs,566
+ouroboros-consensus\src\Ouroboros\Consensus\Util\OptNP.hs,566
 OptNP55,
 OptNil56,
 OptCons57,
@@ -9797,7 +9797,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util/OptNP.hs,566
 combine201,
 combine208,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/Orphans.hs,129
+ouroboros-consensus\src\Ouroboros\Consensus\Util\Orphans.hs,129
 Condense48,
 Condense52,
 Condense57,
@@ -9808,11 +9808,11 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util/Orphans.hs,129
 NoThunks90,
 NoThunks106,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/RedundantConstraints.hs,58
+ouroboros-consensus\src\Ouroboros\Consensus\Util\RedundantConstraints.hs,58
 keepRedundantConstraint19,
 keepRedundantConstraint20,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/ResourceRegistry.hs,3406
+ouroboros-consensus\src\Ouroboros\Consensus\Util\ResourceRegistry.hs,3406
 ResourceRegistry290,
 ResourceRegistry290,
 registryContext292,
@@ -9971,7 +9971,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util/ResourceRegistry.hs,3406
 captureContext1281,
 captureContext1282,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/SOP.hs,966
+ouroboros-consensus\src\Ouroboros\Consensus\Util\SOP.hs,966
 sequence_NS'65,
 sequence_NS'67,
 map_NP'74,
@@ -10033,7 +10033,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util/SOP.hs,966
 hizipWith4306,
 hizipWith4314,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/STM.hs,575
+ouroboros-consensus\src\Ouroboros\Consensus\Util\STM.hs,575
 blockUntilChanged42,
 blockUntilChanged44,
 runWhenJust54,
@@ -10068,7 +10068,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util/STM.hs,575
 withWatcher172,
 withWatcher177,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/Singletons.hs,200
+ouroboros-consensus\src\Ouroboros\Consensus\Util\Singletons.hs,200
 Sing26,
 Sing32,
 SNil33,
@@ -10086,13 +10086,13 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util/Singletons.hs,200
 fromSing55,
 toSing56,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/Time.hs,96
+ouroboros-consensus\src\Ouroboros\Consensus\Util\Time.hs,96
 nominalDelay13,
 nominalDelay14,
 secondsToNominalDiffTime16,
 secondsToNominalDiffTime17,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/TraceSize.hs,173
+ouroboros-consensus\src\Ouroboros\Consensus\Util\TraceSize.hs,173
 traceSize29,
 traceSize32,
 LedgerDbSize40,
@@ -10103,7 +10103,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util/TraceSize.hs,173
 traceLedgerDbSize56,
 traceLedgerDbSize60,
 
-ouroboros-consensus/src/Ouroboros/Consensus/Util/Versioned.hs,532
+ouroboros-consensus\src\Ouroboros\Consensus\Util\Versioned.hs,532
 VersionNumber32,
 VersionNumber32,
 Serialise35,
@@ -10132,7 +10132,7 @@ ouroboros-consensus/src/Ouroboros/Consensus/Util/Versioned.hs,532
 decodeVersioned166,
 decodeVersioned169,
 
-ouroboros-network-framework/demo/ping-pong.hs,697
+ouroboros-network-framework\demo\ping-pong.hs,697
 main45,
 main46,
 ShowProxy62,
@@ -10165,7 +10165,7 @@ ouroboros-network-framework/demo/ping-pong.hs,697
 serverPingPong2253,
 serverPingPong2254,
 
-ouroboros-network-framework/src/Ouroboros/Network/Channel.hs,800
+ouroboros-network-framework\src\Ouroboros\Network\Channel.hs,800
 Channel43,
 Channel43,
 send50,
@@ -10201,7 +10201,7 @@ ouroboros-network-framework/src/Ouroboros/Network/Channel.hs,800
 loggingChannel304,
 loggingChannel311,
 
-ouroboros-network-framework/src/Ouroboros/Network/Codec.hs,275
+ouroboros-network-framework\src\Ouroboros\Network\Codec.hs,275
 DeserialiseFailure30,
 mkCodecCborStrictBS44,
 mkCodecCborStrictBS56,
@@ -10214,20 +10214,20 @@ ouroboros-network-framework/src/Ouroboros/Network/Codec.hs,275
 toLazyByteString157,
 toLazyByteString158,
 
-ouroboros-network-framework/src/Ouroboros/Network/CodecCBORTerm.hs,70
+ouroboros-network-framework\src\Ouroboros\Network\CodecCBORTerm.hs,70
 CodecCBORTerm10,
 CodecCBORTerm10,
 encodeTerm11,
 decodeTerm12,
 
-ouroboros-network-framework/src/Ouroboros/Network/ConnectionId.hs,87
+ouroboros-network-framework\src\Ouroboros\Network\ConnectionId.hs,87
 ConnectionId18,
 ConnectionId18,
 localAddress19,
 remoteAddress20,
 Hashable25,
 
-ouroboros-network-framework/src/Ouroboros/Network/Driver/Limits.hs,466
+ouroboros-network-framework\src\Ouroboros\Network\Driver\Limits.hs,466
 ProtocolSizeLimits55,
 ProtocolSizeLimits55,
 sizeLimitForState56,
@@ -10249,7 +10249,7 @@ ouroboros-network-framework/src/Ouroboros/Network/Driver/Limits.hs,466
 runPipelinedPeerWithLimits233,
 runPipelinedPeerWithLimits253,
 
-ouroboros-network-framework/src/Ouroboros/Network/Driver/Simple.hs,482
+ouroboros-network-framework\src\Ouroboros\Network\Driver\Simple.hs,482
 TraceSendRecv80,
 TraceSendMsg81,
 TraceRecvMsg82,
@@ -10273,7 +10273,7 @@ ouroboros-network-framework/src/Ouroboros/Network/Driver/Simple.hs,482
 runConnectedPeersPipelined285,
 runConnectedPeersPipelined299,
 
-ouroboros-network-framework/src/Ouroboros/Network/ErrorPolicy.hs,1166
+ouroboros-network-framework\src\Ouroboros\Network\ErrorPolicy.hs,1166
 ErrorPolicy52,
 ErrorPolicy53,
 Show61,
@@ -10323,14 +10323,14 @@ ouroboros-network-framework/src/Ouroboros/Network/ErrorPolicy.hs,1166
 wiaEvent324,
 Show327,
 
-ouroboros-network-framework/src/Ouroboros/Network/Linger.hsc,79
+ouroboros-network-framework\src\Ouroboros\Network\Linger.hsc,79
 StructLinger12,
 StructLinger12,
 sl_onoff14,
 sl_linger17,
 Storable21,
 
-ouroboros-network-framework/src/Ouroboros/Network/Mux.hs,660
+ouroboros-network-framework\src\Ouroboros\Network\Mux.hs,660
 ControlMessage61,
 Continue63,
 Quiesce68,
@@ -10362,7 +10362,7 @@ ouroboros-network-framework/src/Ouroboros/Network/Mux.hs,660
 runMuxPeer194,
 runMuxPeer201,
 
-ouroboros-network-framework/src/Ouroboros/Network/Protocol/Handshake.hs,442
+ouroboros-network-framework\src\Ouroboros\Network\Protocol\Handshake.hs,442
 handshakeProtocolNum46,
 handshakeProtocolNum47,
 HandshakeException51,
@@ -10383,13 +10383,13 @@ ouroboros-network-framework/src/Ouroboros/Network/Protocol/Handshake.hs,442
 runHandshakeServer149,
 runHandshakeServer164,
 
-ouroboros-network-framework/src/Ouroboros/Network/Protocol/Handshake/Client.hs,90
+ouroboros-network-framework\src\Ouroboros\Network\Protocol\Handshake\Client.hs,90
 handshakeClientPeer28,
 handshakeClientPeer38,
 encodeVersions70,
 encodeVersions75,
 
-ouroboros-network-framework/src/Ouroboros/Network/Protocol/Handshake/Codec.hs,484
+ouroboros-network-framework\src\Ouroboros\Network\Protocol\Handshake\Codec.hs,484
 VersionDataCodec55,
 VersionDataCodec55,
 encodeData56,
@@ -10411,13 +10411,13 @@ ouroboros-network-framework/src/Ouroboros/Network/Protocol/Handshake/Codec.hs,48
 decodeRefuseReason224,
 decodeRefuseReason227,
 
-ouroboros-network-framework/src/Ouroboros/Network/Protocol/Handshake/Server.hs,108
+ouroboros-network-framework\src\Ouroboros\Network\Protocol\Handshake\Server.hs,108
 handshakeServerPeer26,
 handshakeServerPeer34,
 lookupGreatestCommonKey77,
 lookupGreatestCommonKey78,
 
-ouroboros-network-framework/src/Ouroboros/Network/Protocol/Handshake/Type.hs,517
+ouroboros-network-framework\src\Ouroboros\Network\Protocol\Handshake\Type.hs,517
 Handshake43,
 StPropose44,
 StConfirm45,
@@ -10447,7 +10447,7 @@ ouroboros-network-framework/src/Ouroboros/Network/Protocol/Handshake/Type.hs,517
 InvalidServerSelection130,
 Exception134,
 
-ouroboros-network-framework/src/Ouroboros/Network/Protocol/Handshake/Unversioned.hs,304
+ouroboros-network-framework\src\Ouroboros\Network\Protocol\Handshake\Unversioned.hs,304
 UnversionedProtocol33,
 UnversionedProtocol33,
 UnversionedProtocolData37,
@@ -10460,7 +10460,7 @@ ouroboros-network-framework/src/Ouroboros/Network/Protocol/Handshake/Unversioned
 unversionedHandshakeCodec69,
 unversionedHandshakeCodec72,
 
-ouroboros-network-framework/src/Ouroboros/Network/Protocol/Handshake/Version.hs,411
+ouroboros-network-framework\src\Ouroboros\Network\Protocol\Handshake\Version.hs,411
 Versions49,
 Versions49,
 getVersions50,
@@ -10484,7 +10484,7 @@ ouroboros-network-framework/src/Ouroboros/Network/Protocol/Handshake/Version.hs,
 simpleSingletonVersions105,
 simpleSingletonVersions110,
 
-ouroboros-network-framework/src/Ouroboros/Network/Protocol/Limits.hs,171
+ouroboros-network-framework\src\Ouroboros\Network\Protocol\Limits.hs,171
 largeByteLimit9,
 largeByteLimit10,
 smallByteLimit12,
@@ -10496,7 +10496,7 @@ ouroboros-network-framework/src/Ouroboros/Network/Protocol/Limits.hs,171
 waitForever21,
 waitForever22,
 
-ouroboros-network-framework/src/Ouroboros/Network/Server/ConnectionTable.hs,969
+ouroboros-network-framework\src\Ouroboros\Network\Server\ConnectionTable.hs,969
 ConnectionTable43,
 ConnectionTable43,
 ctTable44,
@@ -10542,7 +10542,7 @@ ouroboros-network-framework/src/Ouroboros/Network/Server/ConnectionTable.hs,969
 refConnection245,
 refConnection253,
 
-ouroboros-network-framework/src/Ouroboros/Network/Server/RateLimiting.hs,475
+ouroboros-network-framework\src\Ouroboros\Network\Server\RateLimiting.hs,475
 AcceptedConnectionsLimit27,
 AcceptedConnectionsLimit27,
 acceptedConnectionsHardLimit31,
@@ -10561,7 +10561,7 @@ ouroboros-network-framework/src/Ouroboros/Network/Server/RateLimiting.hs,475
 ServerTraceAcceptConnectionHardLimit146,
 Show149,
 
-ouroboros-network-framework/src/Ouroboros/Network/Server/Socket.hs,486
+ouroboros-network-framework\src\Ouroboros\Network\Server\Socket.hs,486
 Socket48,
 Socket48,
 acceptConnection49,
@@ -10594,7 +10594,7 @@ ouroboros-network-framework/src/Ouroboros/Network/Server/Socket.hs,486
 run273,
 run287,
 
-ouroboros-network-framework/src/Ouroboros/Network/Snocket.hs,914
+ouroboros-network-framework\src\Ouroboros\Network\Snocket.hs,914
 Accept98,
 Accept98,
 runAccept99,
@@ -10645,7 +10645,7 @@ ouroboros-network-framework/src/Ouroboros/Network/Snocket.hs,914
 localSocketFileDescriptor435,
 localSocketFileDescriptor441,
 
-ouroboros-network-framework/src/Ouroboros/Network/Socket.hs,1472
+ouroboros-network-framework\src\Ouroboros\Network\Socket.hs,1472
 NetworkConnectTracers118,
 NetworkConnectTracers118,
 nctMuxTracer119,
@@ -10705,7 +10705,7 @@ ouroboros-network-framework/src/Ouroboros/Network/Socket.hs,1472
 withServerNode'660,
 withServerNode'686,
 
-ouroboros-network-framework/src/Ouroboros/Network/Subscription/Client.hs,189
+ouroboros-network-framework\src\Ouroboros\Network\Subscription\Client.hs,189
 ClientSubscriptionParams32,
 ClientSubscriptionParams32,
 cspAddress33,
@@ -10714,7 +10714,7 @@ ouroboros-network-framework/src/Ouroboros/Network/Subscription/Client.hs,189
 clientSubscriptionWorker44,
 clientSubscriptionWorker52,
 
-ouroboros-network-framework/src/Ouroboros/Network/Subscription/Dns.hs,724
+ouroboros-network-framework\src\Ouroboros\Network\Subscription\Dns.hs,724
 resolutionDelay53,
 resolutionDelay54,
 DnsSubscriptionTarget57,
@@ -10750,7 +10750,7 @@ ouroboros-network-framework/src/Ouroboros/Network/Subscription/Dns.hs,724
 DnsTraceLookupAAAAResult317,
 Show319,
 
-ouroboros-network-framework/src/Ouroboros/Network/Subscription/Ip.hs,616
+ouroboros-network-framework\src\Ouroboros\Network\Subscription\Ip.hs,616
 IPSubscriptionTarget56,
 IPSubscriptionTarget56,
 ispIps58,
@@ -10781,7 +10781,7 @@ ouroboros-network-framework/src/Ouroboros/Network/Subscription/Ip.hs,616
 wilEvent221,
 Show224,
 
-ouroboros-network-framework/src/Ouroboros/Network/Subscription/PeerState.hs,1060
+ouroboros-network-framework\src\Ouroboros\Network\Subscription\PeerState.hs,1060
 SuspendDecision68,
 SuspendPeer69,
 SuspendConsumer73,
@@ -10834,14 +10834,14 @@ ouroboros-network-framework/src/Ouroboros/Network/Subscription/PeerState.hs,1060
 beforeConnectTx539,
 beforeConnectTx548,
 
-ouroboros-network-framework/src/Ouroboros/Network/Subscription/Subscriber.hs,129
+ouroboros-network-framework\src\Ouroboros\Network\Subscription\Subscriber.hs,129
 SubscriptionTarget9,
 SubscriptionTarget9,
 getSubscriptionTarget10,
 listSubscriptionTarget15,
 listSubscriptionTarget19,
 
-ouroboros-network-framework/src/Ouroboros/Network/Subscription/Worker.hs,1998
+ouroboros-network-framework\src\Ouroboros\Network\Subscription\Worker.hs,1998
 defaultConnectionAttemptDelay67,
 defaultConnectionAttemptDelay68,
 minConnectionAttemptDelay72,
@@ -10923,28 +10923,28 @@ ouroboros-network-framework/src/Ouroboros/Network/Subscription/Worker.hs,1998
 SubscriptionTraceCloseSocket627,
 Show629,
 
-ouroboros-network-framework/src/Ouroboros/Network/Util/ShowProxy.hs,75
+ouroboros-network-framework\src\Ouroboros\Network\Util\ShowProxy.hs,75
 ShowProxy15,
 showProxy16,
 showProxy18,
 showProxy19,
 ShowProxy21,
 
-ouroboros-network-framework/test/Main.hs,42
+ouroboros-network-framework\test\Main.hs,42
 main12,
 main13,
 tests15,
 tests16,
 
-ouroboros-network-framework/test/Network/TypedProtocol/PingPong/Codec/CBOR.hs,38
+ouroboros-network-framework\test\Network\TypedProtocol\PingPong\Codec\CBOR.hs,38
 codecPingPong23,
 codecPingPong27,
 
-ouroboros-network-framework/test/Network/TypedProtocol/ReqResp/Codec/CBOR.hs,36
+ouroboros-network-framework\test\Network\TypedProtocol\ReqResp\Codec\CBOR.hs,36
 codecReqResp24,
 codecReqResp31,
 
-ouroboros-network-framework/test/Test/Network/TypedProtocol/PingPong/Codec.hs,227
+ouroboros-network-framework\test\Test\Network\TypedProtocol\PingPong\Codec.hs,227
 tests22,
 tests23,
 Arbitrary35,
@@ -10956,7 +10956,7 @@ ouroboros-network-framework/test/Test/Network/TypedProtocol/PingPong/Codec.hs,22
 prop_codec_splits3_PingPong63,
 prop_codec_splits3_PingPong66,
 
-ouroboros-network-framework/test/Test/Network/TypedProtocol/ReqResp/Codec.hs,273
+ouroboros-network-framework\test\Test\Network\TypedProtocol\ReqResp\Codec.hs,273
 tests26,
 tests27,
 splits239,
@@ -10972,7 +10972,7 @@ ouroboros-network-framework/test/Test/Network/TypedProtocol/ReqResp/Codec.hs,273
 prop_codec_splits3_ReqResp81,
 prop_codec_splits3_ReqResp84,
 
-ouroboros-network-framework/test/Test/Ouroboros/Network/Driver.hs,540
+ouroboros-network-framework\test\Test\Ouroboros\Network\Driver.hs,540
 tests49,
 tests50,
 byteLimitsReqResp60,
@@ -10996,11 +10996,11 @@ ouroboros-network-framework/test/Test/Ouroboros/Network/Driver.hs,540
 prop_runPeerWithLimits_IO230,
 prop_runPeerWithLimits_IO233,
 
-ouroboros-network-framework/test/Test/Ouroboros/Network/Orphans.hs,30
+ouroboros-network-framework\test\Test\Ouroboros\Network\Orphans.hs,30
 ShowProxy10,
 ShowProxy13,
 
-ouroboros-network-framework/test/Test/Ouroboros/Network/RateLimiting.hs,928
+ouroboros-network-framework\test\Test\Ouroboros\Network\RateLimiting.hs,928
 tests30,
 tests31,
 Event46,
@@ -11042,7 +11042,7 @@ ouroboros-network-framework/test/Test/Ouroboros/Network/RateLimiting.hs,928
 buckets291,
 buckets292,
 
-ouroboros-network-framework/test/Test/Ouroboros/Network/Socket.hs,924
+ouroboros-network-framework\test\Test\Ouroboros\Network\Socket.hs,924
 tests83,
 tests84,
 activeMuxTracer106,
@@ -11082,7 +11082,7 @@ ouroboros-network-framework/test/Test/Ouroboros/Network/Socket.hs,924
 threadAndTimeTracer519,
 threadAndTimeTracer520,
 
-ouroboros-network-framework/test/Test/Ouroboros/Network/Subscription.hs,1640
+ouroboros-network-framework\test\Test\Ouroboros\Network\Subscription.hs,1640
 defaultMiniProtocolLimit69,
 defaultMiniProtocolLimit70,
 testProtocols172,
@@ -11170,13 +11170,13 @@ ouroboros-network-framework/test/Test/Ouroboros/Network/Subscription.hs,1640
 tagTrace924,
 tagTrace925,
 
-ouroboros-network-testing/src/Ouroboros/Network/Testing/QuickCheck.hs,62
+ouroboros-network-testing\src\Ouroboros\Network\Testing\QuickCheck.hs,62
 runSimGen18,
 runSimGen19,
 monadicSim27,
 monadicSim28,
 
-ouroboros-network-testing/src/Ouroboros/Network/Testing/Serialise.hs,152
+ouroboros-network-testing\src\Ouroboros\Network\Testing\Serialise.hs,152
 prop_serialise18,
 prop_serialise19,
 prop_serialise_valid22,
@@ -11184,7 +11184,7 @@ ouroboros-network-testing/src/Ouroboros/Network/Testing/Serialise.hs,152
 prop_serialise_roundtrip30,
 prop_serialise_roundtrip31,
 
-ouroboros-network-testing/src/Ouroboros/Network/Testing/Utils.hs,115
+ouroboros-network-testing\src\Ouroboros\Network\Testing\Utils.hs,115
 Delay14,
 Delay14,
 getDelay14,
@@ -11194,7 +11194,7 @@ ouroboros-network-testing/src/Ouroboros/Network/Testing/Utils.hs,115
 sayTracer36,
 sayTracer37,
 
-ouroboros-network/demo/chain-sync.hs,1517
+ouroboros-network\demo\chain-sync.hs,1517
 main71,
 main72,
 usage104,
@@ -11264,13 +11264,13 @@ ouroboros-network/demo/chain-sync.hs,1517
 shiftAnchoredFragment739,
 shiftAnchoredFragment744,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/BlockFetch/Direct.hs,66
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\BlockFetch\Direct.hs,66
 direct24,
 direct30,
 directPipelined70,
 directPipelined75,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/BlockFetch/Examples.hs,552
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\BlockFetch\Examples.hs,552
 constantBlockFetchReceiver22,
 constantBlockFetchReceiver27,
 blockFetchClientMap40,
@@ -11291,7 +11291,7 @@ ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/BlockFetch/Examples.
 blockFetchServer244,
 blockFetchServer249,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/BlockFetch/Test.hs,2246
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\BlockFetch\Test.hs,2246
 tests51,
 tests52,
 TestClient89,
@@ -11373,13 +11373,13 @@ ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/BlockFetch/Test.hs,2
 receivedBlockBodies496,
 receivedBlockBodies500,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/ChainSync/Direct.hs,50
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\ChainSync\Direct.hs,50
 direct12,
 direct16,
 direct_21,
 direct_25,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/ChainSync/DirectPipelined.hs,116
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\ChainSync\DirectPipelined.hs,116
 directPipelined13,
 directPipelined17,
 directStIdleM21,
@@ -11387,7 +11387,7 @@ ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/ChainSync/DirectPipe
 directStIdle33,
 directStIdle38,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/ChainSync/ExamplesPipelined.hs,312
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\ChainSync\ExamplesPipelined.hs,312
 chainSyncClientPipelined32,
 chainSyncClientPipelined41,
 recentOffsets185,
@@ -11399,7 +11399,7 @@ ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/ChainSync/ExamplesPi
 chainSyncClientPipelinedLowHigh304,
 chainSyncClientPipelinedLowHigh316,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/ChainSync/Test.hs,3012
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\ChainSync\Test.hs,3012
 tests63,
 tests64,
 testClient107,
@@ -11492,11 +11492,11 @@ ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/ChainSync/Test.hs,30
 propChainSyncDemoPipelinedMinBufferedIO725,
 propChainSyncDemoPipelinedMinBufferedIO730,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/Handshake/Direct.hs,38
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\Handshake\Direct.hs,38
 pureHandshake16,
 pureHandshake22,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/Handshake/Test.hs,2126
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\Handshake\Test.hs,2126
 tests55,
 tests56,
 VersionNumber95,
@@ -11586,17 +11586,17 @@ ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/Handshake/Test.hs,21
 prop_codec_valid_cbor644,
 prop_codec_valid_cbor647,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/KeepAlive/Direct.hs,23
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\KeepAlive\Direct.hs,23
 direct8,
 direct12,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/KeepAlive/Examples.hs,104
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\KeepAlive\Examples.hs,104
 keepAliveClientApply13,
 keepAliveClientApply19,
 keepAliveServerCount33,
 keepAliveServerCount35,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/KeepAlive/Test.hs,635
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\KeepAlive\Test.hs,635
 tests54,
 tests55,
 prop_direct74,
@@ -11628,11 +11628,11 @@ ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/KeepAlive/Test.hs,63
 prop_byteLimits181,
 prop_byteLimits183,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/LocalStateQuery/Direct.hs,24
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\LocalStateQuery\Direct.hs,24
 direct10,
 direct16,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/LocalStateQuery/Test.hs,918
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\LocalStateQuery\Test.hs,918
 tests63,
 tests64,
 Query88,
@@ -11682,17 +11682,17 @@ ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/LocalStateQuery/Test
 prop_codec_V7_compatible388,
 prop_codec_V7_compatible391,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/LocalTxSubmission/Direct.hs,24
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\LocalTxSubmission\Direct.hs,24
 direct15,
 direct20,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/LocalTxSubmission/Examples.hs,116
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\LocalTxSubmission\Examples.hs,116
 localTxSubmissionClient27,
 localTxSubmissionClient32,
 localTxSubmissionServer46,
 localTxSubmissionServer51,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/LocalTxSubmission/Test.hs,628
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\LocalTxSubmission\Test.hs,628
 tests58,
 tests59,
 Tx81,
@@ -11729,13 +11729,13 @@ ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/LocalTxSubmission/Te
 prop_codec_valid_cbor264,
 prop_codec_valid_cbor267,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/TipSample/Direct.hs,60
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\TipSample\Direct.hs,60
 direct16,
 direct20,
 directStIdle26,
 directStIdle31,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/TipSample/Examples.hs,181
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\TipSample\Examples.hs,181
 Request23,
 RequestFollowTips24,
 Show27,
@@ -11746,7 +11746,7 @@ ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/TipSample/Examples.h
 tipSampleServerExample79,
 tipSampleServerExample82,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/TipSample/Test.hs,667
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\TipSample\Test.hs,667
 Arbitrary53,
 tests58,
 tests59,
@@ -11778,11 +11778,11 @@ ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/TipSample/Test.hs,66
 propTipSampleDemoIO271,
 propTipSampleDemoIO275,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/TxSubmission/Direct.hs,42
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\TxSubmission\Direct.hs,42
 directPipelined19,
 directPipelined25,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/TxSubmission/Examples.hs,503
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\TxSubmission\Examples.hs,503
 TraceEventClient40,
 EventRecvMsgRequestTxIds41,
 EventRecvMsgRequestTxs42,
@@ -11804,7 +11804,7 @@ ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/TxSubmission/Example
 txSubmissionServer215,
 txSubmissionServer224,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/TxSubmission/Test.hs,1064
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\TxSubmission\Test.hs,1064
 tests67,
 tests68,
 Tx92,
@@ -11863,7 +11863,7 @@ ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/TxSubmission/Test.hs
 fromDistinctList381,
 Arbitrary384,
 
-ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/TxSubmission2/Test.hs,652
+ouroboros-network\protocol-tests\Ouroboros\Network\Protocol\TxSubmission2\Test.hs,652
 tests54,
 tests55,
 prop_connect181,
@@ -11898,7 +11898,7 @@ ouroboros-network/protocol-tests/Ouroboros/Network/Protocol/TxSubmission2/Test.h
 prop_encodings_agree263,
 prop_encodings_agree264,
 
-ouroboros-network/protocol-tests/Test/ChainGenerators.hs,2546
+ouroboros-network\protocol-tests\Test\ChainGenerators.hs,2546
 tests58,
 tests59,
 Arbitrary94,
@@ -12005,7 +12005,7 @@ ouroboros-network/protocol-tests/Test/ChainGenerators.hs,2546
 prop_shrink_TestChainFork678,
 prop_shrink_TestChainFork679,
 
-ouroboros-network/protocol-tests/Test/ChainProducerState.hs,760
+ouroboros-network\protocol-tests\Test\ChainProducerState.hs,760
 tests31,
 tests32,
 prop_init_lookup56,
@@ -12035,7 +12035,7 @@ ouroboros-network/protocol-tests/Test/ChainProducerState.hs,760
 prop_shrink_ChainProducerStateForkTest246,
 prop_shrink_ChainProducerStateForkTest247,
 
-ouroboros-network/protocol-tests/Test/Ouroboros/Network/Testing/Utils.hs,168
+ouroboros-network\protocol-tests\Test\Ouroboros\Network\Testing\Utils.hs,168
 splits218,
 splits219,
 splits322,
@@ -12045,7 +12045,7 @@ ouroboros-network/protocol-tests/Test/Ouroboros/Network/Testing/Utils.hs,168
 prop_codec_valid_cbor_encoding48,
 prop_codec_valid_cbor_encoding53,
 
-ouroboros-network/src/Ouroboros/Network/AnchoredFragment.hs,1726
+ouroboros-network\src\Ouroboros\Network\AnchoredFragment.hs,1726
 Anchor116,
 AnchorGenesis118,
 Anchor132,
@@ -12134,7 +12134,7 @@ ouroboros-network/src/Ouroboros/Network/AnchoredFragment.hs,1726
 mapAnchoredFragment706,
 mapAnchoredFragment711,
 
-ouroboros-network/src/Ouroboros/Network/AnchoredSeq.hs,1936
+ouroboros-network\src\Ouroboros\Network\AnchoredSeq.hs,1936
 AnchoredSeq95,
 AnchoredSeq95,
 anchor96,
@@ -12246,7 +12246,7 @@ ouroboros-network/src/Ouroboros/Network/AnchoredSeq.hs,1936
 filterWithStopSpec779,
 filterWithStopSpec785,
 
-ouroboros-network/src/Ouroboros/Network/Block.hs,2122
+ouroboros-network\src\Ouroboros\Network\Block.hs,2122
 genesisPoint103,
 genesisPoint104,
 HeaderHash107,
@@ -12364,7 +12364,7 @@ ouroboros-network/src/Ouroboros/Network/Block.hs,2122
 fromSerialised509,
 Serialise523,
 
-ouroboros-network/src/Ouroboros/Network/BlockFetch.hs,607
+ouroboros-network\src\Ouroboros\Network\BlockFetch.hs,607
 BlockFetchConsensusInterface134,
 BlockFetchConsensusInterface135,
 readCandidateChains143,
@@ -12389,7 +12389,7 @@ ouroboros-network/src/Ouroboros/Network/BlockFetch.hs,607
 blockFetchLogic264,
 blockFetchLogic280,
 
-ouroboros-network/src/Ouroboros/Network/BlockFetch/Client.hs,314
+ouroboros-network\src\Ouroboros\Network\BlockFetch\Client.hs,314
 BlockFetchProtocolFailure61,
 BlockFetchProtocolFailureTooFewBlocks62,
 BlockFetchProtocolFailureTooManyBlocks63,
@@ -12402,7 +12402,7 @@ ouroboros-network/src/Ouroboros/Network/BlockFetch/Client.hs,314
 castRange318,
 castRange320,
 
-ouroboros-network/src/Ouroboros/Network/BlockFetch/ClientRegistry.hs,494
+ouroboros-network\src\Ouroboros\Network\BlockFetch\ClientRegistry.hs,494
 FetchClientRegistry48,
 FetchClientRegistry49,
 newFetchClientRegistry57,
@@ -12422,7 +12422,7 @@ ouroboros-network/src/Ouroboros/Network/BlockFetch/ClientRegistry.hs,494
 readPeerGSVs259,
 readPeerGSVs262,
 
-ouroboros-network/src/Ouroboros/Network/BlockFetch/ClientState.hs,2490
+ouroboros-network\src\Ouroboros\Network\BlockFetch\ClientState.hs,2490
 FetchClientContext59,
 FetchClientContext60,
 fetchClientCtxTracer61,
@@ -12525,7 +12525,7 @@ ouroboros-network/src/Ouroboros/Network/BlockFetch/ClientState.hs,2490
 unFromConsensus794,
 Applicative797,
 
-ouroboros-network/src/Ouroboros/Network/BlockFetch/Decision.hs,2111
+ouroboros-network\src\Ouroboros\Network\BlockFetch\Decision.hs,2111
 FetchDecisionPolicy54,
 FetchDecisionPolicy54,
 maxInFlightReqsPerPeer55,
@@ -12612,7 +12612,7 @@ ouroboros-network/src/Ouroboros/Network/BlockFetch/Decision.hs,2111
 selectBlocksUpToLimits997,
 selectBlocksUpToLimits1006,
 
-ouroboros-network/src/Ouroboros/Network/BlockFetch/DeltaQ.hs,399
+ouroboros-network\src\Ouroboros\Network\BlockFetch\DeltaQ.hs,399
 PeerFetchInFlightLimits31,
 PeerFetchInFlightLimits31,
 inFlightBytesHighWatermark32,
@@ -12626,7 +12626,7 @@ ouroboros-network/src/Ouroboros/Network/BlockFetch/DeltaQ.hs,399
 estimateExpectedResponseDuration162,
 estimateExpectedResponseDuration166,
 
-ouroboros-network/src/Ouroboros/Network/BlockFetch/State.hs,1130
+ouroboros-network\src\Ouroboros\Network\BlockFetch\State.hs,1130
 fetchLogicIterations58,
 fetchLogicIterations74,
 iterateForever99,
@@ -12667,10 +12667,10 @@ ouroboros-network/src/Ouroboros/Network/BlockFetch/State.hs,1130
 readStateVariables316,
 readStateVariables324,
 
-ouroboros-network/src/Ouroboros/Network/Counter.hs,12
+ouroboros-network\src\Ouroboros\Network\Counter.hs,12
 Counter8,
 
-ouroboros-network/src/Ouroboros/Network/DeltaQ.hs,937
+ouroboros-network\src\Ouroboros\Network\DeltaQ.hs,937
 DeltaQ56,
 DeltaQ56,
 deltaqQ99thPercentile72,
@@ -12714,7 +12714,7 @@ ouroboros-network/src/Ouroboros/Network/DeltaQ.hs,937
 fromSample327,
 fromSample328,
 
-ouroboros-network/src/Ouroboros/Network/Diffusion.hs,1336
+ouroboros-network\src\Ouroboros\Network\Diffusion.hs,1336
 DiffusionInitializationTracer76,
 RunServer77,
 RunLocalServer78,
@@ -12768,7 +12768,7 @@ ouroboros-network/src/Ouroboros/Network/Diffusion.hs,1336
 runDataDiffusion176,
 runDataDiffusion184,
 
-ouroboros-network/src/Ouroboros/Network/KeepAlive.hs,206
+ouroboros-network\src\Ouroboros\Network\KeepAlive.hs,206
 KeepAliveInterval32,
 KeepAliveInterval32,
 keepAliveInterval32,
@@ -12780,12 +12780,12 @@ ouroboros-network/src/Ouroboros/Network/KeepAlive.hs,206
 keepAliveServer112,
 keepAliveServer115,
 
-ouroboros-network/src/Ouroboros/Network/Magic.hs,56
+ouroboros-network\src\Ouroboros\Network\Magic.hs,56
 NetworkMagic12,
 NetworkMagic12,
 unNetworkMagic12,
 
-ouroboros-network/src/Ouroboros/Network/MockChain/Chain.hs,1353
+ouroboros-network\src\Ouroboros\Network\MockChain\Chain.hs,1353
 :>94,
 Chain94,
 Genesis94,
@@ -12863,7 +12863,7 @@ ouroboros-network/src/Ouroboros/Network/MockChain/Chain.hs,1353
 fromAnchoredFragment349,
 Serialise359,
 
-ouroboros-network/src/Ouroboros/Network/MockChain/ProducerState.hs,964
+ouroboros-network\src\Ouroboros\Network\MockChain\ProducerState.hs,964
 ChainProducerState22,
 ChainProducerState22,
 chainState23,
@@ -12911,7 +12911,7 @@ ouroboros-network/src/Ouroboros/Network/MockChain/ProducerState.hs,964
 applyChainUpdates257,
 applyChainUpdates261,
 
-ouroboros-network/src/Ouroboros/Network/NodeToClient.hs,887
+ouroboros-network\src\Ouroboros\Network\NodeToClient.hs,887
 HandshakeTr126,
 NodeToClientProtocols132,
 NodeToClientProtocols132,
@@ -12945,7 +12945,7 @@ ouroboros-network/src/Ouroboros/Network/NodeToClient.hs,887
 untilTheCowsComeHome447,
 untilTheCowsComeHome448,
 
-ouroboros-network/src/Ouroboros/Network/NodeToClient/Version.hs,464
+ouroboros-network\src\Ouroboros\Network\NodeToClient\Version.hs,464
 NodeToClientVersion26,
 NodeToClientV_127,
 NodeToClientV_228,
@@ -12966,7 +12966,7 @@ ouroboros-network/src/Ouroboros/Network/NodeToClient/Version.hs,464
 nodeToClientCodecCBORTerm99,
 nodeToClientCodecCBORTerm100,
 
-ouroboros-network/src/Ouroboros/Network/NodeToNode.hs,1139
+ouroboros-network\src\Ouroboros\Network\NodeToNode.hs,1139
 HandshakeTr143,
 nodeToNodeHandshakeCodec148,
 nodeToNodeHandshakeCodec151,
@@ -13009,7 +13009,7 @@ ouroboros-network/src/Ouroboros/Network/NodeToNode.hs,1139
 RemoteAddress670,
 RemoteConnectionId671,
 
-ouroboros-network/src/Ouroboros/Network/NodeToNode/Version.hs,534
+ouroboros-network\src\Ouroboros\Network\NodeToNode\Version.hs,534
 NodeToNodeVersion27,
 NodeToNodeV_128,
 NodeToNodeV_229,
@@ -13034,7 +13034,7 @@ ouroboros-network/src/Ouroboros/Network/NodeToNode/Version.hs,534
 DuplexMode167,
 UnidirectionalMode167,
 
-ouroboros-network/src/Ouroboros/Network/PeerSelection/EstablishedPeers.hs,505
+ouroboros-network\src\Ouroboros\Network\PeerSelection\EstablishedPeers.hs,505
 EstablishedPeers43,
 EstablishedPeers43,
 allPeers46,
@@ -13068,7 +13068,7 @@ ouroboros-network/src/Ouroboros/Network/PeerSelection/EstablishedPeers.hs,505
 setActivateTime170,
 setActivateTime175,
 
-ouroboros-network/src/Ouroboros/Network/PeerSelection/Governor.hs,210
+ouroboros-network\src\Ouroboros\Network\PeerSelection\Governor.hs,210
 peerSelectionGovernor429,
 peerSelectionGovernor436,
 peerSelectionGovernorLoop460,
@@ -13078,7 +13078,7 @@ ouroboros-network/src/Ouroboros/Network/PeerSelection/Governor.hs,210
 peerChurnGovernor564,
 peerChurnGovernor567,
 
-ouroboros-network/src/Ouroboros/Network/PeerSelection/Governor/ActivePeers.hs,172
+ouroboros-network\src\Ouroboros\Network\PeerSelection\Governor\ActivePeers.hs,172
 belowTarget33,
 belowTarget37,
 jobPromoteWarmPeer102,
@@ -13088,7 +13088,7 @@ ouroboros-network/src/Ouroboros/Network/PeerSelection/Governor/ActivePeers.hs,17
 jobDemoteActivePeer224,
 jobDemoteActivePeer230,
 
-ouroboros-network/src/Ouroboros/Network/PeerSelection/Governor/EstablishedPeers.hs,306
+ouroboros-network\src\Ouroboros\Network\PeerSelection\Governor\EstablishedPeers.hs,306
 belowTarget33,
 belowTarget37,
 baseColdPeerRetryDiffTime106,
@@ -13102,7 +13102,7 @@ ouroboros-network/src/Ouroboros/Network/PeerSelection/Governor/EstablishedPeers.
 jobDemoteEstablishedPeer265,
 jobDemoteEstablishedPeer271,
 
-ouroboros-network/src/Ouroboros/Network/PeerSelection/Governor/KnownPeers.hs,158
+ouroboros-network\src\Ouroboros\Network\PeerSelection\Governor\KnownPeers.hs,158
 belowTarget36,
 belowTarget39,
 jobGossip101,
@@ -13112,7 +13112,7 @@ ouroboros-network/src/Ouroboros/Network/PeerSelection/Governor/KnownPeers.hs,158
 waitAllCatchOrTimeout327,
 waitAllCatchOrTimeout332,
 
-ouroboros-network/src/Ouroboros/Network/PeerSelection/Governor/Monitor.hs,202
+ouroboros-network\src\Ouroboros\Network\PeerSelection\Governor\Monitor.hs,202
 targetPeers41,
 targetPeers45,
 jobs75,
@@ -13126,13 +13126,13 @@ ouroboros-network/src/Ouroboros/Network/PeerSelection/Governor/Monitor.hs,202
 localRoots214,
 localRoots219,
 
-ouroboros-network/src/Ouroboros/Network/PeerSelection/Governor/RootPeers.hs,88
+ouroboros-network\src\Ouroboros\Network\PeerSelection\Governor\RootPeers.hs,88
 belowTarget25,
 belowTarget30,
 jobReqPublicRootPeers72,
 jobReqPublicRootPeers77,
 
-ouroboros-network/src/Ouroboros/Network/PeerSelection/Governor/Types.hs,2612
+ouroboros-network\src\Ouroboros\Network\PeerSelection\Governor\Types.hs,2612
 PickPolicy40,
 pickPeers46,
 pickPeers49,
@@ -13234,7 +13234,7 @@ ouroboros-network/src/Ouroboros/Network/PeerSelection/Governor/Types.hs,2612
 DebugPeerSelection502,
 TraceGovernorState503,
 
-ouroboros-network/src/Ouroboros/Network/PeerSelection/KnownPeers.hs,652
+ouroboros-network\src\Ouroboros\Network\PeerSelection\KnownPeers.hs,652
 KnownPeers64,
 KnownPeers64,
 allPeers68,
@@ -13272,7 +13272,7 @@ ouroboros-network/src/Ouroboros/Network/PeerSelection/KnownPeers.hs,652
 setConnectTime354,
 setConnectTime359,
 
-ouroboros-network/src/Ouroboros/Network/PeerSelection/LedgerPeers.hs,458
+ouroboros-network\src\Ouroboros\Network\PeerSelection\LedgerPeers.hs,458
 LedgerPeersConsensusInterface42,
 LedgerPeersConsensusInterface42,
 lpGetPeers43,
@@ -13297,7 +13297,7 @@ ouroboros-network/src/Ouroboros/Network/PeerSelection/LedgerPeers.hs,458
 pickPeers124,
 pickPeers130,
 
-ouroboros-network/src/Ouroboros/Network/PeerSelection/LocalRootPeers.hs,302
+ouroboros-network\src\Ouroboros\Network\PeerSelection\LocalRootPeers.hs,302
 LocalRootPeers38,
 LocalRootPeers39,
 invariant50,
@@ -13321,7 +13321,7 @@ ouroboros-network/src/Ouroboros/Network/PeerSelection/LocalRootPeers.hs,302
 clampToLimit135,
 clampToLimit139,
 
-ouroboros-network/src/Ouroboros/Network/PeerSelection/RootPeersDNS.hs,1093
+ouroboros-network\src\Ouroboros\Network\PeerSelection\RootPeersDNS.hs,1093
 RelayAddress64,
 RelayAddressDomain64,
 RelayAddressAddr65,
@@ -13373,7 +13373,7 @@ ouroboros-network/src/Ouroboros/Network/PeerSelection/RootPeersDNS.hs,1093
 withAsyncAll457,
 withAsyncAll458,
 
-ouroboros-network/src/Ouroboros/Network/PeerSelection/Types.hs,235
+ouroboros-network\src\Ouroboros\Network\PeerSelection\Types.hs,235
 PeerSource15,
 PeerSourceLocalRoot15,
 PeerSourcePublicRoot16,
@@ -13387,7 +13387,7 @@ ouroboros-network/src/Ouroboros/Network/PeerSelection/Types.hs,235
 PeerWarm34,
 PeerHot35,
 
-ouroboros-network/src/Ouroboros/Network/Point.hs,84
+ouroboros-network\src\Ouroboros\Network\Point.hs,84
 Block24,
 Block24,
 blockPointSlot25,
@@ -13395,7 +13395,7 @@ ouroboros-network/src/Ouroboros/Network/Point.hs,84
 block30,
 block31,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/BlockFetch/Client.hs,683
+ouroboros-network\src\Ouroboros\Network\Protocol\BlockFetch\Client.hs,683
 BlockFetchClient18,
 BlockFetchClient18,
 runBlockFetchClient19,
@@ -13423,7 +13423,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/BlockFetch/Client.hs,683
 blockFetchClientPeerSender140,
 blockFetchClientPeerSender146,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/BlockFetch/Codec.hs,194
+ouroboros-network\src\Ouroboros\Network\Protocol\BlockFetch\Codec.hs,194
 byteLimitsBlockFetch34,
 byteLimitsBlockFetch37,
 timeLimitsBlockFetch50,
@@ -13433,7 +13433,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/BlockFetch/Codec.hs,194
 codecBlockFetchId124,
 codecBlockFetchId129,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/BlockFetch/Server.hs,233
+ouroboros-network\src\Ouroboros\Network\Protocol\BlockFetch\Server.hs,233
 BlockFetchServer15,
 BlockFetchServer16,
 BlockFetchBlockSender24,
@@ -13445,7 +13445,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/BlockFetch/Server.hs,233
 blockFetchServerPeer52,
 blockFetchServerPeer57,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/BlockFetch/Type.hs,403
+ouroboros-network\src\Ouroboros\Network\Protocol\BlockFetch\Type.hs,403
 ChainRange24,
 ChainRange24,
 BlockFetch27,
@@ -13473,7 +13473,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/BlockFetch/Type.hs,403
 Show101,
 Show104,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/ChainSync/Client.hs,496
+ouroboros-network\src\Ouroboros\Network\Protocol\ChainSync\Client.hs,496
 ChainSyncClient43,
 ChainSyncClient43,
 runChainSyncClient44,
@@ -13496,7 +13496,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/ChainSync/Client.hs,496
 chainSyncClientPeer184,
 chainSyncClientPeer189,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/ChainSync/ClientPipelined.hs,717
+ouroboros-network\src\Ouroboros\Network\Protocol\ChainSync\ClientPipelined.hs,717
 ChainSyncClientPipelined35,
 ChainSyncClientPipelined36,
 runChainSyncClientPipelined37,
@@ -13524,7 +13524,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/ChainSync/ClientPipelined.hs,71
 chainSyncClientPeerSender189,
 chainSyncClientPeerSender199,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/ChainSync/Codec.hs,364
+ouroboros-network\src\Ouroboros\Network\Protocol\ChainSync\Codec.hs,364
 byteLimitsChainSync37,
 byteLimitsChainSync40,
 ChainSyncTimeout57,
@@ -13543,7 +13543,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/ChainSync/Codec.hs,364
 codecChainSyncId216,
 codecChainSyncId219,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/ChainSync/Examples.hs,257
+ouroboros-network\src\Ouroboros\Network\Protocol\ChainSync\Examples.hs,257
 Client30,
 Client30,
 rollbackward31,
@@ -13558,7 +13558,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/ChainSync/Examples.hs,257
 chainSyncServerExample138,
 chainSyncServerExample146,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/ChainSync/PipelineDecision.hs,443
+ouroboros-network\src\Ouroboros\Network\Protocol\ChainSync\PipelineDecision.hs,443
 PipelineDecision34,
 Request35,
 Pipeline36,
@@ -13579,7 +13579,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/ChainSync/PipelineDecision.hs,4
 bnoPlus229,
 bnoPlus230,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/ChainSync/Server.hs,373
+ouroboros-network\src\Ouroboros\Network\Protocol\ChainSync\Server.hs,373
 ChainSyncServer35,
 ChainSyncServer35,
 runChainSyncServer36,
@@ -13597,7 +13597,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/ChainSync/Server.hs,373
 chainSyncServerPeer95,
 chainSyncServerPeer100,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/ChainSync/Type.hs,543
+ouroboros-network\src\Ouroboros\Network\Protocol\ChainSync\Type.hs,543
 ChainSync26,
 StIdle30,
 StNext37,
@@ -13631,14 +13631,14 @@ ouroboros-network/src/Ouroboros/Network/Protocol/ChainSync/Type.hs,543
 Show184,
 Show187,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/KeepAlive/Client.hs,110
+ouroboros-network\src\Ouroboros\Network\Protocol\KeepAlive\Client.hs,110
 KeepAliveClient14,
 SendMsgKeepAlive15,
 SendMsgDone20,
 keepAliveClientPeer28,
 keepAliveClientPeer33,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/KeepAlive/Codec.hs,236
+ouroboros-network\src\Ouroboros\Network\Protocol\KeepAlive\Codec.hs,236
 codecKeepAlive37,
 codecKeepAlive41,
 codecKeepAlive_v271,
@@ -13650,7 +13650,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/KeepAlive/Codec.hs,236
 codecKeepAliveId132,
 codecKeepAliveId137,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/KeepAlive/Server.hs,131
+ouroboros-network\src\Ouroboros\Network\Protocol\KeepAlive\Server.hs,131
 KeepAliveServer14,
 KeepAliveServer14,
 recvMsgKeepAlive15,
@@ -13658,7 +13658,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/KeepAlive/Server.hs,131
 keepAliveServerPeer21,
 keepAliveServerPeer25,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/KeepAlive/Type.hs,405
+ouroboros-network\src\Ouroboros\Network\Protocol\KeepAlive\Type.hs,405
 Cookie32,
 Cookie32,
 unCookie32,
@@ -13685,7 +13685,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/KeepAlive/Type.hs,405
 Show102,
 Show105,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/LocalStateQuery/Client.hs,562
+ouroboros-network\src\Ouroboros\Network\Protocol\LocalStateQuery\Client.hs,562
 LocalStateQueryClient38,
 LocalStateQueryClient39,
 runLocalStateQueryClient40,
@@ -13710,7 +13710,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/LocalStateQuery/Client.hs,562
 localStateQueryClientPeer162,
 localStateQueryClientPeer167,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/LocalStateQuery/Codec.hs,130
+ouroboros-network\src\Ouroboros\Network\Protocol\LocalStateQuery\Codec.hs,130
 Some29,
 Some30,
 codecLocalStateQuery32,
@@ -13718,13 +13718,13 @@ ouroboros-network/src/Ouroboros/Network/Protocol/LocalStateQuery/Codec.hs,130
 codecLocalStateQueryId181,
 codecLocalStateQueryId192,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/LocalStateQuery/Examples.hs,108
+ouroboros-network\src\Ouroboros\Network\Protocol\LocalStateQuery\Examples.hs,108
 localStateQueryClient20,
 localStateQueryClient26,
 localStateQueryServer72,
 localStateQueryServer77,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/LocalStateQuery/Server.hs,428
+ouroboros-network\src\Ouroboros\Network\Protocol\LocalStateQuery\Server.hs,428
 LocalStateQueryServer26,
 LocalStateQueryServer26,
 runLocalStateQueryServer27,
@@ -13745,7 +13745,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/LocalStateQuery/Server.hs,428
 localStateQueryServerPeer91,
 localStateQueryServerPeer96,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/LocalStateQuery/Type.hs,570
+ouroboros-network\src\Ouroboros\Network\Protocol\LocalStateQuery\Type.hs,570
 LocalStateQuery33,
 StIdle39,
 StAcquiring46,
@@ -13780,7 +13780,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/LocalStateQuery/Type.hs,570
 showResult189,
 Show192,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/LocalTxMonitor/Type.hs,269
+ouroboros-network\src\Ouroboros\Network\Protocol\LocalTxMonitor\Type.hs,269
 LocalTxMonitor27,
 StIdle33,
 StBusy40,
@@ -13800,7 +13800,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/LocalTxMonitor/Type.hs,269
 Show108,
 Show111,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/LocalTxSubmission/Client.hs,351
+ouroboros-network\src\Ouroboros\Network\Protocol\LocalTxSubmission\Client.hs,351
 LocalTxSubmissionClient45,
 LocalTxSubmissionClient45,
 runLocalTxSubmissionClient46,
@@ -13814,13 +13814,13 @@ ouroboros-network/src/Ouroboros/Network/Protocol/LocalTxSubmission/Client.hs,351
 localTxSubmissionClientPeer106,
 localTxSubmissionClientPeer110,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/LocalTxSubmission/Codec.hs,116
+ouroboros-network\src\Ouroboros\Network\Protocol\LocalTxSubmission\Codec.hs,116
 codecLocalTxSubmission26,
 codecLocalTxSubmission34,
 codecLocalTxSubmissionId83,
 codecLocalTxSubmissionId89,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/LocalTxSubmission/Server.hs,162
+ouroboros-network\src\Ouroboros\Network\Protocol\LocalTxSubmission\Server.hs,162
 LocalTxSubmissionServer34,
 LocalTxSubmissionServer35,
 recvMsgSubmitTx43,
@@ -13828,7 +13828,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/LocalTxSubmission/Server.hs,162
 localTxSubmissionServerPeer54,
 localTxSubmissionServerPeer58,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/LocalTxSubmission/Type.hs,350
+ouroboros-network\src\Ouroboros\Network\Protocol\LocalTxSubmission\Type.hs,350
 LocalTxSubmission30,
 StIdle36,
 StBusy45,
@@ -13852,7 +13852,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/LocalTxSubmission/Type.hs,350
 Show133,
 Show136,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/TipSample/Client.hs,275
+ouroboros-network\src\Ouroboros\Network\Protocol\TipSample\Client.hs,275
 TipSampleClient31,
 TipSampleClient31,
 runTipSampleClient32,
@@ -13867,7 +13867,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/TipSample/Client.hs,275
 tipSampleClientPeer67,
 tipSampleClientPeer72,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/TipSample/Codec.hs,190
+ouroboros-network\src\Ouroboros\Network\Protocol\TipSample\Codec.hs,190
 codecTipSample40,
 codecTipSample46,
 codecTipSampleId105,
@@ -13877,7 +13877,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/TipSample/Codec.hs,190
 timeLimitsTipSample159,
 timeLimitsTipSample161,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/TipSample/Server.hs,237
+ouroboros-network\src\Ouroboros\Network\Protocol\TipSample\Server.hs,237
 TipSampleServer29,
 TipSampleServer29,
 runTipSampleServer32,
@@ -13891,7 +13891,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/TipSample/Server.hs,237
 tipSampleServerPeer65,
 tipSampleServerPeer70,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/TipSample/Type.hs,395
+ouroboros-network\src\Ouroboros\Network\Protocol\TipSample\Type.hs,395
 TipRequestKind23,
 BlockUntilSlot24,
 BlockUntilTip25,
@@ -13916,7 +13916,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/TipSample/Type.hs,395
 NobodyHasAgency86,
 TokDone87,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/Trans/Hello/Codec.hs,155
+ouroboros-network\src\Ouroboros\Network\Protocol\Trans\Hello\Codec.hs,155
 byteLimitsHello37,
 byteLimitsHello41,
 timeLimitsHello57,
@@ -13926,7 +13926,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/Trans/Hello/Codec.hs,155
 codecHelloId145,
 codecHelloId153,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/Trans/Hello/Type.hs,266
+ouroboros-network\src\Ouroboros\Network\Protocol\Trans\Hello\Type.hs,266
 Hello28,
 StHello31,
 StTalk35,
@@ -13946,7 +13946,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/Trans/Hello/Type.hs,266
 Show125,
 Show130,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/Trans/Hello/Util.hs,312
+ouroboros-network\src\Ouroboros\Network\Protocol\Trans\Hello\Util.hs,312
 wrapClientPeer33,
 wrapClientPeer38,
 wrapServerPeer40,
@@ -13962,7 +13962,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/Trans/Hello/Util.hs,312
 wrapPeerReceiver144,
 wrapPeerReceiver150,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/TxSubmission/Client.hs,312
+ouroboros-network\src\Ouroboros\Network\Protocol\TxSubmission\Client.hs,312
 TxSubmissionClient44,
 TxSubmissionClient44,
 runTxSubmissionClient45,
@@ -13978,7 +13978,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/TxSubmission/Client.hs,312
 txSubmissionClientPeer88,
 txSubmissionClientPeer91,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/TxSubmission/Codec.hs,308
+ouroboros-network\src\Ouroboros\Network\Protocol\TxSubmission\Codec.hs,308
 byteLimitsTxSubmission35,
 byteLimitsTxSubmission38,
 timeLimitsTxSubmission54,
@@ -13992,7 +13992,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/TxSubmission/Codec.hs,308
 codecTxSubmissionId216,
 codecTxSubmissionId219,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/TxSubmission/Server.hs,326
+ouroboros-network\src\Ouroboros\Network\Protocol\TxSubmission\Server.hs,326
 TxSubmissionServerPipelined35,
 TxSubmissionServerPipelined36,
 Collect45,
@@ -14006,7 +14006,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/TxSubmission/Server.hs,326
 txSubmissionServerPeerPipelined94,
 txSubmissionServerPeerPipelined99,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/TxSubmission/Type.hs,566
+ouroboros-network\src\Ouroboros\Network\Protocol\TxSubmission\Type.hs,566
 TxSizeInBytes26,
 TxSubmission43,
 StIdle50,
@@ -14041,7 +14041,7 @@ ouroboros-network/src/Ouroboros/Network/Protocol/TxSubmission/Type.hs,566
 Show272,
 Show277,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/TxSubmission2/Codec.hs,216
+ouroboros-network\src\Ouroboros\Network\Protocol\TxSubmission2\Codec.hs,216
 byteLimitsTxSubmission234,
 byteLimitsTxSubmission237,
 timeLimitsTxSubmission245,
@@ -14051,10 +14051,10 @@ ouroboros-network/src/Ouroboros/Network/Protocol/TxSubmission2/Codec.hs,216
 codecTxSubmission2Id67,
 codecTxSubmission2Id70,
 
-ouroboros-network/src/Ouroboros/Network/Protocol/TxSubmission2/Type.hs,19
+ouroboros-network\src\Ouroboros\Network\Protocol\TxSubmission2\Type.hs,19
 TxSubmission223,
 
-ouroboros-network/src/Ouroboros/Network/Testing/ConcreteBlock.hs,1260
+ouroboros-network\src\Ouroboros\Network\Testing\ConcreteBlock.hs,1260
 Block80,
 Block80,
 blockHeader81,
@@ -14119,7 +14119,7 @@ ouroboros-network/src/Ouroboros/Network/Testing/ConcreteBlock.hs,1260
 convertSlotToTimeForTestsAssumingNoHardFork363,
 convertSlotToTimeForTestsAssumingNoHardFork364,
 
-ouroboros-network/src/Ouroboros/Network/Tracers.hs,527
+ouroboros-network\src\Ouroboros\Network\Tracers.hs,527
 NetworkSubscriptionTracers23,
 NetworkSubscriptionTracers23,
 nsMuxTracer24,
@@ -14139,7 +14139,7 @@ ouroboros-network/src/Ouroboros/Network/Tracers.hs,527
 nullNetworkDNSSubscriptionTracers74,
 nullNetworkDNSSubscriptionTracers75,
 
-ouroboros-network/src/Ouroboros/Network/TxSubmission/Inbound.hs,1032
+ouroboros-network\src\Ouroboros\Network\TxSubmission\Inbound.hs,1032
 TxSubmissionMempoolWriter52,
 TxSubmissionMempoolWriter53,
 txId60,
@@ -14183,7 +14183,7 @@ ouroboros-network/src/Ouroboros/Network/TxSubmission/Inbound.hs,1032
 collectAndContinueWithState515,
 collectAndContinueWithState520,
 
-ouroboros-network/src/Ouroboros/Network/TxSubmission/Mempool/Reader.hs,210
+ouroboros-network\src\Ouroboros\Network\TxSubmission\Mempool\Reader.hs,210
 TxSubmissionMempoolReader15,
 TxSubmissionMempoolReader16,
 mempoolGetSnapshot21,
@@ -14194,7 +14194,7 @@ ouroboros-network/src/Ouroboros/Network/TxSubmission/Mempool/Reader.hs,210
 mempoolLookupTx45,
 mempoolHasTx46,
 
-ouroboros-network/src/Ouroboros/Network/TxSubmission/Outbound.hs,471
+ouroboros-network\src\Ouroboros\Network\TxSubmission\Outbound.hs,471
 TraceTxSubmissionOutbound35,
 TraceTxSubmissionOutboundRecvMsgRequestTxs36,
 TraceTxSubmissionOutboundSendMsgReplyTxs39,
@@ -14210,7 +14210,7 @@ ouroboros-network/src/Ouroboros/Network/TxSubmission/Outbound.hs,471
 txSubmissionOutbound78,
 txSubmissionOutbound87,
 
-ouroboros-network/test-cddl/Main.hs,2262
+ouroboros-network\test-cddl\Main.hs,2262
 main107,
 main108,
 tests112,
@@ -14301,13 +14301,13 @@ ouroboros-network/test-cddl/Main.hs,2262
 handshakeFix751,
 handshakeFix752,
 
-ouroboros-network/test/Main.hs,42
+ouroboros-network\test\Main.hs,42
 main31,
 main32,
 tests34,
 tests35,
 
-ouroboros-network/test/Ouroboros/Network/BlockFetch/Examples.hs,587
+ouroboros-network\test\Ouroboros\Network\BlockFetch\Examples.hs,587
 blockFetchExample062,
 blockFetchExample077,
 blockFetchExample1168,
@@ -14331,7 +14331,7 @@ ouroboros-network/test/Ouroboros/Network/BlockFetch/Examples.hs,587
 mkTestFetchedBlockHeap465,
 mkTestFetchedBlockHeap468,
 
-ouroboros-network/test/Ouroboros/Network/MockNode.hs,732
+ouroboros-network\test\Ouroboros\Network\MockNode.hs,732
 CoreId59,
 NodeId59,
 RelayId60,
@@ -14367,7 +14367,7 @@ ouroboros-network/test/Ouroboros/Network/MockNode.hs,732
 coreNode387,
 coreNode400,
 
-ouroboros-network/test/Test/AnchoredFragment.hs,3161
+ouroboros-network\test\Test\AnchoredFragment.hs,3161
 tests36,
 tests37,
 prop_length_Empty91,
@@ -14484,7 +14484,7 @@ ouroboros-network/test/Test/AnchoredFragment.hs,3161
 prop_filterWithStop_filter760,
 prop_filterWithStop_filter761,
 
-ouroboros-network/test/Test/Chain.hs,680
+ouroboros-network\test\Test\Chain.hs,680
 tests31,
 tests32,
 prop_length_genesis53,
@@ -14516,7 +14516,7 @@ ouroboros-network/test/Test/Chain.hs,680
 prop_serialise_chain148,
 prop_serialise_chain149,
 
-ouroboros-network/test/Test/LedgerPeers.hs,596
+ouroboros-network\test\Test\LedgerPeers.hs,596
 tests29,
 tests30,
 ArbitraryRelayAddress35,
@@ -14551,7 +14551,7 @@ ouroboros-network/test/Test/LedgerPeers.hs,596
 threadAndTimeTracer154,
 threadAndTimeTracer159,
 
-ouroboros-network/test/Test/Mux.hs,242
+ouroboros-network\test\Test\Mux.hs,242
 tests51,
 tests52,
 activeTracer58,
@@ -14567,7 +14567,7 @@ ouroboros-network/test/Test/Mux.hs,242
 prop_mux_demo_sim214,
 prop_mux_demo_sim215,
 
-ouroboros-network/test/Test/Ouroboros/Network/BlockFetch.hs,1188
+ouroboros-network\test\Test\Ouroboros\Network\BlockFetch.hs,1188
 tests55,
 tests56,
 prop_blockFetchStaticNoOverlap96,
@@ -14607,7 +14607,7 @@ ouroboros-network/test/Test/Ouroboros/Network/BlockFetch.hs,1188
 dynamicTracer672,
 dynamicTracer673,
 
-ouroboros-network/test/Test/Ouroboros/Network/KeepAlive.hs,434
+ouroboros-network\test\Test\Ouroboros\Network\KeepAlive.hs,434
 tests42,
 tests43,
 runKeepAliveClient46,
@@ -14627,7 +14627,7 @@ ouroboros-network/test/Test/Ouroboros/Network/KeepAlive.hs,434
 dynamicTracer201,
 dynamicTracer202,
 
-ouroboros-network/test/Test/Ouroboros/Network/MockNode.hs,1245
+ouroboros-network\test\Test\Ouroboros\Network\MockNode.hs,1245
 tests46,
 tests47,
 partitionProbe60,
@@ -14684,7 +14684,7 @@ ouroboros-network/test/Test/Ouroboros/Network/MockNode.hs,1245
 probeOutput465,
 probeOutput466,
 
-ouroboros-network/test/Test/Ouroboros/Network/NodeToClient/Version.hs,147
+ouroboros-network\test\Test\Ouroboros\Network\NodeToClient\Version.hs,147
 tests15,
 tests16,
 VersionAndVersionData20,
@@ -14693,7 +14693,7 @@ ouroboros-network/test/Test/Ouroboros/Network/NodeToClient/Version.hs,147
 prop_nodeToClientCodec30,
 prop_nodeToClientCodec31,
 
-ouroboros-network/test/Test/Ouroboros/Network/NodeToNode/Version.hs,104
+ouroboros-network\test\Test\Ouroboros\Network\NodeToNode\Version.hs,104
 tests15,
 tests16,
 Arbitrary20,
@@ -14701,7 +14701,7 @@ ouroboros-network/test/Test/Ouroboros/Network/NodeToNode/Version.hs,104
 prop_nodeToNodeCodec35,
 prop_nodeToNodeCodec36,
 
-ouroboros-network/test/Test/Ouroboros/Network/PeerSelection.hs,408
+ouroboros-network\test\Test\Ouroboros\Network\PeerSelection.hs,408
 tests49,
 tests50,
 prop_governor_nolivelock97,
@@ -14719,7 +14719,7 @@ ouroboros-network/test/Test/Ouroboros/Network/PeerSelection.hs,408
 _governorFindingPublicRoots290,
 _governorFindingPublicRoots291,
 
-ouroboros-network/test/Test/Ouroboros/Network/PeerSelection/Instances.hs,282
+ouroboros-network\test\Test\Ouroboros\Network\PeerSelection\Instances.hs,282
 PeerAddr34,
 PeerAddr34,
 Arbitrary41,
@@ -14733,7 +14733,7 @@ ouroboros-network/test/Test/Ouroboros/Network/PeerSelection/Instances.hs,282
 renderRanges98,
 renderRanges99,
 
-ouroboros-network/test/Test/Ouroboros/Network/PeerSelection/LocalRootPeers.hs,438
+ouroboros-network\test\Test\Ouroboros\Network\PeerSelection\LocalRootPeers.hs,438
 tests32,
 tests33,
 prop_clampToLimit49,
@@ -14754,7 +14754,7 @@ ouroboros-network/test/Test/Ouroboros/Network/PeerSelection/LocalRootPeers.hs,43
 prop_fromToGroups133,
 prop_fromToGroups134,
 
-ouroboros-network/test/Test/Ouroboros/Network/PeerSelection/MockEnvironment.hs,1573
+ouroboros-network\test\Test\Ouroboros\Network\PeerSelection\MockEnvironment.hs,1573
 tests72,
 tests73,
 GovernorMockEnvironment97,
@@ -14815,7 +14815,7 @@ ouroboros-network/test/Test/Ouroboros/Network/PeerSelection/MockEnvironment.hs,1
 prop_shrink_GovernorMockEnvironment548,
 prop_shrink_GovernorMockEnvironment549,
 
-ouroboros-network/test/Test/Ouroboros/Network/PeerSelection/PeerGraph.hs,1117
+ouroboros-network\test\Test\Ouroboros\Network\PeerSelection\PeerGraph.hs,1117
 PeerGraph49,
 PeerGraph49,
 PeerInfo55,
@@ -14866,7 +14866,7 @@ ouroboros-network/test/Test/Ouroboros/Network/PeerSelection/PeerGraph.hs,1117
 prop_shrink_PeerGraph336,
 prop_shrink_PeerGraph337,
 
-ouroboros-network/test/Test/Ouroboros/Network/PeerSelection/Script.hs,629
+ouroboros-network\test\Test\Ouroboros\Network\PeerSelection\Script.hs,629
 Script44,
 Script44,
 singletonScript48,
@@ -14902,7 +14902,7 @@ ouroboros-network/test/Test/Ouroboros/Network/PeerSelection/Script.hs,629
 pickMapKeys159,
 pickMapKeys160,
 
-ouroboros-network/test/Test/Ouroboros/Network/TxSubmission.hs,905
+ouroboros-network\test\Test\Ouroboros\Network\TxSubmission.hs,905
 tests65,
 tests66,
 Tx71,
@@ -14952,7 +14952,7 @@ ouroboros-network/test/Test/Ouroboros/Network/TxSubmission.hs,905
 threadAndTimeTracer361,
 threadAndTimeTracer366,
 
-ouroboros-network/test/Test/PeerState.hs,1404
+ouroboros-network\test\Test\PeerState.hs,1404
 tests44,
 tests45,
 ArbSuspendDecision57,
@@ -15027,7 +15027,7 @@ ouroboros-network/test/Test/PeerState.hs,1404
 transitionSpec426,
 transitionSpec433,
 
-ouroboros-network/test/Test/Pipe.hs,217
+ouroboros-network\test\Test\Pipe.hs,217
 activeTracer54,
 activeTracer55,
 tests62,
@@ -15041,7 +15041,7 @@ ouroboros-network/test/Test/Pipe.hs,217
 demo96,
 demo105,
 
-ouroboros-network/test/Test/Socket.hs,400
+ouroboros-network\test\Test\Socket.hs,400
 tests64,
 tests65,
 defaultMiniProtocolLimit71,
@@ -15063,7 +15063,7 @@ ouroboros-network/test/Test/Socket.hs,400
 threadAndTimeTracer243,
 threadAndTimeTracer244,
 
-ouroboros-network/test/Test/Version.hs,198
+ouroboros-network\test\Test\Version.hs,198
 tests18,
 tests19,
 roundTripProp45,
@@ -15075,7 +15075,7 @@ ouroboros-network/test/Test/Version.hs,198
 crossFailurePropAll88,
 crossFailurePropAll99,
 
-typed-protocols-examples/src/Network/TypedProtocol/Channel.hs,584
+typed-protocols-examples\src\Network\TypedProtocol\Channel.hs,584
 Channel37,
 Channel37,
 send44,
@@ -15103,7 +15103,7 @@ typed-protocols-examples/src/Network/TypedProtocol/Channel.hs,584
 loggingChannel259,
 loggingChannel266,
 
-typed-protocols-examples/src/Network/TypedProtocol/Codec.hs,1078
+typed-protocols-examples\src\Network\TypedProtocol\Codec.hs,1078
 Codec127,
 Codec127,
 encode128,
@@ -15157,7 +15157,7 @@ typed-protocols-examples/src/Network/TypedProtocol/Codec.hs,1078
 prop_codecs_compat485,
 prop_codecs_compat496,
 
-typed-protocols-examples/src/Network/TypedProtocol/Driver/Simple.hs,345
+typed-protocols-examples\src\Network\TypedProtocol\Driver\Simple.hs,345
 TraceSendRecv77,
 TraceSendMsg78,
 TraceRecvMsg79,
@@ -15175,7 +15175,7 @@ typed-protocols-examples/src/Network/TypedProtocol/Driver/Simple.hs,345
 runConnectedPeersPipelined203,
 runConnectedPeersPipelined211,
 
-typed-protocols-examples/src/Network/TypedProtocol/PingPong/Client.hs,387
+typed-protocols-examples\src\Network\TypedProtocol\PingPong\Client.hs,387
 PingPongClient32,
 SendMsgPing37,
 SendMsgDone45,
@@ -15192,13 +15192,13 @@ typed-protocols-examples/src/Network/TypedProtocol/PingPong/Client.hs,387
 pingPongClientPeerSender145,
 pingPongClientPeerSender150,
 
-typed-protocols-examples/src/Network/TypedProtocol/PingPong/Codec.hs,92
+typed-protocols-examples\src\Network\TypedProtocol\PingPong\Codec.hs,92
 codecPingPong13,
 codecPingPong16,
 decodeTerminatedFrame43,
 decodeTerminatedFrame48,
 
-typed-protocols-examples/src/Network/TypedProtocol/PingPong/Examples.hs,408
+typed-protocols-examples\src\Network\TypedProtocol\PingPong\Examples.hs,408
 pingPongServerStandard16,
 pingPongServerStandard19,
 pingPongServerCount29,
@@ -15214,7 +15214,7 @@ typed-protocols-examples/src/Network/TypedProtocol/PingPong/Examples.hs,408
 pingPongClientPipelinedLimited123,
 pingPongClientPipelinedLimited127,
 
-typed-protocols-examples/src/Network/TypedProtocol/PingPong/Server.hs,122
+typed-protocols-examples\src\Network\TypedProtocol\PingPong\Server.hs,122
 PingPongServer11,
 PingPongServer11,
 recvMsgPing14,
@@ -15222,7 +15222,7 @@ typed-protocols-examples/src/Network/TypedProtocol/PingPong/Server.hs,122
 pingPongServerPeer25,
 pingPongServerPeer29,
 
-typed-protocols-examples/src/Network/TypedProtocol/PingPong/Type.hs,238
+typed-protocols-examples\src\Network\TypedProtocol\PingPong\Type.hs,238
 PingPong33,
 StIdle34,
 StBusy35,
@@ -15241,7 +15241,7 @@ typed-protocols-examples/src/Network/TypedProtocol/PingPong/Type.hs,238
 Show82,
 Show85,
 
-typed-protocols-examples/src/Network/TypedProtocol/ReqResp/Client.hs,371
+typed-protocols-examples\src\Network\TypedProtocol\ReqResp\Client.hs,371
 ReqRespClient18,
 SendMsgReq19,
 SendMsgDone23,
@@ -15258,11 +15258,11 @@ typed-protocols-examples/src/Network/TypedProtocol/ReqResp/Client.hs,371
 reqRespClientPeerSender107,
 reqRespClientPeerSender112,
 
-typed-protocols-examples/src/Network/TypedProtocol/ReqResp/Codec.hs,36
+typed-protocols-examples\src\Network\TypedProtocol\ReqResp\Codec.hs,36
 codecReqResp17,
 codecReqResp21,
 
-typed-protocols-examples/src/Network/TypedProtocol/ReqResp/Examples.hs,162
+typed-protocols-examples\src\Network\TypedProtocol\ReqResp\Examples.hs,162
 reqRespServerMapAccumL17,
 reqRespServerMapAccumL21,
 reqRespClientMap32,
@@ -15270,7 +15270,7 @@ typed-protocols-examples/src/Network/TypedProtocol/ReqResp/Examples.hs,162
 reqRespClientMapPipelined58,
 reqRespClientMapPipelined62,
 
-typed-protocols-examples/src/Network/TypedProtocol/ReqResp/Server.hs,117
+typed-protocols-examples\src\Network\TypedProtocol\ReqResp\Server.hs,117
 ReqRespServer11,
 ReqRespServer11,
 recvMsgReq14,
@@ -15278,7 +15278,7 @@ typed-protocols-examples/src/Network/TypedProtocol/ReqResp/Server.hs,117
 reqRespServerPeer25,
 reqRespServerPeer29,
 
-typed-protocols-examples/src/Network/TypedProtocol/ReqResp/Type.hs,236
+typed-protocols-examples\src\Network\TypedProtocol\ReqResp\Type.hs,236
 ReqResp15,
 StIdle16,
 StBusy17,
@@ -15297,13 +15297,13 @@ typed-protocols-examples/src/Network/TypedProtocol/ReqResp/Type.hs,236
 Show47,
 Show50,
 
-typed-protocols-examples/test/Main.hs,40
+typed-protocols-examples\test\Main.hs,40
 main8,
 main9,
 tests11,
 tests12,
 
-typed-protocols-examples/test/Network/TypedProtocol/PingPong/Tests.hs,1017
+typed-protocols-examples\test\Network\TypedProtocol\PingPong\Tests.hs,1017
 tests44,
 tests45,
 direct71,
@@ -15349,7 +15349,7 @@ typed-protocols-examples/test/Network/TypedProtocol/PingPong/Tests.hs,1017
 splits3337,
 splits3338,
 
-typed-protocols-examples/test/Network/TypedProtocol/ReqResp/Tests.hs,605
+typed-protocols-examples\test\Network\TypedProtocol\ReqResp\Tests.hs,605
 tests46,
 tests47,
 direct65,
@@ -15379,7 +15379,7 @@ typed-protocols-examples/test/Network/TypedProtocol/ReqResp/Tests.hs,605
 prop_codec_splits3_ReqResp217,
 prop_codec_splits3_ReqResp219,
 
-typed-protocols/src/Network/TypedProtocol/Core.hs,466
+typed-protocols\src\Network\TypedProtocol\Core.hs,466
 Protocol264,
 Message271,
 ClientHasAgency275,
@@ -15404,7 +15404,7 @@ typed-protocols/src/Network/TypedProtocol/Core.hs,466
 Yield438,
 Await460,
 
-typed-protocols/src/Network/TypedProtocol/Driver.hs,506
+typed-protocols\src\Network\TypedProtocol\Driver.hs,506
 Driver68,
 Driver69,
 sendMessage70,
@@ -15428,7 +15428,7 @@ typed-protocols/src/Network/TypedProtocol/Driver.hs,506
 runPipelinedPeerReceiver308,
 runPipelinedPeerReceiver315,
 
-typed-protocols/src/Network/TypedProtocol/Pipelined.hs,538
+typed-protocols\src\Network\TypedProtocol\Pipelined.hs,538
 PeerPipelined38,
 PeerPipelined39,
 fmapPeerPipelined46,
@@ -15464,7 +15464,7 @@ typed-protocols/src/Network/TypedProtocol/Pipelined.hs,538
 unsafeIntToNat195,
 unsafeIntToNat196,
 
-typed-protocols/src/Network/TypedProtocol/Proofs.hs,277
+typed-protocols\src\Network\TypedProtocol\Proofs.hs,277
 connect82,
 connect87,
 TerminalStates141,
