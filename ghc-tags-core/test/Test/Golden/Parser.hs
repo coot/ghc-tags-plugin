@@ -9,14 +9,18 @@ import           Control.Monad ((>=>))
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BS
+import qualified Data.ByteString.Lazy as LBS
+import qualified Data.ByteString.Lazy.Char8 as LBS.Char8
 import           System.IO
+import           System.Directory
 import           System.FilePath
 
 import qualified GhcTags.CTag as CTag
 import qualified GhcTags.ETag as ETag
 
-import           Test.Tasty (TestTree, testGroup)
+import           Test.Tasty
 import           Test.Tasty.Golden
+import           Test.Tasty.Golden.Advanced
 
 ext :: String
 #if !defined(mingw32_HOST_OS)
@@ -98,7 +102,8 @@ tests goldenTestDir =
           [ let input  = goldenTestDir </> "ouroboros-consensus.ETAGS"
                 golden = goldenTestDir </> "ouroboros-consensus.ETAGS" <.> ext <.> "golden"
                 output = goldenTestDir </> "ouroboros-consensus.ETAGS.out"
-            in goldenVsFile
+            in localOption (SizeCutoff maxBound) $
+               goldenVsFileVerbose
                 "ouroboros-consensus TAGS"
                  golden
                  output
@@ -151,3 +156,27 @@ parseGoldenETagsFile input output = do
       Right tags ->
         withBinaryFile output WriteMode
           $ flip BS.hPutBuilder (ETag.formatETagsFile tags)
+
+
+goldenVsFileVerbose
+  :: TestName -- ^ test name
+  -> FilePath -- ^ path to the «golden» file (the file that contains correct output)
+  -> FilePath -- ^ path to the output file
+  -> IO () -- ^ action that creates the output file
+  -> TestTree -- ^ the test verifies that the output file contents is the same as the golden file contents
+goldenVsFileVerbose name ref new act =
+  goldenTest2
+    name
+    (LBS.readFile ref)
+    (act >> LBS.readFile new)
+    cmp
+    upd
+    del
+  where
+    cmp :: LBS.ByteString -> LBS.ByteString -> IO (Maybe String)
+    cmp  refBS newBS | refBS == newBS
+                     = return Nothing
+    cmp _refBS newBS = return (Just $ LBS.Char8.unpack newBS)
+
+    upd = createDirectoriesAndWriteFile ref
+    del = removeFile new
