@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE GADTs               #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RankNTypes          #-}
@@ -344,6 +345,7 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
           let tags :: [CTag]
               tags = map (fixTagFilePath cwd tagsDir)
                                           -- fix file names
+                   . filterAdjacentTags
                    . sortBy compareTags   -- sort
                    . mapMaybe (ghcTagToTag SingCTag dynFlags)
                                           -- translate 'GhcTag' to 'Tag'
@@ -396,11 +398,12 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
 
                         newTags  :: [ETag]
                         newTags =
-                            (sortBy ETag.compareTags
+                            filterAdjacentTags
+                          . sortBy ETag.compareTags
                           . map (fixTagFilePath cwd tagsDir)
                           . mapMaybe (ghcTagToTag SingETag dynFlags)
                           . getGhcTags
-                          $ lmodule)
+                          $ lmodule
 
                         tags' :: [ETag]
                         tags' = combineTags
@@ -418,6 +421,46 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
                                   ])
 
                     BB.hPutBuilder writeHandle (ETag.formatETagsFile tags')
+
+
+-- | Filter adjacent tags.
+--
+filterAdjacentTags :: [Tag tk] -> [Tag tk]
+filterAdjacentTags tags =
+    foldr
+      (\(mprev, c, mnext) acc ->
+          case (mprev, mnext) of
+            -- filter out terms preceded by a type signature
+            (Just p, _)  | tagName p == tagName c
+                         , TkTypeSignature <- tagKind p
+                         , k <- tagKind c
+                         , k == TkTerm
+                        || k == TkFunction
+                        ->     acc
+
+            -- filter out type constructors followed by a data constructor
+            (_, Just n)  | tagName c == tagName n
+                         , TkTypeConstructor <- tagKind c
+                         , k <- tagKind n
+                         , k == TkDataConstructor
+                        || k == TkGADTConstructor
+                        ->     acc
+
+            _           -> c : acc
+                       
+      )
+      []
+      (zip3 tags' tags tags'')
+  where
+    -- previous
+    tags' = case tags of
+      [] -> []
+      _  -> Nothing : map Just (init tags)
+
+    -- next
+    tags'' = case tags of
+      [] -> []
+      _  -> map Just (tail tags) ++ [Nothing]
 
 
 #if __GLASGOW_HASKELL__ >= 810
