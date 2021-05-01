@@ -19,6 +19,8 @@ uninstall:
 	  --package-db=${PACKAGE_DB} \
 	  --force \
 	  ghc-tags-plugin
+
+uninstall-core:
 	${GHC_PKG} unregister \
 	  --package-db=${PACKAGE_DB} \
 	  --force \
@@ -31,7 +33,7 @@ install:
 		      --with-compiler=${GHC} \
 		      --disable-documentation \
 		      --lib \
-		      ghc-tags-plugin
+	              ghc-tags-plugin
 	rm ${ENV}
 	${GHC_PKG} describe --package-db=${PACKAGE_DB} ghc-tags-plugin | grep -A1 ^id
 
@@ -47,6 +49,10 @@ prof-install:
 	rm ${ENV}
 	${GHC_PKG} describe --package-db=${PACKAGE_DB} ghc-tags-plugin | grep -A1 ^id
 
+# reinstall ghc-tags-core and ghc-tags-plugin
+reinstall-core: uninstall uninstall-core install
+
+# reinstall only ghc-tags-plugin
 reinstall: uninstall install
 
 list:
@@ -67,4 +73,4 @@ describe:
 describe-core:
 	${GHC_PKG} describe --package-db=${PACKAGE_DB} ghc-tags-core
 
-.PHONY: install, uninstall, reinstall, latest, check
+.PHONY: install, uninstall, uninstall-core, reinstall, reinstall-core, latest, check
