@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                ghc-tags-core
-version:             0.2.4.1
+version:             0.3.0.0
 synopsis:            a library to work with tags created from Haskell parsed tree
 description:
   === library scope

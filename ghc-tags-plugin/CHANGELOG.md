@@ -56,3 +56,11 @@
 
 * `ghc-tags-vim` a vim plugin which helps to maintain a `cabal.project.local` file.
 * better tag info
+
+## 0.3.0.0 -- 2021-05-01
+
+* filter adjacents tags: preserve only type signatures (filter out adjacent
+  terms) or data constructors (filter out adjacent type constructors).
+* fix emacs support: ghc-tags-plugin can now correctly display multiple tags
+  (e.g. instance declarations).  Thanks to @nfrisby for finding out how to do
+  that.
