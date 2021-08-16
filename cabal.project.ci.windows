@@ -1,5 +1,0 @@
-package ghc-tags-core
-  ghc-options: -Werror
-
-package ghc-tags-plugin
-  ghc-options: -Werror
