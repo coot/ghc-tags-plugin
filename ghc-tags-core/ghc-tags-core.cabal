@@ -32,7 +32,7 @@ extra-source-files:  CHANGELOG.md
                      README.md
 homepage:            https://github.com/coot/ghc-tags-plugin/tree/master/ghc-tags-core
 bug-reports:         https://github.com/coot/ghc-tags-plugin/issues
-tested-with:         GHC==8.6.5, GHC==8.8.4, GHC==8.10.6
+tested-with:         GHC==8.8.4, GHC==8.10.5, GHC==9.0.1
 
 
 library
