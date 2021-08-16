@@ -138,7 +138,7 @@ benchStreamParseFormat fp =
             CTag.parseTag
             (Pipes.BS.fromHandle h `Pipes.for` Pipes.yield))
           (\tag ->
-            (Pipes.BS.fromLazy . BB.toLazyByteString . CTag.formatTag) tag
+            (Pipes.BS.fromLazy (BB.toLazyByteString (CTag.formatTag tag)))
             Pipes.>->
             Pipes.BS.toHandle devNull)
 

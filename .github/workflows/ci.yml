@@ -1,0 +1,83 @@
+name: Haskell CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: bash
+
+    strategy:
+      fail-fast: false
+      matrix:
+        ghc: ["8.8.4", "8.10.5", "9.0.1"]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+    - name: Install Haskell
+      uses: haskell/actions/setup@v1
+      id: setup-haskell
+      with:
+        ghc-version: ${{ matrix.ghc }}
+        cabal-version: 3.4.0.0
+
+    - name: Show Haskell tool versions
+      run: |
+        ghc --version
+        cabal --version
+
+    - name: Select build directory
+      run: |
+        if [ "$RUNNER_OS" == Windows ]; then
+          CABAL_BUILDDIR="D:\\a\\_temp\\dist"
+        else
+          CABAL_BUILDDIR="dist-newstyle"
+        fi
+
+        echo "CABAL_BUILDDIR=$CABAL_BUILDDIR"
+        echo "CABAL_BUILDDIR=$CABAL_BUILDDIR" >> $GITHUB_ENV
+
+    - name: Set cache version
+      run: echo "CACHE_VERSION=9w76Z3Q" >> $GITHUB_ENV
+
+    - name: Set up temp directory
+      env:
+        RUNNER_TEMP: ${{ runner.temp }}
+      run: |
+        echo "TMPDIR=$RUNNER_TEMP"  >> $GITHUB_ENV
+        echo "TMP=$RUNNER_TEMP"     >> $GITHUB_ENV
+
+    - uses: actions/checkout@v2
+
+    - name: Cache cabal store
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.setup-haskell.outputs.cabal-store }}
+        key: cabal-store-${{ env.CACHE_VERSION }}-${{ matrix.ghc }}-${{ matrix.os }}
+
+    - name: Update Hackage index
+      run: cabal update
+
+    - name: Cabal Configure
+      run: cabal --builddir="$CABAL_BUILDDIR" configure --enable-tests
+
+    - name: Use cabal.project.local.ci
+      run: |
+        cat ./cabal.project.ci >> ./cabal.project.local
+        cat ./cabal.project.local
+
+    - name: Build dependencies
+      run: cabal --builddir="$CABAL_BUILDDIR" build --only-dependencies all
+
+    - name: Build projects [build]
+      run: cabal --builddir="$CABAL_BUILDDIR" build all
+
+    - name: ghc-tags-core [test]
+      run: cabal --builddir="$CABAL_BUILDDIR" run ghc-tags-core:test
+
+    - name: ghc-tags-core [benchmarks]
+      run: cabal build ghc-tags-core:benchmark
+

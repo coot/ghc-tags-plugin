@@ -1,0 +1,9 @@
+documentation: True
+tests: True
+flags: +gtp-check
+
+package ghc-tags-core
+  ghc-options: -Werror
+
+package ghc-tags-plugin
+  ghc-options: -Werror
