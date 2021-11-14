@@ -6,6 +6,7 @@ module Plugin.GhcTags.FileLock
   ) where
 
 import           Control.Exception
+import           Control.Monad (when)
 
 #if !defined(mingw32_HOST_OS)
 import           Lukko.FLock
@@ -15,13 +16,17 @@ import           Lukko.Windows
 
 -- | 'flock' base lock (on posix) or `LockFileEx` on Windows.
 --
-withFileLock :: FilePath -> LockMode -> (FD -> IO x) -> IO x
-withFileLock path mode k =
+withFileLock :: Bool -- ^ debug option
+             -> FilePath -> LockMode -> (FD -> IO x) -> IO x
+withFileLock debug path mode k =
     bracket
       (fdOpen path)
       (\h -> fdClose h)
       $ \h ->
         bracket
-          (fdLock h mode)
-          (\_ -> fdUnlock h)
+          (do fdLock h mode
+              when debug (putStrLn "lock: taken"))
+          (\_ ->
+           do when debug (putStrLn "lock: releasing")
+              fdUnlock h)
           (\_ -> k h)

@@ -223,7 +223,7 @@ ghcTagsParserPlugin options
                 -- file.  This is needed when `cabal` compiles in parallel.
                 -- We take the lock on the copy, otherwise the lock would be removed when
                 -- we move the file.
-                withFileLock lockFile ExclusiveLock $ \_ -> do
+                withFileLock debug lockFile ExclusiveLock $ \_ -> do
                     mbInSize <-
                       if debug
                         then Just <$> getFileSize tagsFile
@@ -483,6 +483,7 @@ ghcTagsDynflagsPlugin options dynFlags =
       case runOptionParser options of
         Success Options { filePath = Identity tagsFile
                         , etags
+                        , debug
                         } -> do
           let sourceFile = case splitFileName tagsFile of
                 (dir, name) -> dir </> "." ++ name
@@ -495,7 +496,7 @@ ghcTagsDynflagsPlugin options dynFlags =
                                (messageDoc UnhandledException Nothing
                                  (displayException ioerr))
                        throwIO (GhcTagsDynFlagsPluginIOException ioerr)) $
-              withFileLock lockFile ExclusiveLock $ \_ -> do
+              withFileLock debug lockFile ExclusiveLock $ \_ -> do
               cwd <- BSC.pack <$> getCurrentDirectory
               tagsDir <- BSC.pack <$> canonicalizePath (fst $ splitFileName tagsFile)
               tagsContent <- BSC.readFile tagsFile
