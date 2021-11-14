@@ -2,7 +2,7 @@
 # install, uninstall and friends ghc-tags-plugin in cabal store
 #
 
-GHC_VERSION ?= 8.10.6
+GHC_VERSION ?= 8.10.7
 GHC=ghc-${GHC_VERSION}
 GHC_PKG=ghc-pkg-${GHC_VERSION}
 
@@ -32,6 +32,7 @@ install:
 	  	      --package-env=${ENV} \
 		      --with-compiler=${GHC} \
 		      --disable-documentation \
+		      --reinstall \
 		      --lib \
 	              ghc-tags-plugin
 	rm ${ENV}
