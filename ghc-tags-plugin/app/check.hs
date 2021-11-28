@@ -17,7 +17,7 @@ import           Plugin.GhcTags.FileLock
 main :: IO ()
 main = do
     file :_ <- getArgs
-    withFileLock (lockFile file) ExclusiveLock $ \_h -> do
+    withFileLock False (lockFile file) ExclusiveLock $ \_h -> do
       numOfLines <- length . BSC.lines <$> BS.readFile file
       putStrLn (show numOfLines)
   where
