@@ -16,6 +16,7 @@ module GhcTags.Stream
 import           Control.Monad.State.Strict
 import           Data.ByteString (ByteString)
 import           Data.Attoparsec.ByteString (Parser)
+import qualified Data.ByteString as BS
 import           Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as BS
 import           Data.Functor (($>))
@@ -60,14 +61,16 @@ combineTagsPipe
     -> Pipes.Producer (Tag tk) m [Tag tk]
 combineTagsPipe compareFn modPath = go
   where
-    modPathText = Text.decodeUtf8 modPath
-
     go :: Tag tk -> [Tag tk]
        -> Pipes.Producer (Tag tk) m [Tag tk]
 
     -- omitt all the tags which point to 'modPath'
+    --
+    -- note: we check that 'tagFilePath' ends with 'modPath', which is
+    -- a relative path from the corresponding cabal file.
     go tag as
-      | getRawFilePath (tagFilePath tag) == modPathText = pure as
+      | modPath `BS.isSuffixOf` Text.encodeUtf8 (getRawFilePath (tagFilePath tag))
+      = pure as
 
     go tag as@(a : as')
       | otherwise = case a `compareFn` tag of

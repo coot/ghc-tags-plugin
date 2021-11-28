@@ -79,6 +79,7 @@ import           GHC.Unit.Module.Location   (ModLocation (..))
 import           GHC.Tc.Types (TcM)
 import           GHC.Tc.Gen.Splice (defaultRunMeta)
 import           GHC.Types.SrcLoc (Located)
+import qualified GHC.Types.SrcLoc as GHC (SrcSpan (..), getLoc, srcSpanFile)
 #else
 import qualified GhcPlugins
 import           GhcPlugins ( Hsc
@@ -98,6 +99,7 @@ import           GhcPlugins ( Hsc
                             , metaRequestT
 #endif
                             )
+import qualified SrcLoc as GHC (SrcSpan (..), getLoc, srcSpanFile)
 #endif
 #if   __GLASGOW_HASKELL__ >= 900
 import           GHC.Driver.Session (DynFlags (hooks))
@@ -127,6 +129,13 @@ import           Outputable (($+$), ($$))
 import qualified Outputable as Out
 import qualified PprColour
 #endif
+#if   __GLASGOW_HASKELL__ >= 900
+import           GHC.Data.FastString (bytesFS)
+#elif __GLASGOW_HASKELL__ >= 810
+import           FastString          (bytesFS)
+#else
+import           FastString          (FastString (fs_bs))
+#endif
 
 import           GhcTags.Ghc
 import           GhcTags.Tag
@@ -138,6 +147,11 @@ import           Plugin.GhcTags.Options
 import           Plugin.GhcTags.FileLock
 import qualified Plugin.GhcTags.CTag as CTag
 
+
+#if   __GLASGOW_HASKELL__ < 810
+bytesFS :: FastString -> ByteString
+bytesFS = fs_bs
+#endif
 
 #if   __GLASGOW_HASKELL__ >= 900
 type GhcPsModule = HsModule
@@ -312,8 +326,21 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
         --
         (False, Nothing)          -> pure ()
         (False, Just sourcePath) -> do
-
           let sourcePathBS = Text.encodeUtf8 (Text.pack sourcePath)
+              -- path of the combiled module; it is relative to the cabal file,
+              -- not the project.
+              modulePath =
+                case GHC.getLoc lmodule of
+#if __GLASGOW_HASKELL__ >= 900
+                  GHC.RealSrcSpan rss _ ->
+#else
+                  GHC.RealSrcSpan rss ->
+#endif
+                      bytesFS
+                    . GHC.srcSpanFile
+                    $ rss
+                  GHC.UnhelpfulSpan {} ->
+                    fixFilePath cwd tagsDir sourcePathBS
               -- text parser
               producer :: Pipes.Producer ByteString (SafeT IO) ()
               producer
@@ -346,7 +373,7 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
                         runCombineTagsPipe writeHandle
                           CTag.compareTags
                           CTag.formatTag
-                          (fixFilePath cwd tagsDir sourcePathBS)
+                          modulePath
                           tag
                       `Pipes.Safe.catchP` \(e :: IOException) ->
                         Pipes.lift $ Pipes.liftIO $
@@ -381,7 +408,9 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
             outSize <- getFileSize tagsFile
             let Just inSize = mbInSize
             printMessageDoc dynFlags DebugMessage (Just ms_mod)
-              (concat [ "parsed: "
+              (concat [ "path: "
+                      , show modulePath
+                      , " parsed: "
                       , show parsedTags
                       , " found: "
                       , show (length tags + length tags')

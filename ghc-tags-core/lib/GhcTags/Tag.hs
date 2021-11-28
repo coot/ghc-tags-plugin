@@ -46,6 +46,7 @@ import           Data.Function (on)
 #if   __GLASGOW_HASKELL__ < 810
 import           Data.ByteString (ByteString)
 #endif
+import qualified Data.ByteString as BS
 import           Data.Text   (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
@@ -356,14 +357,14 @@ combineTags :: (Tag tk -> Tag tk -> Ordering)
             -> [Tag tk] -> [Tag tk] -> [Tag tk]
 combineTags compareFn modPath = go
   where
-    modPathText = Text.decodeUtf8 modPath
     go as@(a : as') bs@(b : bs')
-      | getRawFilePath (tagFilePath b) == modPathText = go as bs'
+      | modPath `BS.isSuffixOf` Text.encodeUtf8 (getRawFilePath (tagFilePath b))
+      = go as bs'
       | otherwise = case a `compareFn` b of
           LT -> a : go as' bs
           EQ -> a : go as' bs'
           GT -> b : go as  bs'
-    go [] bs = filter (\b -> not (getRawFilePath (tagFilePath b) == modPathText)) bs
+    go [] bs = filter (\b -> not (modPath `BS.isSuffixOf` Text.encodeUtf8 (getRawFilePath (tagFilePath b)))) bs
     go as [] = as
     {-# INLINE go #-}
 

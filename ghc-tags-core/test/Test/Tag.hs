@@ -278,9 +278,15 @@ combineTags_identity (ArbTagsFromFile fp as) =
 --
 combineTags_preserve :: ArbTagsFromFile -> ArbTagList -> Bool
 combineTags_preserve (ArbTagsFromFile fp as) (ArbTagList bs) =
-       filter (\t -> not $ tagFilePath t == fp) (combineTags CTag.compareTags (encodeTagFilePath fp) as bs)
+       filter (\t -> not $ (getRawFilePath fp)
+                           `Text.isSuffixOf`
+                           (getRawFilePath $ tagFilePath t))
+              (combineTags CTag.compareTags (encodeTagFilePath fp) as bs)
     ==
-       filter (\t -> not $ tagFilePath t == fp) bs
+       filter (\t -> not $ (getRawFilePath fp)
+                           `Text.isSuffixOf`
+                           (getRawFilePath $ tagFilePath t))
+              bs
 
 
 -- | Substitutes all tags of the current file.
@@ -382,7 +388,7 @@ instance Arbitrary ArbTagsFromFileAndTagList where
 --
 combineTagsPipeProp :: ArbTagsFromFileAndTagList -> Property
 combineTagsPipeProp (ArbTagsFromFileAndTagList modPath as bs) =
-        combineTags CTag.compareTags modPath' as (bs)
+        combineTags CTag.compareTags modPath' as bs
     ===
         case
           runStateT
