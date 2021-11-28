@@ -65,6 +65,7 @@ combineTagsPipe compareFn modPath = go
     go :: Tag tk -> [Tag tk]
        -> Pipes.Producer (Tag tk) m [Tag tk]
 
+    -- omitt all the tags which point to 'modPath'
     go tag as
       | getRawFilePath (tagFilePath tag) == modPathText = pure as
 
