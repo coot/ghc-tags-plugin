@@ -234,14 +234,14 @@ ghcTagsParserPlugin options
                       let Just inSize = mbInSize
                       outSize <- getFileSize tagsFile
                       when (inSize > outSize)
-                        $ throwIO (userError $ concat
-                                    [ "tags file '"
-                                    , tagsFile
-                                    , "' size shrinked: "
-                                    , show inSize
-                                    , "→"
-                                    , show outSize
-                                    ])
+                        $ liftIO
+                        $ putDocLn dynFlags
+                            (messageDoc SizeWarning
+                                        (Just ms_mod)
+                                        (concat [ show inSize
+                                                , "→"
+                                                , show outSize
+                                                ]))
 
         Failure (ParserFailure f)  ->
           liftIO $
@@ -262,6 +262,7 @@ data MessageType =
     | UnhandledException
     | OptionParserFailure
     | DebugMessage
+    | SizeWarning
 
 
 instance Show MessageType where
@@ -270,6 +271,7 @@ instance Show MessageType where
     show WriteException      = "write error"
     show UnhandledException  = "unhandled error"
     show OptionParserFailure = "plugin options parser error"
+    show SizeWarning         = "tags file shrinked"
     show DebugMessage        = ""
 
 
@@ -284,6 +286,16 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
            ModSummary {ms_mod, ms_location, ms_hspp_opts = dynFlags}
            lmodule sourceFile = do
   tagsFileExists <- doesFileExist tagsFile
+
+  mbInSize <-
+    if debug
+      then
+        if tagsFileExists
+          then Just <$> getFileSize tagsFile
+                    `catch` \(_ :: IOException) -> pure 0
+          else pure (Just 0)
+      else pure Nothing
+
   when tagsFileExists
     $ renameFile tagsFile sourceFile
   withFile tagsFile WriteMode  $ \writeHandle ->
@@ -328,6 +340,7 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
                   $
                   -- merge tags
                   (\tag -> do
+                    -- update tags counter
                     modify' succ
                     Pipes.hoist Pipes.lift $
                         runCombineTagsPipe writeHandle
@@ -364,15 +377,19 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
           -- data, and the tags file will get truncated. Issue #37.
           hDataSync writeHandle
 
-          when debug
-            $ printMessageDoc dynFlags DebugMessage (Just ms_mod)
-                (concat [ "parsed: "
-                        , show parsedTags
-                        , " found: "
-                        , show (length tags)
-                        , " left: "
-                        , show (length tags')
-                        ])
+          when debug $ do
+            outSize <- getFileSize tagsFile
+            let Just inSize = mbInSize
+            printMessageDoc dynFlags DebugMessage (Just ms_mod)
+              (concat [ "parsed: "
+                      , show parsedTags
+                      , " found: "
+                      , show (length tags + length tags')
+                      , " in-size: "
+                      , show inSize
+                      , " out-size: "
+                      , show outSize
+                      ])
 
         --
         -- etags
@@ -412,13 +429,19 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
                                   newTags
                                   (sortBy ETag.compareTags tags)
 
-                    when debug
-                      $ printMessageDoc dynFlags DebugMessage (Just ms_mod)
-                          (concat [ "parsed: "
-                                  , show (length tags)
-                                  , " found: "
-                                  , show (length newTags)
-                                  ])
+                    when debug $ do
+                      outSize <- getFileSize tagsFile
+                      let Just inSize = mbInSize
+                      printMessageDoc dynFlags DebugMessage (Just ms_mod)
+                        (concat [ "parsed: "
+                                , show (length tags)
+                                , " found: "
+                                , show (length newTags)
+                                , " in-size: "
+                                , show inSize
+                                , " out-size: "
+                                , show outSize
+                                ])
 
                     BB.hPutBuilder writeHandle (ETag.formatETagsFile tags')
 
@@ -447,7 +470,7 @@ filterAdjacentTags tags =
                         ->     acc
 
             _           -> c : acc
-                       
+
       )
       []
       (zip3 tags' tags tags'')
@@ -634,6 +657,7 @@ messageDoc errorType mb_mod errorMessage =
       WriteException      -> Error
       UnhandledException  -> Error
       OptionParserFailure -> Warning
+      SizeWarning         -> Warning
       DebugMessage        -> Debug
 
     messageColour = case severity of
