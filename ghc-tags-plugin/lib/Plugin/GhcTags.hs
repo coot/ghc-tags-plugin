@@ -14,7 +14,6 @@ module Plugin.GhcTags ( plugin, Options (..) ) where
 
 import           Control.Exception
 import           Control.Monad.State.Strict
-import           Data.ByteString (ByteString)
 import qualified Data.ByteString         as BS
 import qualified Data.ByteString.Char8   as BSC
 import qualified Data.ByteString.Lazy    as BSL
@@ -29,7 +28,6 @@ import           Data.List (sortBy)
 #if __GLASGOW_HASKELL__ >= 810
 import           Data.Either (partitionEithers)
 #endif
-import           Data.Foldable (traverse_)
 import           Data.Maybe (mapMaybe)
 import           System.Directory
 import           System.FilePath
@@ -37,19 +35,7 @@ import           System.FilePath.ByteString (RawFilePath)
 import qualified System.FilePath.ByteString as FilePath
 import           System.IO
 
-#if !defined(mingw32_HOST_OS)
-import           Foreign.C.Types (CInt (..))
-import           Foreign.C.Error (throwErrnoIfMinus1_)
-import           GHC.IO.FD (FD (..))
-import           GHC.IO.Handle.FD (handleToFd)
-#endif
-
 import           Options.Applicative.Types (ParserFailure (..))
-
-import qualified Pipes as Pipes
-import           Pipes.Safe (SafeT)
-import qualified Pipes.Safe as Pipes.Safe
-import qualified Pipes.ByteString as Pipes.BS
 
 #if __GLASGOW_HASKELL__ >= 900
 import           GHC.Driver.Plugins
@@ -139,13 +125,11 @@ import           FastString          (FastString (fs_bs))
 
 import           GhcTags.Ghc
 import           GhcTags.Tag
-import           GhcTags.Stream
 import qualified GhcTags.CTag as CTag
 import qualified GhcTags.ETag as ETag
 
 import           Plugin.GhcTags.Options
 import           Plugin.GhcTags.FileLock
-import qualified Plugin.GhcTags.CTag as CTag
 
 
 #if   __GLASGOW_HASKELL__ < 810
@@ -222,28 +206,23 @@ ghcTagsParserPlugin options
                              } ->
 
            liftIO $ do
-            let sourceFile = case splitFileName tagsFile of
-                  (dir, name) -> dir </> "." ++ name
-                lockFile = sourceFile ++ ".lock"
-
             -- wrap 'IOException's
             handle (\ioerr -> do
                      putDocLn dynFlags
                               (messageDoc UnhandledException (Just ms_mod)
                                 (displayException ioerr))
                      throwIO (GhcTagsParserPluginIOException ioerr)) $
-             flip finally (void $ try @IOException $ removeFile sourceFile) $
                 -- Take advisory exclusive lock (a BSD lock using `flock`) on the tags
                 -- file.  This is needed when `cabal` compiles in parallel.
                 -- We take the lock on the copy, otherwise the lock would be removed when
                 -- we move the file.
-                withFileLock debug lockFile ExclusiveLock $ \_ -> do
+                withFileLock debug tagsFile ExclusiveLock $ \_ -> do
                     mbInSize <-
                       if debug
                         then Just <$> getFileSize tagsFile
                                       `catch` \(_ :: IOException) -> pure 0
                         else pure Nothing
-                    updateTags opts moduleSummary hpm_module sourceFile
+                    updateTags opts moduleSummary hpm_module
                     when debug $ do
                       let Just inSize = mbInSize
                       outSize <- getFileSize tagsFile
@@ -294,11 +273,10 @@ instance Show MessageType where
 updateTags :: Options Identity
            -> ModSummary
            -> Located GhcPsModule
-           -> FilePath
            -> IO ()
 updateTags Options { etags, filePath = Identity tagsFile, debug }
            ModSummary {ms_mod, ms_location, ms_hspp_opts = dynFlags}
-           lmodule sourceFile = do
+           lmodule = do
   tagsFileExists <- doesFileExist tagsFile
 
   mbInSize <-
@@ -310,10 +288,10 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
           else pure (Just 0)
       else pure Nothing
 
-  when tagsFileExists
-    $ renameFile tagsFile sourceFile
-  withFile tagsFile WriteMode  $ \writeHandle ->
-    withFile sourceFile ReadWriteMode $ \readHandle -> do
+  !tagsContent <- if tagsFileExists
+                    then BS.readFile tagsFile
+                    else return mempty
+  withFile tagsFile WriteMode $ \writeHandle -> do
       cwd <- BSC.pack <$> getCurrentDirectory
       -- absolute directory path of the tags file; we need canonical path
       -- (without ".." and ".") to make 'makeRelative' works.
@@ -341,97 +319,56 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
                     $ rss
                   GHC.UnhelpfulSpan {} ->
                     fixFilePath cwd tagsDir sourcePathBS
-              -- text parser
-              producer :: Pipes.Producer ByteString (SafeT IO) ()
-              producer
-                | tagsFileExists =
-                    void (Pipes.BS.fromHandle readHandle)
-                    `Pipes.Safe.catchP` \(e :: IOException) ->
-                      Pipes.lift $ Pipes.liftIO $
-                        -- don't re-throw; this would kill `ghc`, error
-                        -- loudly and continue.
-                        putDocLn dynFlags (messageDoc ReadException (Just ms_mod) (displayException e))
-                | otherwise      = pure ()
 
-              -- tags pipe
-              pipe :: Pipes.Effect (StateT Int (StateT [CTag] (SafeT IO))) ()
-              pipe =
-                Pipes.for
-                  (Pipes.hoist Pipes.lift $ Pipes.hoist Pipes.lift (tagParser (either (const Nothing) Just <$> CTag.parseTagLine) producer)
-                    `Pipes.Safe.catchP` \(e :: IOException) ->
-                      Pipes.lift $ Pipes.liftIO $
-                        -- don't re-throw; this would kill `ghc`, error
-                        -- loudly and continue.
-                        putDocLn dynFlags $ messageDoc ParserException (Just ms_mod) (displayException e)
-                  )
-                  $
-                  -- merge tags
-                  (\tag -> do
-                    -- update tags counter
-                    modify' succ
-                    Pipes.hoist Pipes.lift $
-                        runCombineTagsPipe writeHandle
-                          CTag.compareTags
-                          CTag.formatTag
-                          modulePath
-                          tag
-                      `Pipes.Safe.catchP` \(e :: IOException) ->
-                        Pipes.lift $ Pipes.liftIO $
-                          -- don't re-throw; this would kill `ghc`, error
-                          -- loudly and continue.
-                          putDocLn dynFlags $ messageDoc WriteException (Just ms_mod) (displayException e)
-                  )
+          pres <- try @IOException $ CTag.parseTagsFile tagsContent
+          case pres of
+            Left err   ->
+              putDocLn dynFlags $ messageDoc ParserException (Just ms_mod) (displayException err)
 
-          let tags :: [CTag]
-              tags = map (fixTagFilePath cwd tagsDir)
-                                          -- fix file names
-                   . filterAdjacentTags
-                   . sortBy compareTags   -- sort
-                   . mapMaybe (ghcTagToTag SingCTag dynFlags)
-                                          -- translate 'GhcTag' to 'Tag'
-                   . getGhcTags           -- generate 'GhcTag's
-                   $ lmodule
+            Right (Left err) ->
+              printMessageDoc dynFlags ParserException (Just ms_mod) err
 
-          -- Write header
-          BSL.hPut writeHandle (BB.toLazyByteString (foldMap CTag.formatHeader CTag.headers))
-          -- update tags file / run 'pipe'
-          (parsedTags, tags') <- Pipes.Safe.runSafeT $ runStateT (execStateT (Pipes.runEffect pipe) 0) tags
-          -- write the remaining tags'
-          traverse_ (BSL.hPut writeHandle . BB.toLazyByteString . CTag.formatTag) tags'
+            Right (Right !parsed) -> do
+              let (headers, !parsedTags) = partitionEithers parsed 
 
-          hFlush writeHandle
-          -- hDataSync is necessary, otherwise next read will not get all the
-          -- data, and the tags file will get truncated. Issue #37.
-          hDataSync writeHandle
+                  tags :: [CTag]
+                  tags = map (fixTagFilePath cwd tagsDir)
+                                              -- fix file names
+                       . filterAdjacentTags
+                       . sortBy compareTags   -- sort
+                       . mapMaybe (ghcTagToTag SingCTag dynFlags)
+                                              -- translate 'GhcTag' to 'Tag'
+                       . getGhcTags           -- generate 'GhcTag's
+                       $ lmodule
 
-          when debug $ do
-            outSize <- getFileSize tagsFile
-            let Just inSize = mbInSize
-            printMessageDoc dynFlags DebugMessage (Just ms_mod)
-              (concat [ "path: "
-                      , show modulePath
-                      , " parsed: "
-                      , show parsedTags
-                      , " found: "
-                      , show (length tags + length tags')
-                      , " in-size: "
-                      , show inSize
-                      , " out-size: "
-                      , show outSize
-                      ])
+                  combined :: [CTag]
+                  combined = combineTags CTag.compareTags modulePath tags parsedTags
+
+              BB.hPutBuilder writeHandle
+                        (    foldMap CTag.formatHeader headers
+                          <> foldMap CTag.formatTag combined
+                        ) 
+
+              when debug $ do
+                outSize <- getFileSize tagsFile
+                let Just inSize = mbInSize
+                printMessageDoc dynFlags DebugMessage (Just ms_mod)
+                  (concat [ "parsed: "
+                          , show (length parsedTags)
+                          , " found: "
+                          , show (length tags)
+                          , " in-size: "
+                          , show inSize
+                          , " out-size: "
+                          , show outSize
+                          ])
 
         --
         -- etags
         --
         (True, Nothing)         -> pure ()
-        (True, Just sourcePath) ->
-          try @IOException (BS.hGetContents readHandle)
-            >>= \case
-              Left err ->
-                putDocLn dynFlags $ messageDoc ReadException (Just ms_mod) (displayException err)
-
-              Right txt -> do
-                pres <- try @IOException $ ETag.parseTagsFile txt
+        (True, Just sourcePath) -> do
+                pres <- try @IOException $ ETag.parseTagsFile tagsContent
                 case pres of
                   Left err   ->
                     putDocLn dynFlags $ messageDoc ParserException (Just ms_mod) (displayException err)
@@ -439,40 +376,39 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
                   Right (Left err) ->
                     printMessageDoc dynFlags ParserException (Just ms_mod) err
 
-                  Right (Right tags) -> do
+                  Right (Right parsedTags) -> do
                     let sourcePathBS = Text.encodeUtf8 (Text.pack sourcePath)
 
-                        newTags  :: [ETag]
-                        newTags =
-                            filterAdjacentTags
-                          . sortBy ETag.compareTags
-                          . map (fixTagFilePath cwd tagsDir)
-                          . mapMaybe (ghcTagToTag SingETag dynFlags)
-                          . getGhcTags
-                          $ lmodule
+                        tags :: [ETag]
+                        tags = filterAdjacentTags
+                             . sortBy ETag.compareTags
+                             . map (fixTagFilePath cwd tagsDir)
+                             . mapMaybe (ghcTagToTag SingETag dynFlags)
+                             . getGhcTags
+                             $ lmodule
 
-                        tags' :: [ETag]
-                        tags' = combineTags
-                                  ETag.compareTags
-                                  (fixFilePath cwd tagsDir sourcePathBS)
-                                  newTags
-                                  (sortBy ETag.compareTags tags)
+                        combined :: [ETag]
+                        combined = combineTags ETag.compareTags
+                                     (fixFilePath cwd tagsDir sourcePathBS)
+                                     tags
+                                     (sortBy ETag.compareTags tags)
+
+                    BB.hPutBuilder writeHandle (ETag.formatETagsFile combined)
 
                     when debug $ do
                       outSize <- getFileSize tagsFile
                       let Just inSize = mbInSize
                       printMessageDoc dynFlags DebugMessage (Just ms_mod)
                         (concat [ "parsed: "
-                                , show (length tags)
+                                , show (length parsedTags)
                                 , " found: "
-                                , show (length newTags)
+                                , show (length tags)
                                 , " in-size: "
                                 , show inSize
                                 , " out-size: "
                                 , show outSize
                                 ])
 
-                    BB.hPutBuilder writeHandle (ETag.formatETagsFile tags')
 
 
 -- | Filter adjacent tags.
@@ -537,9 +473,6 @@ ghcTagsDynflagsPlugin options dynFlags =
                         , etags
                         , debug
                         } -> do
-          let sourceFile = case splitFileName tagsFile of
-                (dir, name) -> dir </> "." ++ name
-              lockFile = sourceFile ++ ".lock"
 
           withMetaD defaultRunMeta request expr $ \decls ->
             liftIO $
@@ -548,7 +481,7 @@ ghcTagsDynflagsPlugin options dynFlags =
                                (messageDoc UnhandledException Nothing
                                  (displayException ioerr))
                        throwIO (GhcTagsDynFlagsPluginIOException ioerr)) $
-              withFileLock debug lockFile ExclusiveLock $ \_ -> do
+              withFileLock debug tagsFile ExclusiveLock $ \_ -> do
               cwd <- BSC.pack <$> getCurrentDirectory
               tagsDir <- BSC.pack <$> canonicalizePath (fst $ splitFileName tagsFile)
               tagsContent <- BSC.readFile tagsFile
@@ -715,20 +648,3 @@ putDocLn dynFlags sdoc =
 
 printMessageDoc :: DynFlags -> MessageType -> Maybe Module -> String -> IO ()
 printMessageDoc dynFlags = (fmap . fmap . fmap) (putDocLn dynFlags) messageDoc
-
---
--- Syscalls
---
-
-#if !defined(mingw32_HOST_OS)
-hDataSync ::  Handle -> IO ()
-hDataSync h = do
-    FD { fdFD } <- handleToFd h
-    throwErrnoIfMinus1_ "ghc-tags-plugin" (c_fdatasync fdFD)
-
-foreign import ccall safe "fdatasync"
-    c_fdatasync :: CInt -> IO CInt
-#else
-hDataSync :: Handle -> IO ()
-hDataSync _ = pure ()
-#endif
