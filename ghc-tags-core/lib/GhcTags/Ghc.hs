@@ -28,7 +28,9 @@ import           Data.Foldable (foldl')
 import           Data.ByteString (ByteString)
 
 -- Ghc imports
-#if   __GLASGOW_HASKELL__ >= 900
+#if   __GLASGOW_HASKELL__ >= 902
+import           GHC.Types.SourceText (SourceText (..))
+#elif __GLASGOW_HASKELL__ >= 900
 import           GHC.Types.Basic (SourceText (..))
 #else
 import           BasicTypes      (SourceText (..))
@@ -40,9 +42,9 @@ import           FastString          (bytesFS)
 #else
 import           FastString          (FastString (fs_bs))
 #endif
-#if   __GLASGOW_HASKELL__ >= 900
+#if   __GLASGOW_HASKELL__ >= 900 && __GLASGOW_HASKELL__ < 902
 import           GHC.Types.FieldLabel (FieldLbl (..))
-#else
+#elif __GLASGOW_HASKELL__ < 900
 import           FieldLabel           (FieldLbl (..))
 #endif
 import           GHC_IMPORT(Binds)
@@ -61,7 +63,11 @@ import           GHC_IMPORT(Decls)
                               , FamilyResultSig (..)
                               , ForeignDecl (..)
                               , LHsDecl
+#if   __GLASGOW_HASKELL__ >= 902
+                              , HsConDeclH98Details
+#else
                               , HsConDeclDetails
+#endif
                               , HsDecl (..)
                               , HsDataDefn (..)
                               , InstDecl (..)
@@ -90,7 +96,9 @@ import           HsTypes
                               ( ConDeclField (..)
                               , FieldOcc (..)
                               , HsConDetails (..)
+#if   __GLASGOW_HASKELL__ < 902
                               , HsImplicitBndrs (..)
+#endif
                               , HsKind
                               , HsTyVarBndr (..)
                               , HsType (..)
@@ -102,7 +110,7 @@ import           HsTypes
                               , LHsType
                               )
 
-#if __GLASGOW_HASKELL__ >= 900
+#if   __GLASGOW_HASKELL__ >= 900
 import           GHC.Types.SrcLoc
                                 ( GenLocated (..)
                                 , Located
@@ -129,10 +137,20 @@ import           Name           ( nameOccName
                                 , occNameFS
                                 )
 #endif
-#if __GLASGOW_HASKELL__ >= 810
+#if   __GLASGOW_HASKELL__ >= 902
+import           GHC.Hs       ( HsModule (..)
+                              , HsSigType (..)
+                              , HsConDeclGADTDetails (..)
+                              )
+import           GHC.Parser.Annotation (SrcSpanAnn' (..))
+#elif __GLASGOW_HASKELL__ >= 810
 import           GHC.Hs       ( HsModule (..) )
 #else
 import           HsSyn        ( HsModule (..) )
+#endif
+
+#if __GLASGOW_HASKELL__ < 902
+type HsConDeclH98Details ps = HsConDeclDetails ps
 #endif
 
 #if __GLASGOW_HASKELL__ >= 900
@@ -208,7 +226,11 @@ isExported (Just ies) (L _ name) =
     ieName :: IE GhcPs -> Maybe RdrName
     ieName (IEVar _ (L _ n))              = Just $ ieWrappedName n
     ieName (IEThingAbs  _ (L _ n))        = Just $ ieWrappedName n
+#if __GLASGOW_HASKELL__ < 902
     ieName (IEThingWith _ (L _ n) _ _ _)  = Just $ ieWrappedName n
+#else
+    ieName (IEThingWith _ (L _ n) _ _)    = Just $ ieWrappedName n
+#endif
     ieName (IEThingAll  _ (L _ n))        = Just $ ieWrappedName n
     ieName _ = Nothing
 
@@ -230,17 +252,31 @@ isMemberExported (Just ies) memberName  className  = any go ies
 
     go (IEThingAll _ (L _ n)) = ieWrappedName n == unLoc className
 
+#if __GLASGOW_HASKELL__ < 902
     go (IEThingWith _ _ IEWildcard{} _ _) = True
+#else
+    go (IEThingWith _ _ IEWildcard{} _)   = True
+#endif
 
+#if __GLASGOW_HASKELL__ < 902
     go (IEThingWith _ (L _ n) NoIEWildcard ns lfls) =
+#else
+    go (IEThingWith _ (L _ n) NoIEWildcard ns) =
+#endif
             ieWrappedName n == unLoc className
+#if __GLASGOW_HASKELL__ < 902
          && (isInWrappedNames || isInFieldLbls)
+#else
+         &&  isInWrappedNames
+#endif
       where
         -- the 'NameSpace' does not agree between things that are in the 'IE'
         -- list and passed member or type class names (constructor / type
         -- constructor names, respectively)
         isInWrappedNames = any ((== occNameFS (rdrNameOcc (unLoc memberName))) . occNameFS . rdrNameOcc . ieWrappedName . unLoc) ns
+#if __GLASGOW_HASKELL__ < 902
         isInFieldLbls    = any ((== occNameFS (rdrNameOcc (unLoc memberName))) . occNameFS . rdrNameOcc . flSelector. unLoc) lfls
+#endif
 
     go _ = False
 
@@ -353,7 +389,7 @@ hsDeclsToGhcTags mies =
     -- Main routine which traverse all top level declarations.
     --
     go :: GhcTags -> LHsDecl GhcPs -> GhcTags
-    go tags (L decLoc hsDecl) = case hsDecl of
+    go tags (L decLoc' hsDecl) = let decLoc = locAnn decLoc' in case hsDecl of
 
       -- type or class declaration
       TyClD _ tyClDecl ->
@@ -367,7 +403,7 @@ hsDeclsToGhcTags mies =
 
           -- type synonyms
           SynDecl { tcdLName, tcdRhs = L _ hsType } ->
-            mkGhcTag' decLoc tcdLName (GtkTypeSynonym hsType) : tags
+            mkGhcTag' decLoc (unSpanAnn tcdLName) (GtkTypeSynonym hsType) : tags
 
           -- data declaration:
           --   type,
@@ -377,8 +413,8 @@ hsDeclsToGhcTags mies =
           DataDecl { tcdLName, tcdDataDefn } ->
             case tcdDataDefn of
               HsDataDefn { dd_cons, dd_kindSig } ->
-                     mkGhcTag' decLoc tcdLName (GtkTypeConstructor (unLoc <$> dd_kindSig))
-                   : (mkConsTags decLoc tcdLName . unLoc) `concatMap` dd_cons
+                     mkGhcTag' decLoc (unSpanAnn tcdLName) (GtkTypeConstructor (unLoc <$> dd_kindSig))
+                   : (mkConsTags decLoc (unSpanAnn tcdLName) . unLoc) `concatMap` dd_cons
                   ++ tags
 
 #if __GLASGOW_HASKELL__ < 900
@@ -393,23 +429,26 @@ hsDeclsToGhcTags mies =
           --
           ClassDecl { tcdLName, tcdSigs, tcdMeths, tcdATs, tcdATDefs } ->
               -- class name
-              mkGhcTag' decLoc tcdLName GtkTypeClass
+              mkGhcTag' decLoc (unSpanAnn tcdLName) GtkTypeClass
                -- class methods
-             : (mkClsMemberTags decLoc tcdLName . unLoc) `concatMap` tcdSigs
+             : (mkClsMemberTags decLoc (unSpanAnn tcdLName) . unLoc) `concatMap` tcdSigs
                -- default methods
             ++ foldl' (\tags' hsBind -> mkHsBindLRTags decLoc (unLoc hsBind) ++ tags')
                      []
                      tcdMeths
             -- associated types
-            ++ ((\a -> mkFamilyDeclTags decLoc a (Just tcdLName)) . unLoc) `mapMaybe` tcdATs
+            ++ ((\a -> mkFamilyDeclTags decLoc a (Just $ unSpanAnn tcdLName)) . unLoc) `mapMaybe` tcdATs
             -- associated type defaults (data type families, type families
             -- (open or closed)
             ++ foldl'
 #if __GLASGOW_HASKELL__ < 810
                 (\tags' (L _ tyFamDeflEqn) ->
                   let decl = Nothing in
-#else
+#elif __GLASGOW_HASKELL__ < 902
                 (\tags' (L _ decl'@(TyFamInstDecl (HsIB { hsib_body = tyFamDeflEqn }))) ->
+                  let decl = Just decl' in
+#else
+                (\tags' (L _ decl'@(TyFamInstDecl { tfid_eqn = tyFamDeflEqn })) ->
                   let decl = Just decl' in
 #endif
                     case tyFamDeflEqn of
@@ -451,8 +490,12 @@ hsDeclsToGhcTags mies =
 #endif
 
                     -- TODO: @hsbib_body :: LHsType GhcPs@
-                    HsIB { hsib_body } ->
-                      case mkLHsTypeTag decLoc hsib_body of
+#if __GLASGOW_HASKELL__ < 902
+                    HsIB { hsib_body = body } ->
+#else
+                    L _ HsSig { sig_body = body } ->
+#endif
+                      case mkLHsTypeTag decLoc body of
                         Nothing  ->       tyFamTags ++ dataFamTags ++ tags
                         Just tag -> tag : tyFamTags ++ dataFamTags ++ tags
                 where
@@ -488,7 +531,7 @@ hsDeclsToGhcTags mies =
       KindSigD _ stdKindSig ->
         case stdKindSig of
           StandaloneKindSig _ ksName sigType ->
-           mkGhcTag' decLoc ksName  (GtkTypeKindSignature sigType) : tags
+           mkGhcTag' decLoc (unSpanAnn ksName)  (GtkTypeKindSignature sigType) : tags
 
 #if __GLASGOW_HASKELL__ < 900
           XStandaloneKindSig {} -> tags
@@ -508,10 +551,10 @@ hsDeclsToGhcTags mies =
                   SourceText s -> tag { gtFFI = Just s }
               : tags
             where
-              tag = mkGhcTag' decLoc fd_name GtkForeignImport
+              tag = mkGhcTag' decLoc (unSpanAnn fd_name) GtkForeignImport
 
           ForeignExport { fd_name } ->
-              mkGhcTag' decLoc fd_name GtkForeignExport
+              mkGhcTag' decLoc (unSpanAnn fd_name) GtkForeignExport
             : tags
 
 #if __GLASGOW_HASKELL__ < 900
@@ -540,22 +583,30 @@ hsDeclsToGhcTags mies =
                -- constructor declaration
                -> GhcTags
 
+#if __GLASGOW_HASKELL__ < 902
     mkConsTags decLoc tyName con@ConDeclGADT { con_names, con_args } =
-         (\n -> mkGhcTagForMember decLoc n tyName (GtkGADTConstructor con))
+#else
+    mkConsTags decLoc tyName con@ConDeclGADT { con_names, con_g_args = con_args } =
+#endif
+         ( (\n -> mkGhcTagForMember decLoc n tyName (GtkGADTConstructor con))
+         . unSpanAnn )
          `map` con_names
-      ++ mkHsConDeclDetails decLoc tyName con_args
+      ++ mkHsConDeclGADTDetails decLoc tyName con_args
 
     mkConsTags decLoc tyName con@ConDeclH98  { con_name, con_args } =
-        mkGhcTagForMember decLoc con_name tyName
+        mkGhcTagForMember decLoc (unSpanAnn con_name) tyName
           (GtkDataConstructor con)
-      : mkHsConDeclDetails decLoc tyName con_args
+      : mkHsConDeclH98Details decLoc tyName con_args
 
 #if __GLASGOW_HASKELL__ < 900
     mkConsTags _ _ XConDecl {} = []
 #endif
 
-    mkHsConDeclDetails :: SrcSpan -> Located RdrName -> HsConDeclDetails GhcPs -> GhcTags
-    mkHsConDeclDetails decLoc tyName (RecCon (L _ fields)) =
+    mkHsConDeclH98Details :: SrcSpan
+                          -> Located RdrName
+                          -> HsConDeclH98Details GhcPs
+                          -> GhcTags
+    mkHsConDeclH98Details decLoc tyName (RecCon (L _ fields)) =
         foldl' f [] fields
       where
         f :: GhcTags -> LConDeclField GhcPs -> GhcTags
@@ -566,13 +617,37 @@ hsDeclsToGhcTags mies =
 
         g :: GhcTags -> LFieldOcc GhcPs -> GhcTags
         g ts (L _ FieldOcc { rdrNameFieldOcc }) =
-            mkGhcTagForMember decLoc rdrNameFieldOcc tyName GtkRecordField
+            mkGhcTagForMember decLoc (unSpanAnn rdrNameFieldOcc) tyName GtkRecordField
           : ts
 #if __GLASGOW_HASKELL__ < 900
         g ts _ = ts
 #endif
 
-    mkHsConDeclDetails _ _ _ = []
+    mkHsConDeclH98Details _ _ _ = []
+
+    mkHsConDeclGADTDetails :: SrcSpan
+                           -> Located RdrName
+#if __GLASGOW_HASKELL__ < 902
+                           -> HsConDeclH98Details  GhcPs
+#else
+                           -> HsConDeclGADTDetails GhcPs
+#endif
+                           -> GhcTags
+#if __GLASGOW_HASKELL__ < 902
+    mkHsConDeclGADTDetails = mkHsConDeclH98Details
+#else
+    mkHsConDeclGADTDetails decLoc tyName (RecConGADT (L _ fields)) =
+        foldl' f [] fields
+      where
+        f :: GhcTags -> LConDeclField GhcPs -> GhcTags
+        f ts (L _ ConDeclField { cd_fld_names }) = foldl' g ts cd_fld_names
+
+        g :: GhcTags -> LFieldOcc GhcPs -> GhcTags
+        g ts (L _ FieldOcc { rdrNameFieldOcc }) =
+            mkGhcTagForMember decLoc (unSpanAnn rdrNameFieldOcc) tyName GtkRecordField
+          : ts
+    mkHsConDeclGADTDetails _ _ _ = []
+#endif
 
 
     mkHsBindLRTags :: SrcSpan
@@ -581,7 +656,7 @@ hsDeclsToGhcTags mies =
                    -> GhcTags
     mkHsBindLRTags decLoc hsBind =
       case hsBind of
-        FunBind { fun_id } -> [mkGhcTag' decLoc fun_id GtkFunction]
+        FunBind { fun_id } -> [mkGhcTag' decLoc (unSpanAnn fun_id) GtkFunction]
 
         -- TODO
         -- This is useful fo generating tags for
@@ -590,12 +665,13 @@ hsDeclsToGhcTags mies =
         -- ```
         PatBind {} -> []
 
-        VarBind { var_id, var_rhs = L srcSpan _ } -> [mkGhcTag' decLoc (L srcSpan var_id) GtkTerm]
+        VarBind { var_id, var_rhs = L srcSpan _ } ->
+          [mkGhcTag' decLoc (unSpanAnn $ L srcSpan var_id) GtkTerm]
 
         -- abstraction binding is only used after translation
         AbsBinds {} -> []
 
-        PatSynBind _ PSB { psb_id } -> [mkGhcTag' decLoc psb_id GtkPatternSynonym]
+        PatSynBind _ PSB { psb_id } -> [mkGhcTag' decLoc (unSpanAnn psb_id) GtkPatternSynonym]
 #if __GLASGOW_HASKELL__ < 900
         PatSynBind _ XPatSynBind {} -> []
 #endif
@@ -607,26 +683,45 @@ hsDeclsToGhcTags mies =
 
     mkClsMemberTags :: SrcSpan -> Located RdrName -> Sig GhcPs -> GhcTags
     mkClsMemberTags decLoc clsName (TypeSig   _ lhs hsSigWcType) =
-      (\n -> mkGhcTagForMember decLoc n clsName (GtkTypeSignature hsSigWcType))
+      ( (\n -> mkGhcTagForMember decLoc n clsName (GtkTypeSignature hsSigWcType))
+      . unSpanAnn )
       `map` lhs
     mkClsMemberTags decLoc clsName (PatSynSig _ lhs _) =
-      (\n -> mkGhcTagForMember decLoc n clsName GtkPatternSynonym)
+      ( (\n -> mkGhcTagForMember decLoc n clsName GtkPatternSynonym)
+      . unSpanAnn )
       `map` lhs
+#if __GLASGOW_HASKELL__ < 902
     mkClsMemberTags decLoc clsName (ClassOpSig _ _ lhs HsIB { hsib_body = L _ hsType}) =
-      (\n ->  mkGhcTagForMember decLoc n clsName (GtkTypeClassMember hsType))
-      `map` lhs
+#else
+    mkClsMemberTags decLoc clsName (ClassOpSig _ _ lhs (L _ hsType)) =
+#endif
+      ( (\n -> mkGhcTagForMember decLoc n clsName
+                                (GtkTypeClassMember $ hsSigTypeToHsType hsType))
+      . unSpanAnn )
+     `map` lhs
     mkClsMemberTags _ _ _ = []
 
 
     mkSigTags :: SrcSpan -> Sig GhcPs -> GhcTags
     mkSigTags decLoc (TypeSig   _ lhs hsSigWcType)
-                                       = flip (mkGhcTag' decLoc) (GtkTypeSignature hsSigWcType)
+                                       = ( flip (mkGhcTag' decLoc)
+                                                (GtkTypeSignature hsSigWcType)
+                                         . unSpanAnn )
                                          `map` lhs
     mkSigTags decLoc (PatSynSig _ lhs _)
-                                       = flip (mkGhcTag' decLoc) GtkPatternSynonym
+                                       = ( flip (mkGhcTag' decLoc) GtkPatternSynonym
+                                         . unSpanAnn )
                                          `map` lhs
+#if __GLASGOW_HASKELL__ < 902
     mkSigTags decLoc (ClassOpSig _ _ lhs HsIB { hsib_body = L _ hsType })
-                                       = flip (mkGhcTag' decLoc) (GtkTypeClassMember hsType)
+#else
+    mkSigTags decLoc (ClassOpSig _ _ lhs (L _ hsType))
+#endif
+                                       = ( flip (mkGhcTag' decLoc)
+                                                ( GtkTypeClassMember
+                                                $ hsSigTypeToHsType hsType )
+                                         . unSpanAnn
+                                         )
                                          `map` lhs
 #if __GLASGOW_HASKELL__ < 900
     mkSigTags _ (ClassOpSig _ _ _ XHsImplicitBndrs {})
@@ -659,8 +754,8 @@ hsDeclsToGhcTags mies =
                      -> Maybe GhcTag
     mkFamilyDeclTags decLoc FamilyDecl { fdLName, fdInfo, fdTyVars, fdResultSig = L _ familyResultSig } assocClsName =
       case assocClsName of
-        Nothing      -> Just $ mkGhcTag' decLoc fdLName tk
-        Just clsName -> Just $ mkGhcTagForMember decLoc fdLName clsName tk
+        Nothing      -> Just $ mkGhcTag' decLoc (unSpanAnn fdLName) tk
+        Just clsName -> Just $ mkGhcTagForMember decLoc (unSpanAnn fdLName) clsName tk
       where
 
         mb_fdvars = case fdTyVars of
@@ -698,10 +793,10 @@ hsDeclsToGhcTags mies =
 
         HsQualTy {hst_body}   -> hsTypeTagName (unLoc hst_body)
 
-        HsTyVar _ _ a         -> Just $ a
+        HsTyVar _ _ a         -> Just $ unSpanAnn a
 
         HsAppTy _ a _         -> hsTypeTagName (unLoc a)
-        HsOpTy _ _ a _        -> Just $ a
+        HsOpTy _ _ a _        -> Just $ unSpanAnn a
         HsKindSig _ a _       -> hsTypeTagName (unLoc a)
 
         _                     -> Nothing
@@ -716,13 +811,17 @@ hsDeclsToGhcTags mies =
         XHsImplicitBndrs {} -> []
 #endif
 
+#if __GLASGOW_HASKELL__ < 902
         HsIB { hsib_body = FamEqn { feqn_tycon, feqn_rhs } } ->
+#else
+        FamEqn { feqn_tycon, feqn_rhs } ->
+#endif
           case feqn_rhs of
             HsDataDefn { dd_cons, dd_kindSig } ->
-                mkGhcTag' decLoc feqn_tycon
+                mkGhcTag' decLoc (unSpanAnn feqn_tycon)
                           (GtkDataTypeFamilyInstance
                             (unLoc <$> dd_kindSig))
-              : (mkConsTags decLoc feqn_tycon . unLoc)
+              : (mkConsTags decLoc (unSpanAnn feqn_tycon) . unLoc)
                 `concatMap` dd_cons
 
 #if __GLASGOW_HASKELL__ < 900
@@ -743,11 +842,39 @@ hsDeclsToGhcTags mies =
 #endif
 
         -- TODO: should we check @feqn_rhs :: LHsType GhcPs@ as well?
+#if __GLASGOW_HASKELL__ < 902
         HsIB { hsib_body = FamEqn { feqn_tycon } } ->
-          Just $ mkGhcTag' decLoc feqn_tycon (GtkTypeFamilyInstance (Just decl))
+#else
+        FamEqn { feqn_tycon } ->
+#endif
+          Just $ mkGhcTag' decLoc (unSpanAnn feqn_tycon) (GtkTypeFamilyInstance (Just decl))
 
 #if __GLASGOW_HASKELL__ < 900
         HsIB { hsib_body = XFamEqn {} } -> Nothing
+#endif
+
+#if __GLASGOW_HASKELL__ < 902
+unSpanAnn :: Located RdrName -> Located RdrName
+unSpanAnn = id
+#else
+unSpanAnn :: GenLocated (SrcSpanAnn' x) RdrName -> Located RdrName
+unSpanAnn (L s a) = L (locA s) a
+#endif
+
+#if __GLASGOW_HASKELL__ < 902
+locAnn :: SrcSpan -> SrcSpan
+locAnn = id
+#else
+locAnn :: SrcSpanAnn' a -> SrcSpan
+locAnn = locA
+#endif
+
+#if __GLASGOW_HASKELL__ < 902
+hsSigTypeToHsType :: HsType GhcPs -> HsType GhcPs
+hsSigTypeToHsType = id
+#else
+hsSigTypeToHsType :: HsSigType GhcPs -> HsType GhcPs
+hsSigTypeToHsType = unLoc . sig_body
 #endif
 
 --

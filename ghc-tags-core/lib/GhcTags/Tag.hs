@@ -377,7 +377,11 @@ combineTags compareFn modPath = go
 --
 ghcTagToTag :: SingTagKind tk -> DynFlags
             -> GhcTag -> Maybe (Tag tk)
-ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI } =
+#if   __GLASGOW_HASKELL__ >= 902
+ghcTagToTag sing _dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI } =
+#else
+ghcTagToTag sing  dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI } =
+#endif
     case gtSrcSpan of
       UnhelpfulSpan {} -> Nothing
 #if   __GLASGOW_HASKELL__ >= 900
@@ -540,7 +544,12 @@ ghcTagToTag sing dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI
         Text.intercalate " " -- remove all line breaks, tabs and multiple spaces
       . Text.words
       . Text.pack
-#if   __GLASGOW_HASKELL__ >= 900
+#if   __GLASGOW_HASKELL__ >= 902
+      . Out.renderWithContext
+          Out.defaultSDocContext { Out.sdocStyle = Out.mkErrStyle Out.neverQualify }
+      . Out.ppr
+      $ hsType
+#elif __GLASGOW_HASKELL__ >= 900
       $ Out.renderWithStyle
           (Out.initSDocContext
             dynFlags

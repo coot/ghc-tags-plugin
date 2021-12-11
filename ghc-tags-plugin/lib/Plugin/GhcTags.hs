@@ -52,8 +52,25 @@ import           GhcPlugins
                             ( CommandLineOption
                             , Plugin (..)
                             )
-#if __GLASGOW_HASKELL__ >= 900
+#if    __GLASGOW_HASKELL__ >= 900
 import qualified GHC.Driver.Plugins as GhcPlugins
+#if    __GLASGOW_HASKELL__ >= 902
+import           GHC.Driver.Env   ( Hsc
+                                  , HscEnv (..)
+                                  )
+import           GHC.Hs           (HsParsedModule (..))
+import           GHC.Unit.Module.ModSummary
+                                  (ModSummary (..))
+import           GHC.Types.Meta   ( MetaHook
+                                  , MetaRequest (..)
+                                  , MetaResult
+                                  , metaRequestAW
+                                  , metaRequestD
+                                  , metaRequestE
+                                  , metaRequestP
+                                  , metaRequestT
+                                  )
+#else
 import           GHC.Driver.Types ( Hsc
                                   , HsParsedModule (..)
                                   , ModSummary (..)
@@ -66,6 +83,7 @@ import           GHC.Driver.Types ( Hsc
                                   , metaRequestP
                                   , metaRequestT
                                   )
+#endif
 import           GHC.Driver.Hooks (Hooks (..))
 import           GHC.Unit.Types   (Module)
 import           GHC.Unit.Module.Location   (ModLocation (..))
@@ -94,10 +112,12 @@ import           GhcPlugins ( Hsc
                             )
 import qualified SrcLoc as GHC (SrcSpan (..), getLoc, srcSpanFile)
 #endif
-#if   __GLASGOW_HASKELL__ >= 900
-import           GHC.Driver.Session (DynFlags (hooks))
+#if   __GLASGOW_HASKELL__ >= 902
+import           GHC.Driver.Session (DynFlags)
+#elif __GLASGOW_HASKELL__ >= 900
+import           GHC.Driver.Session (DynFlags (DynFlags, hooks))
 #elif __GLASGOW_HASKELL__ >= 810
-import           DynFlags (DynFlags (hooks))
+import           DynFlags (DynFlags (DynFlags, hooks))
 #else
 import           DynFlags (DynFlags)
 #endif
@@ -183,7 +203,9 @@ type GhcPsModule = HsModule GhcPs
 plugin :: Plugin
 plugin = GhcPlugins.defaultPlugin {
       parsedResultAction = ghcTagsParserPlugin,
-#if __GLASGOW_HASKELL__ >= 810
+#if   __GLASGOW_HASKELL__ >= 902
+      driverPlugin       = ghcTagsDriverPlugin,
+#elif __GLASGOW_HASKELL__ >= 810
       dynflagsPlugin     = ghcTagsDynflagsPlugin,
 #endif
       pluginRecompile    = GhcPlugins.purePlugin
@@ -622,84 +644,90 @@ filterAdjacentTags tags =
 -- Tags for Template-Haskell splices
 --
 
+#if __GLASGOW_HASKELL__ >= 902
+ghcTagsDriverPlugin :: [CommandLineOption] -> HscEnv -> IO HscEnv
+ghcTagsDriverPlugin opts env@HscEnv{ hsc_hooks } = do
+    let hook = ghcTagsMetaHook opts (hsc_dflags env)
+    return env { hsc_hooks = hsc_hooks { runMetaHook = Just hook } }
+#else
+ghcTagsDynflagsPlugin :: [CommandLineOption] -> DynFlags -> IO DynFlags
+ghcTagsDynflagsPlugin options dynFlags@DynFlags { hooks } = do
+    let hook = ghcTagsMetaHook options dynFlags
+    return dynFlags { hooks = hooks { runMetaHook = Just hook } }
+
+#endif
+
 -- | DynFlags plugin which extract tags from TH splices.
 --
-ghcTagsDynflagsPlugin :: [CommandLineOption] -> DynFlags -> IO DynFlags
-ghcTagsDynflagsPlugin options dynFlags =
-    pure dynFlags
-      { hooks =
-          (hooks dynFlags)
-            { runMetaHook = Just ghcTagsMetaHook }
-      }
-  where
-    ghcTagsMetaHook :: MetaHook TcM
-    ghcTagsMetaHook request expr =
-      case runOptionParser options of
-        Success Options { filePath = Identity tagsFile
-                        , etags
-                        , debug
-                        } -> do
+ghcTagsMetaHook :: [CommandLineOption] -> DynFlags -> MetaHook TcM
+ghcTagsMetaHook options dynFlags request expr =
+    case runOptionParser options of
+      Success Options { filePath = Identity tagsFile
+                      , etags
+                      , debug
+                      } -> do
 
-          withMetaD defaultRunMeta request expr $ \decls ->
-            liftIO $
-              handle (\ioerr -> do
-                       putDocLn dynFlags
-                               (messageDoc UnhandledException Nothing
-                                 (displayException ioerr))
-                       throwIO (GhcTagsDynFlagsPluginIOException ioerr)) $
-              withFileLock debug tagsFile ExclusiveLock $ \_ -> do
-              cwd <- BSC.pack <$> getCurrentDirectory
-              tagsDir <- BSC.pack <$> canonicalizePath (fst $ splitFileName tagsFile)
-              tagsContent <- BSC.readFile tagsFile
-              if etags
-                then do
-                  pr <- ETag.parseTagsFile tagsContent
-                  case pr of
-                    Left err ->
-                      printMessageDoc dynFlags ParserException Nothing err
-
-                    Right tags -> do
-                      let tags' :: [ETag]
-                          tags' = sortBy ETag.compareTags $
-                                    tags
-                                    ++
-                                    (fmap (fixTagFilePath  cwd tagsDir)
-                                    . ghcTagToTag SingETag dynFlags)
-                                      `mapMaybe`
-                                       hsDeclsToGhcTags Nothing decls
-                      BSL.writeFile tagsFile (BB.toLazyByteString $ ETag.formatTagsFile tags')
-                else do
-                  pr <- fmap partitionEithers <$> CTag.parseTagsFile tagsContent
-                  case pr of
-                    Left err ->
-                      printMessageDoc dynFlags ParserException Nothing err
-
-                    Right (headers, tags) -> do
-                      let tags' :: [Either CTag.Header CTag]
-                          tags' = Left `map` headers
-                               ++ Right `map`
-                                  sortBy CTag.compareTags
-                                  ( tags
-                                    ++
-                                    (fmap (fixTagFilePath  cwd tagsDir)
-                                      . ghcTagToTag SingCTag dynFlags)
-                                      `mapMaybe`
-                                      hsDeclsToGhcTags Nothing decls
-                                  )
-                      BSL.writeFile tagsFile (BB.toLazyByteString $ CTag.formatTagsFile tags')
-
-        Failure (ParserFailure f)  ->
-          withMetaD defaultRunMeta request expr $ \_ ->
+        withMetaD defaultRunMeta request expr $ \decls ->
           liftIO $
-            putDocLn dynFlags
-                     (messageDoc
-                       OptionParserFailure
-                       Nothing
-                       (show (case f "<ghc-tags-plugin>" of (h, _, _) -> h)
-                         ++ " " ++ show options))
+            handle (\ioerr -> do
+                     putDocLn dynFlags
+                             (messageDoc UnhandledException Nothing
+                               (displayException ioerr))
+                     throwIO (GhcTagsDynFlagsPluginIOException ioerr)) $
+            withFileLock debug tagsFile ExclusiveLock $ \_ -> do
+            cwd <- BSC.pack <$> getCurrentDirectory
+            tagsDir <- BSC.pack <$> canonicalizePath (fst $ splitFileName tagsFile)
+            tagsContent <- BSC.readFile tagsFile
+            if etags
+              then do
+                pr <- ETag.parseTagsFile tagsContent
+                case pr of
+                  Left err ->
+                    printMessageDoc dynFlags ParserException Nothing err
 
-        CompletionInvoked {} -> error "ghc-tags-plugin: impossible happend"
+                  Right tags -> do
+                    let tags' :: [ETag]
+                        tags' = sortBy ETag.compareTags $
+                                  tags
+                                  ++
+                                  (fmap (fixTagFilePath  cwd tagsDir)
+                                  . ghcTagToTag SingETag dynFlags)
+                                    `mapMaybe`
+                                     hsDeclsToGhcTags Nothing decls
+                    BSL.writeFile tagsFile (BB.toLazyByteString $ ETag.formatTagsFile tags')
+              else do
+                pr <- fmap partitionEithers <$> CTag.parseTagsFile tagsContent
+                case pr of
+                  Left err ->
+                    printMessageDoc dynFlags ParserException Nothing err
 
+                  Right (headers, tags) -> do
+                    let tags' :: [Either CTag.Header CTag]
+                        tags' = Left `map` headers
+                             ++ Right `map`
+                                sortBy CTag.compareTags
+                                ( tags
+                                  ++
+                                  (fmap (fixTagFilePath  cwd tagsDir)
+                                    . ghcTagToTag SingCTag dynFlags)
+                                    `mapMaybe`
+                                    hsDeclsToGhcTags Nothing decls
+                                )
+                    BSL.writeFile tagsFile (BB.toLazyByteString $ CTag.formatTagsFile tags')
+
+      Failure (ParserFailure f)  ->
+        withMetaD defaultRunMeta request expr $ \_ ->
+        liftIO $
+          putDocLn dynFlags
+                   (messageDoc
+                     OptionParserFailure
+                     Nothing
+                     (show (case f "<ghc-tags-plugin>" of (h, _, _) -> h)
+                       ++ " " ++ show options))
+
+      CompletionInvoked {} -> error "ghc-tags-plugin: impossible happend"
+
+  where
     -- run the hook and call call the callback with new declarations
     withMetaD :: MetaHook TcM -> MetaRequest -> LHsExpr GhcTc
                     -> ([LHsDecl GhcPs] -> TcM a)
@@ -795,9 +823,17 @@ messageDoc errorType mb_mod errorMessage =
 
 
 putDocLn :: DynFlags -> Out.SDoc -> IO ()
-putDocLn dynFlags sdoc =
+#if   __GLASGOW_HASKELL__ >= 902
+putDocLn _dynFlags sdoc =
+#else
+putDocLn  dynFlags sdoc =
+#endif
     putStrLn $
-#if __GLASGOW_HASKELL__ >= 900
+#if   __GLASGOW_HASKELL__ >= 902
+      Out.renderWithContext
+        Out.defaultSDocContext { Out.sdocStyle = Out.mkErrStyle Out.neverQualify }
+        sdoc
+#elif __GLASGOW_HASKELL__ >= 900
       Out.renderWithStyle
         (Out.initSDocContext
           dynFlags
