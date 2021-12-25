@@ -298,7 +298,7 @@ updateTags :: Options Identity
            -> IO ()
 updateTags Options { etags, filePath = Identity tagsFile, debug }
            ModSummary {ms_mod, ms_location, ms_hspp_opts = dynFlags}
-           lmodule sourceFile = do
+           lmodule destFile = do
   tagsFileExists <- doesFileExist tagsFile
 
   mbInSize <-
@@ -310,10 +310,10 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
           else pure (Just 0)
       else pure Nothing
 
-  when tagsFileExists
-    $ renameFile tagsFile sourceFile
-  withFile tagsFile WriteMode  $ \writeHandle ->
-    withFile sourceFile ReadWriteMode $ \readHandle -> do
+  -- when tagsFileExists
+    -- $ renameFile tagsFile destFile
+  withFile destFile WriteMode  $ \writeHandle ->
+    withFile tagsFile ReadWriteMode $ \readHandle -> do
       cwd <- BSC.pack <$> getCurrentDirectory
       -- absolute directory path of the tags file; we need canonical path
       -- (without ".." and ".") to make 'makeRelative' works.
@@ -473,6 +473,11 @@ updateTags Options { etags, filePath = Identity tagsFile, debug }
                                 ])
 
                     BB.hPutBuilder writeHandle (ETag.formatETagsFile tags')
+
+  
+  destFileExists <- doesFileExist destFile
+  when destFileExists $
+    renameFile destFile tagsFile
 
 
 -- | Filter adjacent tags.
