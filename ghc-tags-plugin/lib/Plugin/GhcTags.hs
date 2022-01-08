@@ -26,9 +26,7 @@ import           Data.Functor (void, (<$))
 #endif
 import           Data.Functor.Identity (Identity (..))
 import           Data.List (sortBy)
-#if __GLASGOW_HASKELL__ >= 810
 import           Data.Either (partitionEithers)
-#endif
 import           Data.Foldable (traverse_)
 import           Data.Maybe (mapMaybe)
 import           System.Directory
