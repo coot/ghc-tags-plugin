@@ -69,6 +69,14 @@ library
                        -optP --cpp
                        -Wall
                        -Wno-unticked-promoted-constructors
+                       -Wcompat
+                       -- the following three warnings are enabled by -Wall in
+                       -- ghc-9.2
+                       -Wno-incomplete-uni-patterns
+                       -Wno-incomplete-record-updates
+                       -Wpartial-fields
+                       -Widentities
+                       -Wredundant-constraints
 
 
 test-suite test
@@ -100,9 +108,8 @@ test-suite test
                        ghc-tags-core
   ghc-options:         -Wall
                        -Wno-unticked-promoted-constructors
-                       -Wcompat
-                       -Wincomplete-uni-patterns
-                       -Wincomplete-record-updates
+                       -Wno-incomplete-uni-patterns
+                       -Wno-incomplete-record-updates
                        -Wpartial-fields
                        -Widentities
                        -Wredundant-constraints

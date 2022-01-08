@@ -318,7 +318,8 @@ type ETag = Tag ETAG
 --
 --   prop> a == b => compareTags a b == EQ
 --
-compareTags :: forall (tk :: TAG_KIND). Ord (TagAddress tk) => Tag tk -> Tag tk -> Ordering
+compareTags :: forall (tk :: TAG_KIND). Ord (TagAddress tk)
+            => Tag tk -> Tag tk -> Ordering
 compareTags t0 t1 = on compare tagName t0 t1
                     -- sort type classes / type families before their instances,
                     -- and take precendence over a file where they are defined.
