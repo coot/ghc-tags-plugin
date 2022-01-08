@@ -3,7 +3,7 @@ tests: True
 flags: +gtp-check
 
 package ghc-tags-core
-  ghc-options: -Werror
+  ghc-options: -j2 -Werror
 
 package ghc-tags-plugin
-  ghc-options: -Werror
+  ghc-options: -j2 -Werror
