@@ -12,6 +12,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
 
+-- ghc-8.8.4 requires -Wno-redundant-constraints
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
+
 module GhcTags.Tag
   ( -- * Tag
     TAG_KIND (..)
@@ -318,7 +321,8 @@ type ETag = Tag ETAG
 --
 --   prop> a == b => compareTags a b == EQ
 --
-compareTags :: forall (tk :: TAG_KIND). Ord (TagAddress tk)
+compareTags :: forall (tk :: TAG_KIND).
+               Ord (TagAddress tk)
             => Tag tk -> Tag tk -> Ordering
 compareTags t0 t1 = on compare tagName t0 t1
                     -- sort type classes / type families before their instances,
