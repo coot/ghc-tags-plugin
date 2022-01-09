@@ -21,13 +21,15 @@ for template-haskell splices, but it requires: `ghc >= 8.10`.
 ----------------
 
 ```
-Usage: <program> [-e|--etags] [file_path]
+Usage: <program> [-e|--etags] [--stream] [--debug] [file_path]
   write tags from ghc abstract syntax tree
 
 Available options:
   -e,--etags               produce emacs etags file
+  --stream                 stream existing tags (ctags only)
   file_path                tags file: default tags or TAGS (when --etags is
                            specified)
+  --debug                  debugging output
 ```
 
 It can be an absolute path or relative (to the `*.cabal` package file rather

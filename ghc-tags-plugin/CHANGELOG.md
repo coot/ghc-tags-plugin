@@ -64,3 +64,8 @@
 * fix emacs support: ghc-tags-plugin can now correctly display multiple tags
   (e.g. instance declarations).  Thanks to @nfrisby for finding out how to do
   that.
+
+## 0.4.0.0 -- 2022-01-09
+
+* `ghc-tags-plugin` is not compatible with `ghc-9.2`
+* `--stream` option, only effective for `ctags`; When enabled, `ghc-tags-plugin` streams existing tags when adding the tags found in a new module.  Without this option the tags file is read at once into memory.
