@@ -74,6 +74,10 @@ library
                        -Wpartial-fields
                        -Widentities
                        -Wredundant-constraints
+  if impl(ghc < 8.10)
+    build-tool-depends: cpphs:cpphs >=1.20
+    ghc-options:       -pgmP cpphs
+                       -optP --cpp
 
 
 test-suite test
