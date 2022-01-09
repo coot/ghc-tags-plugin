@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 
+{-# OPTIONS_GHC -Wno-unused-imports #-}
+
 module Test.Golden.Parser (tests) where
 
 import           Control.Arrow
@@ -99,6 +101,7 @@ tests goldenTestDir =
           ]
 
       , testGroup "ETag"
+#if MIN_VERSION_tasty_golden(2,3,4)
           [ let input  = goldenTestDir </> "ouroboros-consensus.ETAGS"
                 golden = goldenTestDir </> "ouroboros-consensus.ETAGS" <.> ext <.> "golden"
                 output = goldenTestDir </> "ouroboros-consensus.ETAGS.out"
@@ -109,7 +112,11 @@ tests goldenTestDir =
                  output
                  (parseGoldenETagsFile input output)
 
-          , let input  = goldenTestDir </> "vim.ETAGS"
+          ,
+#else
+          [
+#endif
+            let input  = goldenTestDir </> "vim.ETAGS"
                 golden = goldenTestDir </> "vim.ETAGS" <.> ext <.> "golden"
                 output = goldenTestDir </> "vim.ETAGS.out"
             in goldenVsFile
@@ -158,6 +165,7 @@ parseGoldenETagsFile input output = do
           $ flip BS.hPutBuilder (ETag.formatETagsFile tags)
 
 
+#if MIN_VERSION_tasty_golden(2,3,4)
 goldenVsFileVerbose
   :: TestName -- ^ test name
   -> FilePath -- ^ path to the «golden» file (the file that contains correct output)
@@ -180,3 +188,4 @@ goldenVsFileVerbose name ref new act =
 
     upd = createDirectoriesAndWriteFile ref
     del = removeFile new
+#endif
