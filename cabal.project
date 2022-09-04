@@ -1,7 +1,9 @@
-index-state: 2021-12-10T00:00:00Z
+index-state: 2022-08-19T00:00:00Z
 
--- ghc-9.2.1 requirement
-allow-newer: lukko:base
+-- ghc-9.4.2 requirement
+allow-newer: lukko:base,
+             filepath-bytestring:base
+          
 
 packages: ghc-tags-plugin
           ghc-tags-core

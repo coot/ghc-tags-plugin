@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ghc: ["8.8.4", "8.10.7", "9.0.1", "9.2.1"]
+        ghc: ["8.8.4", "8.10.7", "9.0.2", "9.2.4", "9.4.2"]
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
@@ -22,7 +22,7 @@ jobs:
       id: setup-haskell
       with:
         ghc-version: ${{ matrix.ghc }}
-        cabal-version: 3.6.2.0
+        cabal-version: 3.8.1.0
 
     - name: Show Haskell tool versions
       run: |
