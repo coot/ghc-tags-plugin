@@ -198,7 +198,14 @@ type GhcPsModule = HsModule GhcPs
 --
 plugin :: Plugin
 plugin = GhcPlugins.defaultPlugin {
-      parsedResultAction = ghcTagsParserPlugin,
+      parsedResultAction =
+#if   __GLASGOW_HASKELL__ >= 904
+      -- TODO: add warnings / errors to 'ParsedResult'
+       \args summary result@GhcPlugins.ParsedResult { GhcPlugins.parsedResultModule } ->
+                     result <$ ghcTagsParserPlugin args summary parsedResultModule,
+#else
+        ghcTagsParserPlugin,
+#endif
 #if   __GLASGOW_HASKELL__ >= 902
       driverPlugin       = ghcTagsDriverPlugin,
 #elif __GLASGOW_HASKELL__ >= 810
@@ -221,7 +228,10 @@ instance Exception GhcTagsPluginException
 
 -- | The plugin does not change the 'HsParedModule', it only runs side effects.
 --
-ghcTagsParserPlugin :: [CommandLineOption] -> ModSummary -> HsParsedModule -> Hsc HsParsedModule
+ghcTagsParserPlugin :: [CommandLineOption]
+                    -> ModSummary
+                    -> HsParsedModule
+                    -> Hsc HsParsedModule
 ghcTagsParserPlugin options
                     moduleSummary@ModSummary {ms_mod, ms_hspp_opts = dynFlags}
                     hsParsedModule@HsParsedModule {hpm_module} =

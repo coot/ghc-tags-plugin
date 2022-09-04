@@ -613,8 +613,12 @@ hsDeclsToGhcTags mies =
 #endif
 
         g :: GhcTags -> LFieldOcc GhcPs -> GhcTags
-        g ts (L _ FieldOcc { rdrNameFieldOcc }) =
-            mkGhcTagForMember decLoc (unSpanAnn rdrNameFieldOcc) tyName GtkRecordField
+        g ts (L _ fo@FieldOcc {}) =
+#if __GLASGOW_HASKELL__ >= 904
+            mkGhcTagForMember decLoc (unSpanAnn $ foLabel fo) tyName GtkRecordField
+#else
+            mkGhcTagForMember decLoc (unSpanAnn $ rdrNameFieldOcc fo) tyName GtkRecordField
+#endif
           : ts
 #if __GLASGOW_HASKELL__ < 900
         g ts _ = ts
@@ -633,15 +637,23 @@ hsDeclsToGhcTags mies =
 #if __GLASGOW_HASKELL__ < 902
     mkHsConDeclGADTDetails = mkHsConDeclH98Details
 #else
+#if __GLASGOW_HASKELL__ < 904
     mkHsConDeclGADTDetails decLoc tyName (RecConGADT (L _ fields)) =
+#else
+    mkHsConDeclGADTDetails decLoc tyName (RecConGADT (L _ fields) _) =
+#endif
         foldl' f [] fields
       where
         f :: GhcTags -> LConDeclField GhcPs -> GhcTags
         f ts (L _ ConDeclField { cd_fld_names }) = foldl' g ts cd_fld_names
 
         g :: GhcTags -> LFieldOcc GhcPs -> GhcTags
-        g ts (L _ FieldOcc { rdrNameFieldOcc }) =
-            mkGhcTagForMember decLoc (unSpanAnn rdrNameFieldOcc) tyName GtkRecordField
+        g ts (L _ fo) =
+#if __GLASGOW_HASKELL__ >= 904
+            mkGhcTagForMember decLoc (unSpanAnn $ foLabel fo) tyName GtkRecordField
+#else
+            mkGhcTagForMember decLoc (unSpanAnn $ rdrNameFieldOcc fo) tyName GtkRecordField
+#endif
           : ts
     mkHsConDeclGADTDetails _ _ _ = []
 #endif
@@ -665,8 +677,10 @@ hsDeclsToGhcTags mies =
         VarBind { var_id, var_rhs = L srcSpan _ } ->
           [mkGhcTag' decLoc (unSpanAnn $ L srcSpan var_id) GtkTerm]
 
+#if __GLASGOW_HASKELL__ < 904
         -- abstraction binding is only used after translation
         AbsBinds {} -> []
+#endif
 
         PatSynBind _ PSB { psb_id } -> [mkGhcTag' decLoc (unSpanAnn psb_id) GtkPatternSynonym]
 #if __GLASGOW_HASKELL__ < 900
@@ -793,7 +807,11 @@ hsDeclsToGhcTags mies =
         HsTyVar _ _ a         -> Just $ unSpanAnn a
 
         HsAppTy _ a _         -> hsTypeTagName (unLoc a)
+#if __GLASGOW_HASKELL__ >= 904
+        HsOpTy _ _ _ a _        -> Just $ unSpanAnn a
+#else
         HsOpTy _ _ a _        -> Just $ unSpanAnn a
+#endif
         HsKindSig _ a _       -> hsTypeTagName (unLoc a)
 
         _                     -> Nothing
