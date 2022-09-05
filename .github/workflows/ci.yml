@@ -24,11 +24,6 @@ jobs:
         ghc-version: ${{ matrix.ghc }}
         cabal-version: 3.8.1.0
 
-    - name: Show Haskell tool versions
-      run: |
-        ghc --version
-        cabal --version
-
     - name: Select build directory
       run: |
         if [ "$RUNNER_OS" == Windows ]; then
@@ -72,9 +67,6 @@ jobs:
           dist-newstyle
           !dist-newstyle/**/.git
         key: cache-dist-${{ env.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.ghc }}
-
-    - name: Update Hackage index
-      run: cabal update
 
     - name: Use cabal.project.local.ci
       run: |
