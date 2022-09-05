@@ -2,10 +2,8 @@
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE NamedFieldPuns      #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeApplications    #-}
 
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
@@ -37,9 +35,9 @@ import           System.IO
 
 import           Options.Applicative.Types (ParserFailure (..))
 
-import qualified Pipes as Pipes
+import qualified Pipes
 import           Pipes.Safe (SafeT)
-import qualified Pipes.Safe as Pipes.Safe
+import qualified Pipes.Safe
 import qualified Pipes.ByteString as Pipes.BS
 
 #if __GLASGOW_HASKELL__ >= 900
@@ -210,7 +208,7 @@ plugin = GhcPlugins.defaultPlugin {
    }
 
 
--- | IOExcption wrapper; it is useful for the user to know that it's the plugin
+-- | IOException wrapper; it is useful for the user to know that it's the plugin
 -- not `ghc` that thrown the error.
 --
 data GhcTagsPluginException
@@ -320,7 +318,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
     --
     -- update ctags (streaming)
     --
-    -- Stream ctags from from the tags file and intersparse tags parsed from
+    -- Stream ctags from from the tags file and intersperse tags parsed from
     -- the current module.  The results are written to a destination file which
     -- is then renamed to tags file.
     updateCTags_stream = do
@@ -337,8 +335,6 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
               else pure (Just 0)
           else pure Nothing
 
-      -- when tagsFileExists
-        -- $ renameFile tagsFile destFile
       withFile destFile WriteMode  $ \writeHandle ->
         withFile tagsFile ReadWriteMode $ \readHandle -> do
           cwd <- BSC.pack <$> getCurrentDirectory
@@ -349,7 +345,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
             Nothing         -> pure ()
             Just sourcePath -> do
               let sourcePathBS = Text.encodeUtf8 (Text.pack sourcePath)
-                  -- path of the combiled module; it is relative to the cabal file,
+                  -- path of the compiled module; it is relative to the cabal file,
                   -- not the project.
                   modulePath =
                     case GHC.getLoc lmodule of
@@ -386,7 +382,6 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                             -- loudly and continue.
                             putDocLn dynFlags $ messageDoc ParserException (Just ms_mod) (displayException e)
                       )
-                      $
                       -- merge tags
                       (\tag -> do
                         -- update tags counter
@@ -470,7 +465,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
           Nothing         -> pure ()
           Just sourcePath -> do
             let sourcePathBS = Text.encodeUtf8 (Text.pack sourcePath)
-                -- path of the combiled module; it is relative to the cabal file,
+                -- path of the compiled module; it is relative to the cabal file,
                 -- not the project.
                 modulePath =
                   case GHC.getLoc lmodule of
@@ -729,7 +724,7 @@ ghcTagsMetaHook options dynFlags request expr =
     -- run the hook and call call the callback with new declarations
     withMetaD :: MetaHook TcM -> MetaRequest -> LHsExpr GhcTc
                     -> ([LHsDecl GhcPs] -> TcM a)
-                    -> TcM (MetaResult)
+                    -> TcM MetaResult
     withMetaD h req e f = case req of
       MetaE  k -> k <$> metaRequestE h e
       MetaP  k -> k <$> metaRequestP h e
@@ -746,7 +741,7 @@ ghcTagsMetaHook options dynFlags request expr =
 --
 
 fixFilePath :: RawFilePath
-            -- ^ curent directory
+            -- ^ current directory
             -> RawFilePath
             -- ^ tags file directory
             -> RawFilePath
@@ -773,7 +768,7 @@ fixTagFilePath cwd tagsDir tag@Tag { tagFilePath = TagFilePath fp } =
       }
 
 --
--- Error Formattng
+-- Error Formatting
 --
 
 data MessageSeverity
@@ -786,8 +781,8 @@ messageDoc errorType mb_mod errorMessage =
     Out.blankLine
       $+$
         Out.coloured PprColour.colBold
-          ((Out.text "GhcTagsPlugin: ")
-            Out.<> (Out.coloured messageColour (Out.text $ show errorType)))
+          (Out.text "GhcTagsPlugin: "
+            Out.<> Out.coloured messageColour (Out.text $ show errorType))
       $$
         case mb_mod of
           Just mod_ ->

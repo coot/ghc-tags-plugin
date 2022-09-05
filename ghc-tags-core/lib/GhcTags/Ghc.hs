@@ -1,8 +1,5 @@
-{-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE CPP                 #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
-{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 #if __GLASGOW_HASKELL__ >= 810
@@ -174,7 +171,7 @@ data GhcTagKind
     | GtkFunction
     | GtkTypeConstructor        (Maybe (HsKind GhcPs))
 
-    -- | H98 data construtor
+    -- | H98 data constructor
     | GtkDataConstructor               (ConDecl GhcPs)
 
     -- | GADT constructor with its type
@@ -188,7 +185,7 @@ data GhcTagKind
     | GtkTypeClassMember               (HsType GhcPs)
     | GtkTypeClassInstance             (HsType GhcPs)
     | GtkTypeFamily             (Maybe ([GhcPsHsTyVarBndr], Either (HsKind GhcPs) GhcPsHsTyVarBndr))
-    -- ghc-8.6.5 does not provide 'TyFamInstDecl' for assicated type families
+    -- ghc-8.6.5 does not provide 'TyFamInstDecl' for associated type families
     | GtkTypeFamilyInstance     (Maybe (TyFamInstDecl GhcPs))
     | GtkDataTypeFamily         (Maybe ([GhcPsHsTyVarBndr], Either (HsKind GhcPs) GhcPsHsTyVarBndr))
     | GtkDataTypeFamilyInstance (Maybe (HsKind GhcPs))
@@ -365,7 +362,7 @@ hsDeclsToGhcTags mies =
     -- like 'mkGhcTag' but checks if the identifier is exported
     mkGhcTag' :: SrcSpan
               -- ^ declaration's location; it is useful when the term does not
-              -- contain useful inforamtion (e.g. code generated from template
+              -- contain useful information (e.g. code generated from template
               -- haskell splices).
               ->  Located RdrName
               --  ^ @RdrName ~ IdP GhcPs@ it *must* be a name of a top level
@@ -377,7 +374,7 @@ hsDeclsToGhcTags mies =
 
 
     mkGhcTagForMember :: SrcSpan
-                      -- ^ declartion's 'SrcSpan'
+                      -- ^ declaration's 'SrcSpan'
                       -> Located RdrName -- member name
                       -> Located RdrName -- class name
                       -> GhcTagKind
@@ -445,7 +442,7 @@ hsDeclsToGhcTags mies =
                 (\tags' (L _ tyFamDeflEqn) ->
                   let decl = Nothing in
 #elif __GLASGOW_HASKELL__ < 902
-                (\tags' (L _ decl'@(TyFamInstDecl (HsIB { hsib_body = tyFamDeflEqn }))) ->
+                (\tags' (L _ decl'@(TyFamInstDecl HsIB { hsib_body = tyFamDeflEqn })) ->
                   let decl = Just decl' in
 #else
                 (\tags' (L _ decl'@(TyFamInstDecl { tfid_eqn = tyFamDeflEqn })) ->
@@ -826,7 +823,7 @@ hsDeclsToGhcTags mies =
 
 #if __GLASGOW_HASKELL__ < 900
             XHsDataDefn {} ->
-              mkGhcTag' decLoc feqn_tycon (GtkDataTypeFamilyInstance Nothing) : []
+              [mkGhcTag' decLoc feqn_tycon (GtkDataTypeFamilyInstance Nothing)]
 
         HsIB { hsib_body = XFamEqn {} } -> []
 #endif
