@@ -13,8 +13,11 @@ which generates tags for each compiled module or component.
 ● Requirements
 --------------
 
-The plugin requires at least: `ghc >= 8.6`; `ghc-tags-plugin` can generate tags
+The plugin requires at least: `ghc >= 8.8`; `ghc-tags-plugin` can generate tags
 for template-haskell splices, but it requires: `ghc >= 8.10`.
+
+`ghc-9.4` includes a [fix][ghc-issue-20417] which makes `cabal` cache mechanism
+works again.
 
 
 ● Plugin options
@@ -204,3 +207,5 @@ This plugin only reads & writes to `tags` file (and updates a shared mutable
 state) as of `IO`, and does not
 [modify/](https://github.com/coot/ghc-tags-plugin/blob/master/src/Plugin/GhcTags.hs#L95)
 the syntax tree.
+
+[ghc-issue-20417]: https://gitlab.haskell.org/ghc/ghc/-/issues/20417
