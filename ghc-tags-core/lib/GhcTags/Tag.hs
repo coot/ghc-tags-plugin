@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DerivingStrategies  #-}
@@ -102,7 +101,7 @@ bytesFS = fs_bs
 -- Tag
 --
 
--- | Promoted data type used to disntinguish 'CTAG's from 'ETAG's.
+-- | Promoted data type used to distinguish 'CTAG's from 'ETAG's.
 --
 data TAG_KIND = CTAG | ETAG
 
@@ -120,7 +119,7 @@ newtype TagName = TagName { getTagName :: Text }
   deriving (Eq, Ord, Show)
 
 
--- | When we parse a `tags` file we can eithera find no kind or recognize the
+-- | When we parse a `tags` file we can either find no kind or recognize the
 -- kind of GhcTagKind or we store the found character kind.  This allows us to
 -- preserve information from parsed tags files which were not created by
 -- `ghc-tags-plugin'
@@ -181,11 +180,11 @@ newtype ExCommand = ExCommand { getExCommand :: Text }
 -- | Tag address, either from a parsed file or from Haskell's AST>
 --
 data TagAddress (tk :: TAG_KIND) where
-      -- | Precise addres: line and column.  This is what we infer from @GHC@
+      -- | Precise address: line and column.  This is what we infer from @GHC@
       -- AST.
       --
       -- The two arguments are line number and either column number or offset
-      -- from the begining of the file.
+      -- from the beginning of the file.
       --
       TagLineCol :: !Int -> !Int -> TagAddress tk
 
@@ -278,7 +277,7 @@ data Tag (tk :: TAG_KIND) = Tag
   { tagName       :: !TagName
     -- ^ name of the tag
   , tagKind       :: !(TagKind tk)
-    -- ^ ctags specifc field, which classifies tags
+    -- ^ ctags specific field, which classifies tags
   , tagFilePath   :: !TagFilePath
     -- ^ source file path; it might not be normalised.
   , tagAddr       :: !(TagAddress tk)
@@ -326,7 +325,7 @@ compareTags :: forall (tk :: TAG_KIND).
             => Tag tk -> Tag tk -> Ordering
 compareTags t0 t1 = on compare tagName t0 t1
                     -- sort type classes / type families before their instances,
-                    -- and take precendence over a file where they are defined.
+                    -- and take precedence over a file where they are defined.
                     --
                     -- This will also sort type classes and instances before any
                     -- other terms.
@@ -443,7 +442,7 @@ ghcTagToTag sing  dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFF
       GtkForeignImport             -> TkForeignImport
       GtkForeignExport             -> TkForeignExport
 
-    -- static field (wheather term is exported or not)
+    -- static field (whether term is exported or not)
     staticField :: SingTagKind tk -> TagFields tk
     staticField = \case
       SingETag -> NoTagFields
@@ -528,7 +527,7 @@ ghcTagToTag sing  dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFF
 
 
     kindFieldName, typeFieldName, termFieldName :: Text
-    kindFieldName = "Kind" -- "kind" is reserverd
+    kindFieldName = "Kind" -- "kind" is reserved
     typeFieldName = "type"
     termFieldName = "term"
 
