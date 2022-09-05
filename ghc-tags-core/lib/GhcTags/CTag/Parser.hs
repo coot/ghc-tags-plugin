@@ -1,11 +1,9 @@
-{-# LANGUAGE BangPatterns               #-}
-{-# LANGUAGE LambdaCase                 #-}
-{-# LANGUAGE GADTs                      #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE DerivingStrategies         #-}
-{-# LANGUAGE NamedFieldPuns             #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 -- | Parser combinators for vim style tags (ctags)
 --
@@ -168,53 +166,51 @@ parseHeader = do
     e <- AB.string "!_TAG_" $> False
          <|>
          AB.string "!_" $> True
-    case e of
-      True ->
-               flip parsePseudoTagArgs (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
-             . PseudoTag
-             . Text.decodeUtf8
-         =<< AChar.takeWhile (\x -> notTabOrNewLine x && x /= '!')
-      False -> do
-        headerType <-
-              AB.string "FILE_ENCODING"     $> SomeHeaderType FileEncoding
-          <|> AB.string "FILE_FORMAT"       $> SomeHeaderType FileFormat
-          <|> AB.string "FILE_SORTED"       $> SomeHeaderType FileSorted
-          <|> AB.string "OUTPUT_MODE"       $> SomeHeaderType OutputMode
-          <|> AB.string "KIND_DESCRIPTION"  $> SomeHeaderType KindDescription
-          <|> AB.string "KIND_SEPARATOR"    $> SomeHeaderType KindSeparator
-          <|> AB.string "PROGRAM_AUTHOR"    $> SomeHeaderType ProgramAuthor
-          <|> AB.string "PROGRAM_NAME"      $> SomeHeaderType ProgramName
-          <|> AB.string "PROGRAM_URL"       $> SomeHeaderType ProgramUrl
-          <|> AB.string "PROGRAM_VERSION"   $> SomeHeaderType ProgramVersion
-          <|> AB.string "EXTRA_DESCRIPTION" $> SomeHeaderType ExtraDescription
-          <|> AB.string "FIELD_DESCRIPTION" $> SomeHeaderType FieldDescription
-        case headerType of
-          SomeHeaderType ht@FileEncoding ->
-              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
-          SomeHeaderType ht@FileFormat ->
-              parsePseudoTagArgs ht AChar.decimal
-          SomeHeaderType ht@FileSorted ->
-              parsePseudoTagArgs ht AChar.decimal
-          SomeHeaderType ht@OutputMode ->
-              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
-          SomeHeaderType ht@KindDescription ->
-              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
-          SomeHeaderType ht@KindSeparator ->
-              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
-          SomeHeaderType ht@ProgramAuthor ->
-              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
-          SomeHeaderType ht@ProgramName ->
-              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
-          SomeHeaderType ht@ProgramUrl ->
-              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
-          SomeHeaderType ht@ProgramVersion ->
-              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
-          SomeHeaderType ht@ExtraDescription ->
-              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
-          SomeHeaderType ht@FieldDescription ->
-              parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
-          SomeHeaderType PseudoTag {} ->
-              error "parseHeader: impossible happened"
+    if e then flip parsePseudoTagArgs (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
+            . PseudoTag
+            . Text.decodeUtf8
+        =<< AChar.takeWhile (\x -> notTabOrNewLine x && x /= '!')
+         else do
+      headerType <-
+            AB.string "FILE_ENCODING"     $> SomeHeaderType FileEncoding
+        <|> AB.string "FILE_FORMAT"       $> SomeHeaderType FileFormat
+        <|> AB.string "FILE_SORTED"       $> SomeHeaderType FileSorted
+        <|> AB.string "OUTPUT_MODE"       $> SomeHeaderType OutputMode
+        <|> AB.string "KIND_DESCRIPTION"  $> SomeHeaderType KindDescription
+        <|> AB.string "KIND_SEPARATOR"    $> SomeHeaderType KindSeparator
+        <|> AB.string "PROGRAM_AUTHOR"    $> SomeHeaderType ProgramAuthor
+        <|> AB.string "PROGRAM_NAME"      $> SomeHeaderType ProgramName
+        <|> AB.string "PROGRAM_URL"       $> SomeHeaderType ProgramUrl
+        <|> AB.string "PROGRAM_VERSION"   $> SomeHeaderType ProgramVersion
+        <|> AB.string "EXTRA_DESCRIPTION" $> SomeHeaderType ExtraDescription
+        <|> AB.string "FIELD_DESCRIPTION" $> SomeHeaderType FieldDescription
+      case headerType of
+        SomeHeaderType ht@FileEncoding ->
+            parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
+        SomeHeaderType ht@FileFormat ->
+            parsePseudoTagArgs ht AChar.decimal
+        SomeHeaderType ht@FileSorted ->
+            parsePseudoTagArgs ht AChar.decimal
+        SomeHeaderType ht@OutputMode ->
+            parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
+        SomeHeaderType ht@KindDescription ->
+            parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
+        SomeHeaderType ht@KindSeparator ->
+            parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
+        SomeHeaderType ht@ProgramAuthor ->
+            parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
+        SomeHeaderType ht@ProgramName ->
+            parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
+        SomeHeaderType ht@ProgramUrl ->
+            parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
+        SomeHeaderType ht@ProgramVersion ->
+            parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
+        SomeHeaderType ht@ExtraDescription ->
+            parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
+        SomeHeaderType ht@FieldDescription ->
+            parsePseudoTagArgs ht (Text.decodeUtf8 <$> AChar.takeWhile notTabOrNewLine)
+        SomeHeaderType PseudoTag {} ->
+            error "parseHeader: impossible happened"
 
   where
     parsePseudoTagArgs :: Show ty
