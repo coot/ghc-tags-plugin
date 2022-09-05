@@ -50,19 +50,31 @@ jobs:
         echo "TMPDIR=$RUNNER_TEMP"  >> $GITHUB_ENV
         echo "TMP=$RUNNER_TEMP"     >> $GITHUB_ENV
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - name: Cache cabal store
+    - name: Record dependencies
+      id: record-deps
+      run: |
+        cabal build all --dry-run
+        cat dist-newstyle/cache/plan.json | jq -r '."install-plan"[].id' | sort | uniq > dependencies.txt
+
+    - name: Cache `cabal store`
       uses: actions/cache@v2
       with:
         path: ${{ steps.setup-haskell.outputs.cabal-store }}
-        key: cabal-store-${{ env.CACHE_VERSION }}-${{ matrix.ghc }}-${{ matrix.os }}
+        key: cabal-store-${{ env.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('dependencies.txt') }}
+        restore-keys: cabal-store-${{ env.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.ghc }}
+
+    - name: Cache `dist-newstyle`
+      uses: actions/cache@v3
+      with:
+        path: |
+          dist-newstyle
+          !dist-newstyle/**/.git
+        key: cache-dist-${{ env.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.ghc }}
 
     - name: Update Hackage index
       run: cabal update
-
-    - name: Cabal Configure
-      run: cabal --builddir="$CABAL_BUILDDIR" configure --enable-tests
 
     - name: Use cabal.project.local.ci
       run: |
