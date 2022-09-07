@@ -425,8 +425,8 @@ hsDeclsToGhcTags mies =
           --   default data type instance
           --
           ClassDecl { tcdLName, tcdSigs, tcdMeths, tcdATs, tcdATDefs } ->
-              -- class name
-              mkGhcTag' decLoc (unSpanAnn tcdLName) GtkTypeClass
+               -- class name
+               mkGhcTag' decLoc (unSpanAnn tcdLName) GtkTypeClass
                -- class methods
              : (mkClsMemberTags decLoc (unSpanAnn tcdLName) . unLoc) `concatMap` tcdSigs
                -- default methods
