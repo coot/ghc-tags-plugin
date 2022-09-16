@@ -6,6 +6,7 @@
 --
 module GhcTags.CTag.Formatter
   ( formatTagsFile
+  , formatTagsFileMap
   -- * format a ctag
   , formatTag
   -- * format a pseudo-ctag
@@ -16,6 +17,8 @@ import           Control.Arrow ((|||))
 import           Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as BS
 import           Data.Char (isAscii)
+import           Data.List (sortBy)
+import qualified Data.Map.Strict as Map
 import           Data.Text          (Text)
 import qualified Data.Text.Encoding as Text
 
@@ -130,7 +133,17 @@ formatHeader Header { headerType, headerLanguage, headerArg, headerComment } =
 
 -- | 'ByteString' 'Builder' for vim 'Tag' file.
 --
-formatTagsFile :: [Either Header CTag]             -- ^ 'CTag's
+formatTagsFile :: [Either Header CTag] -- ^ 'CTag's
                -> Builder
 formatTagsFile tags =
     foldMap (formatHeader ||| formatTag) tags
+
+
+-- | 'ByteString' 'Builder' for vim 'Tag' file.
+--
+formatTagsFileMap :: [Header] -- ^ Headers
+                  -> CTagMap  -- ^ 'CTag's
+                  -> Builder
+formatTagsFileMap headers tags =
+      foldMap formatHeader headers
+   <> foldMap formatTag (sortBy compareTags . concat $ Map.elems tags)

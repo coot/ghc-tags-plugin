@@ -21,6 +21,8 @@ module GhcTags.Tag
   , Tag (..)
   , ETag
   , CTag
+  , ETagMap
+  , CTagMap
     -- ** Tag fields
   , TagName (..)
   , TagFilePath (..)
@@ -49,6 +51,7 @@ import           Data.Function (on)
 import           Data.ByteString (ByteString)
 #endif
 import qualified Data.ByteString as BS
+import           Data.Map.Strict (Map)
 import           Data.Text   (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
@@ -301,6 +304,10 @@ instance Eq (Tag tk) where
 
 type CTag = Tag CTAG
 type ETag = Tag ETAG
+
+type TagMap tt = Map TagFilePath [Tag tt]
+type CTagMap = TagMap CTAG
+type ETagMap = TagMap ETAG
 
 
 -- | Total order relation on 'Tag' elements.
