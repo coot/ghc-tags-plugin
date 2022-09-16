@@ -6,6 +6,7 @@
 {-# LANGUAGE NamedFieldPuns             #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TupleSections              #-}
 
 -- | Parser combinators for etags file format
 --
@@ -36,17 +37,17 @@ parseTagsFile :: ByteString
 parseTagsFile =
       fmap AB.eitherResult
     . AB.parseWith (pure mempty)
-                   (concat <$> many parseTagFileSection)
+                   (concat . map snd <$> many parseTagFileSection)
 
 
 -- | Parse tags from a single file (a single section in etags file).
 --
-parseTagFileSection :: Parser [ETag]
+parseTagFileSection :: Parser (TagFilePath, [ETag])
 parseTagFileSection = do
       tagFilePath <-
         AChar.char '\x0c' *> endOfLine
                           *> parseTagFilePath
-      many (parseTag tagFilePath)
+      (tagFilePath,) <$> many (parseTag tagFilePath)
 
 parseTagFilePath :: Parser TagFilePath
 parseTagFilePath =
