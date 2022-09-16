@@ -8,6 +8,7 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
 
@@ -46,6 +47,7 @@ module GhcTags.Tag
   , ghcTagToTag
   ) where
 
+import           Control.DeepSeq
 import           Data.Function (on)
 #if   __GLASGOW_HASKELL__ < 810
 import           Data.ByteString (ByteString)
@@ -121,6 +123,8 @@ data SingTagKind (tk :: TAG_KIND) where
 newtype TagName = TagName { getTagName :: Text }
   deriving (Eq, Ord, Show)
 
+instance NFData TagName where
+  rnf = rnf . getTagName
 
 -- | When we parse a `tags` file we can either find no kind or recognize the
 -- kind of GhcTagKind or we store the found character kind.  This allows us to
@@ -176,6 +180,8 @@ type ETagKind = TagKind
 deriving instance Eq   TagKind
 deriving instance Ord  TagKind
 deriving instance Show TagKind
+instance NFData TagKind where
+  rnf x = x `seq` ()
 
 
 newtype ExCommand = ExCommand { getExCommand :: Text }
@@ -220,6 +226,8 @@ type ETagAddress = TagAddress ETAG
 deriving instance Eq   (TagAddress tk)
 deriving instance Ord  (TagAddress tk)
 deriving instance Show (TagAddress tk)
+instance NFData (TagAddress tt) where
+  rnf x = x `seq` ()
 
 
 -- | Emacs tags specific field.
@@ -230,6 +238,8 @@ data TagDefinition (tk :: TAG_KIND) where
 
 deriving instance Show (TagDefinition tk)
 deriving instance Eq   (TagDefinition tk)
+instance NFData (TagDefinition tt) where
+  rnf x = x `seq` ()
 
 -- | Unit of data associated with a tag.  Vim natively supports `file:` and
 -- `kind:` tags but it can display any other tags too.
@@ -240,6 +250,9 @@ data TagField = TagField {
     }
   deriving (Eq, Ord, Show)
 
+instance NFData TagField where
+    rnf TagField { fieldName, fieldValue } =
+         rnf fieldName `seq` rnf fieldValue
 
 -- | File field; tags which contain 'fileField' are called static (aka static
 -- in @C@), such tags are only visible in the current file)
@@ -265,6 +278,9 @@ instance Monoid (TagFields CTAG) where
     mempty = TagFields mempty
 instance Monoid (TagFields ETAG) where
     mempty = NoTagFields
+instance NFData (TagFields tk) where
+    rnf NoTagFields    = ()
+    rnf (TagFields as) = rnf as
 
 type CTagFields = TagFields CTAG
 type ETagFields = TagFields ETAG
@@ -274,6 +290,9 @@ newtype TagFilePath = TagFilePath { getRawFilePath :: Text }
 
 instance Eq TagFilePath where
     (TagFilePath a) == (TagFilePath b) = a == b
+
+instance NFData TagFilePath where
+  rnf = rnf . getRawFilePath
 
 -- | Tag record.  For either ctags or etags formats.  It is either filled with
 -- information parsed from a tags file or from *GHC* ast.
@@ -302,6 +321,13 @@ instance Eq (Tag tk) where
             && on (==) tagAddr t0 t1
             && on (==) tagDefinition t0 t1
             && on (==) tagFields t0 t1
+
+instance NFData (Tag tt) where
+  rnf Tag {..} = rnf tagName
+           `seq` rnf tagKind
+           `seq` rnf tagAddr
+           `seq` rnf tagDefinition
+           `seq` rnf tagFields
 
 
 type CTag = Tag CTAG

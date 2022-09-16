@@ -2,6 +2,7 @@
 {-# LANGUAGE GADTs              #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE RankNTypes         #-}
+{-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
 module GhcTags.CTag.Header
@@ -13,13 +14,14 @@ module GhcTags.CTag.Header
   , headerTypeSing
   ) where
 
+import           Control.DeepSeq (NFData (..))
 import           Data.Text (Text)
 
 
 -- | A type safe representation of a /ctag/ header.
 --
 data Header where
-    Header :: forall ty. Show ty =>
+    Header :: forall ty. (NFData ty, Show ty) =>
               { headerType     :: HeaderType ty
               , headerLanguage :: Maybe Text
               , headerArg      :: ty
@@ -97,6 +99,12 @@ instance Eq Header where
 
 deriving instance Show Header
 
+instance NFData Header where
+  rnf Header {..} = rnf headerType
+              `seq` rnf headerLanguage
+              `seq` rnf headerArg
+              `seq` rnf headerComment
+
 -- | Enumeration of header type and values of their corresponding argument
 --
 data HeaderType ty where
@@ -118,6 +126,8 @@ data HeaderType ty where
 deriving instance Eq (HeaderType ty)
 deriving instance Ord (HeaderType ty)
 deriving instance Show (HeaderType ty)
+instance NFData (HeaderType ty) where
+    rnf a = a `seq` ()
 
 -- | Existential wrapper.
 --
@@ -130,7 +140,6 @@ data SomeHeaderType where
 data SingHeaderType ty where
     SingHeaderTypeText :: SingHeaderType Text
     SingHeaderTypeInt  :: SingHeaderType Int
-
 
 headerTypeSing :: HeaderType ty -> SingHeaderType ty
 headerTypeSing = \case
