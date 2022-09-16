@@ -6,6 +6,7 @@
 --
 module GhcTags.ETag.Formatter
   ( formatETagsFile
+  , formatTagsFileMap
   , formatTagsFile
   , formatTag
   , BuilderWithSize (..)
@@ -99,13 +100,15 @@ formatTagsFile ts@(Tag {tagFilePath} : _) =
 
 
 -- | Format a list of tags as etags file.  Tags from the same file must be
--- groupped together.
+-- grouped together.
 --
 formatETagsFile :: [ETag] -> Builder
 formatETagsFile =
       foldMap formatTagsFile
     . groupBy (on (==) tagFilePath)
 
+formatTagsFileMap :: ETagMap -> Builder
+formatTagsFileMap = foldMap formatTagsFile
 
 endOfLine :: String
 endOfLine = "\n"

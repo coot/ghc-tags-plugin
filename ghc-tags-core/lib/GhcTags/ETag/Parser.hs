@@ -12,6 +12,7 @@
 --
 module GhcTags.ETag.Parser
   ( parseTagsFile
+  , parseTagsFileMap
   , parseTagFileSection
   , parseTag
   ) where
@@ -22,6 +23,7 @@ import           Data.Attoparsec.ByteString  (Parser, (<?>))
 import qualified Data.Attoparsec.ByteString  as AB
 import qualified Data.Attoparsec.ByteString.Char8  as AChar
 import           Data.Functor (($>))
+import qualified Data.Map.Strict as Map
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import qualified System.FilePath.ByteString as FilePath
@@ -39,6 +41,14 @@ parseTagsFile =
     . AB.parseWith (pure mempty)
                    (concat . map snd <$> many parseTagFileSection)
 
+-- | Parse whole etags file
+--
+parseTagsFileMap :: ByteString
+                 -> IO (Either String ETagMap)
+parseTagsFileMap =
+      fmap AB.eitherResult
+    . AB.parseWith (pure mempty)
+                   (Map.fromList <$> many parseTagFileSection)
 
 -- | Parse tags from a single file (a single section in etags file).
 --

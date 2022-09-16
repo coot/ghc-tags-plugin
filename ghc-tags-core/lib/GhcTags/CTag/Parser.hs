@@ -9,6 +9,7 @@
 --
 module GhcTags.CTag.Parser
   ( parseTagsFile
+  , parseTagsFileMap
   , parseTagLine
   -- * parse a ctag
   , parseTag
@@ -24,8 +25,10 @@ import qualified Data.ByteString as BS
 import           Data.Attoparsec.ByteString  (Parser, (<?>))
 import qualified Data.Attoparsec.ByteString  as AB
 import qualified Data.Attoparsec.ByteString.Char8  as AChar
+import           Data.Either (partitionEithers)
 import           Data.Functor (void, ($>))
 import           Data.Function (on)
+import qualified Data.Map.Strict as Map
 import           Data.Text          (Text)
 import qualified Data.Text          as Text
 import qualified Data.Text.Encoding as Text
@@ -241,6 +244,19 @@ parseTagsFile =
       fmap AChar.eitherResult
     . AChar.parseWith (pure mempty) parseTags
 
+
+
+-- | Parse a vim-style tag file.
+--
+parseTagsFileMap :: ByteString
+                 -> IO (Either String ([Header], CTagMap))
+parseTagsFileMap =
+    fmap (fmap f) . parseTagsFile
+  where
+    f :: [Either Header CTag] -> ([Header], CTagMap)
+    f as = case partitionEithers as of
+      (headers, tags) ->
+        (headers, Map.fromListWith (++) [(tagFilePath tag, [tag]) | tag <- tags])
 
 --
 -- Utils
