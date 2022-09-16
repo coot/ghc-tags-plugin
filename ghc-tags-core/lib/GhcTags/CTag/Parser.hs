@@ -19,6 +19,7 @@ module GhcTags.CTag.Parser
 
 import           Control.Arrow ((***))
 import           Control.Applicative (many, (<|>))
+import           Control.DeepSeq (NFData)
 import           Control.Monad (guard)
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
@@ -216,7 +217,8 @@ parseHeader = do
             error "parseHeader: impossible happened"
 
   where
-    parsePseudoTagArgs :: Show ty
+    parsePseudoTagArgs :: NFData ty
+                       => Show ty
                        => HeaderType ty
                        -> Parser ty
                        -> Parser Header
