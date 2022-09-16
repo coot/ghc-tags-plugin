@@ -7,7 +7,7 @@ module GhcTags.CTag.Utils
 
 import           GhcTags.Tag
 
-tagKindToChar :: CTagKind -> Maybe Char
+tagKindToChar :: TagKind -> Maybe Char
 tagKindToChar tk = case tk of
     TkTerm                    -> Just '`'
     TkFunction                -> Just 'λ'
@@ -32,7 +32,7 @@ tagKindToChar tk = case tk of
     NoKind                    -> Nothing
 
 
-charToTagKind :: Char -> CTagKind
+charToTagKind :: Char -> TagKind
 charToTagKind c = case c of
      '`' -> TkTerm
      'λ' -> TkFunction

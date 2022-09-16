@@ -63,7 +63,7 @@ formatTag Tag { tagName, tagFilePath, tagAddr, tagKind, tagFields = TagFields ta
     formatTagAddress (TagCommand exCommand) =
       BS.byteString . Text.encodeUtf8 . getExCommand $ exCommand
 
-    formatKindChar :: CTagKind -> Builder
+    formatKindChar :: TagKind -> Builder
     formatKindChar tk =
       case tagKindToChar tk of
         Nothing -> mempty

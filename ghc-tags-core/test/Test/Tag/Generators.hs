@@ -68,7 +68,7 @@ fixAddr = fixText . Text.replace ";\"" ""
 wrap :: Char -> Text -> Text
 wrap c = Text.cons c . flip Text.snoc c
 
-genTagKind :: SingTagKind tk -> Gen (TagKind tk)
+genTagKind :: SingTagKind tk -> Gen TagKind
 genTagKind SingETag = pure NoKind
 genTagKind SingCTag = oneof
     [ pure TkTerm

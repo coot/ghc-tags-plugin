@@ -146,34 +146,36 @@ newtype TagName = TagName { getTagName :: Text }
 -- * 'TkForeignImport' - @I@
 -- * 'TkForeignExport' - @E@
 --
-data TagKind (tk :: TAG_KIND) where
-    TkTerm                   :: TagKind CTAG
-    TkFunction               :: TagKind CTAG
-    TkTypeConstructor        :: TagKind CTAG
-    TkDataConstructor        :: TagKind CTAG
-    TkGADTConstructor        :: TagKind CTAG
-    TkRecordField            :: TagKind CTAG
-    TkTypeSynonym            :: TagKind CTAG
-    TkTypeSignature          :: TagKind CTAG
-    TkPatternSynonym         :: TagKind CTAG
-    TkTypeClass              :: TagKind CTAG
-    TkTypeClassMember        :: TagKind CTAG
-    TkTypeClassInstance      :: TagKind CTAG
-    TkTypeFamily             :: TagKind CTAG
-    TkTypeFamilyInstance     :: TagKind CTAG
-    TkDataTypeFamily         :: TagKind CTAG
-    TkDataTypeFamilyInstance :: TagKind CTAG
-    TkForeignImport          :: TagKind CTAG
-    TkForeignExport          :: TagKind CTAG
-    CharKind                 :: !Char -> TagKind CTAG
-    NoKind                   :: TagKind tk
+data TagKind where
+    TkTerm                   :: TagKind
+    TkFunction               :: TagKind
+    TkTypeConstructor        :: TagKind
+    TkDataConstructor        :: TagKind
+    TkGADTConstructor        :: TagKind
+    TkRecordField            :: TagKind
+    TkTypeSynonym            :: TagKind
+    TkTypeSignature          :: TagKind
+    TkPatternSynonym         :: TagKind
+    TkTypeClass              :: TagKind
+    TkTypeClassMember        :: TagKind
+    TkTypeClassInstance      :: TagKind
+    TkTypeFamily             :: TagKind
+    TkTypeFamilyInstance     :: TagKind
+    TkDataTypeFamily         :: TagKind
+    TkDataTypeFamilyInstance :: TagKind
+    TkForeignImport          :: TagKind
+    TkForeignExport          :: TagKind
+    CharKind                 :: !Char -> TagKind
+    NoKind                   :: TagKind
 
-type CTagKind = TagKind CTAG
-type ETagKind = TagKind ETAG
+type CTagKind = TagKind
+{-# DEPRECATED CTagKind "Use TagKind" #-}
+type ETagKind = TagKind
+{-# DEPRECATED ETagKind "Use TagKind" #-}
 
-deriving instance Eq   (TagKind tk)
-deriving instance Ord  (TagKind tk)
-deriving instance Show (TagKind tk)
+deriving instance Eq   TagKind
+deriving instance Ord  TagKind
+deriving instance Show TagKind
 
 
 newtype ExCommand = ExCommand { getExCommand :: Text }
@@ -279,7 +281,7 @@ instance Eq TagFilePath where
 data Tag (tk :: TAG_KIND) = Tag
   { tagName       :: !TagName
     -- ^ name of the tag
-  , tagKind       :: !(TagKind tk)
+  , tagKind       :: !TagKind
     -- ^ ctags specific field, which classifies tags
   , tagFilePath   :: !TagFilePath
     -- ^ source file path; it might not be normalised.
@@ -291,7 +293,7 @@ data Tag (tk :: TAG_KIND) = Tag
   , tagFields     :: !(TagFields tk)
     -- ^ ctags specific field
   }
-  deriving (Show)
+  deriving Show
 
 instance Eq (Tag tk) where
     t0 == t1 = on (==) tagName t0 t1
@@ -342,7 +344,7 @@ compareTags t0 t1 = on compare tagName t0 t1
                  <> on compare tagKind     t0 t1
 
     where
-      getTkClass :: Tag tk -> Maybe (TagKind tk)
+      getTkClass :: Tag tk -> Maybe TagKind
       getTkClass t = case tagKind t of
         TkTypeClass              -> Just TkTypeClass
         TkTypeClassInstance      -> Just TkTypeClassInstance
@@ -413,11 +415,7 @@ ghcTagToTag sing  dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFF
                 SingCTag -> TagLineCol (srcSpanStartLine realSrcSpan)
                                        (srcSpanStartCol realSrcSpan)
 
-          , tagKind       =
-              case sing of
-                SingCTag -> fromGhcTagKind gtKind
-                SingETag -> NoKind
-
+          , tagKind       = fromGhcTagKind gtKind
           , tagDefinition = NoTagDefinition
 
           , tagFields     = (    staticField
@@ -427,7 +425,7 @@ ghcTagToTag sing  dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFF
           }
 
   where
-    fromGhcTagKind :: GhcTagKind -> CTagKind
+    fromGhcTagKind :: GhcTagKind -> TagKind
     fromGhcTagKind = \case
       GtkTerm                      -> TkTerm
       GtkFunction                  -> TkFunction
