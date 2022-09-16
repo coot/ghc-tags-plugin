@@ -129,7 +129,7 @@ parseTag =
       <|>
           TagCommand <$> parseExCommand
 
-    parseKindField :: Parser CTagKind
+    parseKindField :: Parser TagKind
     parseKindField = do
       x <-
         Text.decodeUtf8

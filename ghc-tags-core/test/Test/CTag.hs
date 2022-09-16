@@ -220,7 +220,7 @@ roundTripHeaderProp (ArbHeader h) =
 tagKindCharToCharProp :: Char -> Bool
 tagKindCharToCharProp c = Just c == CTag.tagKindToChar (CTag.charToTagKind c)
 
-newtype ArbCTagKind = ArbCTagKind { getArbCTagKind :: CTagKind }
+newtype ArbCTagKind = ArbCTagKind { getArbCTagKind :: TagKind }
   deriving Show
 
 instance Arbitrary ArbCTagKind where
