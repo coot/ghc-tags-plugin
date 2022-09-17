@@ -54,6 +54,7 @@ import           Data.ByteString (ByteString)
 #endif
 import qualified Data.ByteString as BS
 import           Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
 import           Data.Text   (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
@@ -256,6 +257,7 @@ instance NFData TagField where
     rnf TagField { fieldName, fieldValue } =
          rnf fieldName `seq` rnf fieldValue
 
+
 -- | File field; tags which contain 'fileField' are called static (aka static
 -- in @C@), such tags are only visible in the current file)
 --
@@ -273,9 +275,18 @@ data TagFields (tk :: TAG_KIND) where
 
 deriving instance Show (TagFields tk)
 deriving instance Eq   (TagFields tk)
+
+-- | Left biased semigroup.
+--
 instance Semigroup (TagFields tk) where
-    NoTagFields   <> NoTagFields   = NoTagFields
-    (TagFields a) <> (TagFields b) = TagFields (a ++ b)
+    NoTagFields  <> NoTagFields  = NoTagFields
+    TagFields as <> TagFields bs = TagFields
+                                 . map (uncurry TagField)
+                                 . Map.toList
+                                 $ Map.fromList [(fieldName f, fieldValue f) | f <- as]
+                                   <>
+                                   Map.fromList [(fieldName f, fieldValue f) | f <- bs]
+
 instance Monoid (TagFields CTAG) where
     mempty = TagFields mempty
 instance Monoid (TagFields ETAG) where
@@ -409,6 +420,12 @@ combineTags compareFn modPath = go
     go as [] = as
     {-# INLINE go #-}
 
+
+-- | A left biased semigroup for 'Tag', which allows to merge 'TagFields' using
+-- their monoid instance.
+--
+instance Semigroup (Tag tk) where
+    a <> b = a { tagFields = tagFields a <> tagFields b }
 
 --
 --  GHC interface
