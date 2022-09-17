@@ -109,6 +109,8 @@ bytesFS = fs_bs
 -- | Promoted data type used to distinguish 'CTAG's from 'ETAG's.
 --
 data TAG_KIND = CTAG | ETAG
+  deriving Show
+  --  `ghc-tags` is using it at term level.
 
 
 -- | Singletons for promoted types.
