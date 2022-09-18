@@ -502,8 +502,8 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
               Right (Left err) ->
                 printMessageDoc dynFlags ParserException (Just ms_mod) err
 
-              Right (Right !parsed) -> do
-                let !parsedTags = rights parsed 
+              Right (Right parsed) -> do
+                let parsedTags = rights parsed 
 
                     tags :: [CTag]
                     tags = map (fixTagFilePath cwd tagsDir)
