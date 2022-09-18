@@ -1,25 +1,25 @@
 cabal-version:       2.4
 name:                ghc-tags-core
-version:             0.3.1.1
+version:             0.4.0.0
 synopsis:            a library to work with tags created from Haskell parsed tree
 description:
   === library scope
   .
   'ghc-tags-core' library provides:
   .
-  *  a function to extract /tag/ information from @'HsModule' 'GhcPs'@ parsed tree representation of Haskell code
-  * parsers __ctag__ and __etag__ style tag files (/vim/ \/ /emacs/)
-  * formatting tags into __ctag__ and __etag__ files.
-  * tries to be compatible with [universal-ctags](https://github.com/universal-ctags/ctags)
+  * a function to extract /tag/ information from @'HsModule' 'GhcPs'@ parsed tree representation of Haskell code,
+  * parsers for __ctag__ and __etag__ style tag files (/vim/ \/ /emacs/),
+  * formatting tags into __ctag__ and __etag__ files,
+  * tries to be compatible with [universal-ctags](https://github.com/universal-ctags/ctags).
   .
   === developer tools
   Check out these projects:
   .
+  * [ghc-tags](https://hackage.haskell.org/package/ghc-tags) - a standalone ghc tags generator;
   * [ghc-tags-plugin](https://hackage.haskell.org/package/ghc-tags-plugin) -
     a ghc [compiler
     plugin](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/extending_ghc.html?highlight=compiler%20plugin#compiler-plugins)
-    which extracts tags during @GHC@'s parser pass
-  * more to come!
+    which extracts tags during @GHC@'s parser pass and from TH splices.
   .
 license:             MPL-2.0
 license-file:        LICENSE
@@ -32,7 +32,7 @@ extra-source-files:  CHANGELOG.md
                      README.md
 homepage:            https://github.com/coot/ghc-tags-plugin/tree/master/ghc-tags-core
 bug-reports:         https://github.com/coot/ghc-tags-plugin/issues
-tested-with:         GHC==8.8.4, GHC==8.10.7, GHC==9.0.1, GHC==9.2.4, GHC==9.4.2
+tested-with:         GHC==8.8.4, GHC==8.10.7, GHC==9.0.2, GHC==9.2.4, GHC==9.4.2
 
 
 library

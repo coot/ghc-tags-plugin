@@ -1,5 +1,9 @@
 # Revision history for ghctags
 
+## 0.4.0.2
+
+* Fixed a bug: no headers for ctag file when `--stream` option was not set.
+
 ## 0.4.0.1
 
 * `ghc-tags-plugin` is now compatible with `GHC-9.4`.
