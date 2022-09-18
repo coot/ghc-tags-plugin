@@ -146,6 +146,7 @@ instance NFData TagName where
 -- * 'TkTypeClass' - @C@
 -- * 'TkTypeClassMember' - @m@
 -- * 'TkTypeClassInstance' - @i@
+-- * 'TkTypeClassInstanceMember' - @i@
 -- * 'TkTypeFamily' - @f@
 -- * 'TkTypeFamilyInstance' - @F@
 -- * 'TkDataTypeFamily' - @d@
@@ -154,26 +155,27 @@ instance NFData TagName where
 -- * 'TkForeignExport' - @E@
 --
 data TagKind where
-    TkTerm                   :: TagKind
-    TkFunction               :: TagKind
-    TkTypeConstructor        :: TagKind
-    TkDataConstructor        :: TagKind
-    TkGADTConstructor        :: TagKind
-    TkRecordField            :: TagKind
-    TkTypeSynonym            :: TagKind
-    TkTypeSignature          :: TagKind
-    TkPatternSynonym         :: TagKind
-    TkTypeClass              :: TagKind
-    TkTypeClassMember        :: TagKind
-    TkTypeClassInstance      :: TagKind
-    TkTypeFamily             :: TagKind
-    TkTypeFamilyInstance     :: TagKind
-    TkDataTypeFamily         :: TagKind
-    TkDataTypeFamilyInstance :: TagKind
-    TkForeignImport          :: TagKind
-    TkForeignExport          :: TagKind
-    CharKind                 :: !Char -> TagKind
-    NoKind                   :: TagKind
+    TkTerm                    :: TagKind
+    TkFunction                :: TagKind
+    TkTypeConstructor         :: TagKind
+    TkDataConstructor         :: TagKind
+    TkGADTConstructor         :: TagKind
+    TkRecordField             :: TagKind
+    TkTypeSynonym             :: TagKind
+    TkTypeSignature           :: TagKind
+    TkPatternSynonym          :: TagKind
+    TkTypeClass               :: TagKind
+    TkTypeClassMember         :: TagKind
+    TkTypeClassInstance       :: TagKind
+    TkTypeClassInstanceMember :: TagKind
+    TkTypeFamily              :: TagKind
+    TkTypeFamilyInstance      :: TagKind
+    TkDataTypeFamily          :: TagKind
+    TkDataTypeFamilyInstance  :: TagKind
+    TkForeignImport           :: TagKind
+    TkForeignExport           :: TagKind
+    CharKind                  :: !Char -> TagKind
+    NoKind                    :: TagKind
 
 type CTagKind = TagKind
 {-# DEPRECATED CTagKind "Use TagKind" #-}
@@ -472,25 +474,26 @@ ghcTagToTag sing  dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFF
   where
     fromGhcTagKind :: GhcTagKind -> TagKind
     fromGhcTagKind = \case
-      GtkTerm                      -> TkTerm
-      GtkFunction                  -> TkFunction
-      GtkTypeConstructor {}        -> TkTypeConstructor
-      GtkDataConstructor {}        -> TkDataConstructor
-      GtkGADTConstructor {}        -> TkGADTConstructor
-      GtkRecordField               -> TkRecordField
-      GtkTypeSynonym {}            -> TkTypeSynonym
-      GtkTypeSignature {}          -> TkTypeSignature
-      GtkTypeKindSignature {}      -> TkTypeSignature
-      GtkPatternSynonym            -> TkPatternSynonym
-      GtkTypeClass                 -> TkTypeClass
-      GtkTypeClassMember {}        -> TkTypeClassMember
-      GtkTypeClassInstance {}      -> TkTypeClassInstance
-      GtkTypeFamily {}             -> TkTypeFamily
-      GtkTypeFamilyInstance {}     -> TkTypeFamilyInstance
-      GtkDataTypeFamily {}         -> TkDataTypeFamily
-      GtkDataTypeFamilyInstance {} -> TkDataTypeFamilyInstance
-      GtkForeignImport             -> TkForeignImport
-      GtkForeignExport             -> TkForeignExport
+      GtkTerm                       -> TkTerm
+      GtkFunction                   -> TkFunction
+      GtkTypeConstructor {}         -> TkTypeConstructor
+      GtkDataConstructor {}         -> TkDataConstructor
+      GtkGADTConstructor {}         -> TkGADTConstructor
+      GtkRecordField                -> TkRecordField
+      GtkTypeSynonym {}             -> TkTypeSynonym
+      GtkTypeSignature {}           -> TkTypeSignature
+      GtkTypeKindSignature {}       -> TkTypeSignature
+      GtkPatternSynonym             -> TkPatternSynonym
+      GtkTypeClass                  -> TkTypeClass
+      GtkTypeClassMember {}         -> TkTypeClassMember
+      GtkTypeClassInstance {}       -> TkTypeClassInstance
+      GtkTypeClassInstanceMember {} -> TkTypeClassInstanceMember
+      GtkTypeFamily {}              -> TkTypeFamily
+      GtkTypeFamilyInstance {}      -> TkTypeFamilyInstance
+      GtkDataTypeFamily {}          -> TkDataTypeFamily
+      GtkDataTypeFamilyInstance {}  -> TkDataTypeFamilyInstance
+      GtkForeignImport              -> TkForeignImport
+      GtkForeignExport              -> TkForeignExport
 
     -- static field (whether term is exported or not)
     staticField :: SingTagKind tk -> TagFields tk
@@ -520,6 +523,9 @@ ghcTagToTag sing  dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFF
       SingCTag ->
         case gtKind of
           GtkTypeClassInstance hsType ->
+            mkField "instance" hsType
+
+          GtkTypeClassInstanceMember hsType ->
             mkField "instance" hsType
 
           GtkTypeFamily (Just (hsTyVars, hsKind)) ->

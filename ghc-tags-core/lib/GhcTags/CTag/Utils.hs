@@ -21,6 +21,7 @@ tagKindToChar tk = case tk of
     TkTypeClass               -> Just 'C'
     TkTypeClassMember         -> Just 'm'
     TkTypeClassInstance       -> Just 'i'
+    TkTypeClassInstanceMember -> Just 'M'
     TkTypeFamily              -> Just 'f'
     TkTypeFamilyInstance      -> Just 'F'
     TkDataTypeFamily          -> Just 'd'
