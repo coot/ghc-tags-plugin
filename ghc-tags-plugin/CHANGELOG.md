@@ -1,5 +1,15 @@
 # Revision history for ghctags
 
+## 0.5.1.0
+
+- tags for local bindings (from `where` clauses)
+- tags for modules
+
+## 0.5.0.0
+
+- tags of instance methods & signatures
+- fixed a case in which generated ctags where missing headers
+
 ## 0.4.0.2
 
 * Fixed a bug: no headers for ctag file when `--stream` option was not set.
