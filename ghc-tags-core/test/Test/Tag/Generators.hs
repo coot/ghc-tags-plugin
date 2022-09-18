@@ -71,7 +71,8 @@ wrap c = Text.cons c . flip Text.snoc c
 genTagKind :: SingTagKind tk -> Gen TagKind
 genTagKind SingETag = pure NoKind
 genTagKind SingCTag = oneof
-    [ pure TkTerm
+    [ pure TkModule
+    , pure TkTerm
     , pure TkFunction
     , pure TkTypeConstructor
     , pure TkDataConstructor
@@ -83,6 +84,7 @@ genTagKind SingCTag = oneof
     , pure TkTypeClass
     , pure TkTypeClassMember
     , pure TkTypeClassInstance
+    , pure TkTypeClassInstanceMember
     , pure TkTypeFamily
     , pure TkTypeFamilyInstance
     , pure TkDataTypeFamily
@@ -96,7 +98,7 @@ genTagKind SingCTag = oneof
     genChar = suchThat arbitrary
                        ( ((/= Char.Control) . Char.generalCategory)
                          /\ (/= ':')
-                         /\ (not . flip elem ("`λΛcgr≡⊢pCmifFdDIE" :: String))
+                         /\ (not . flip elem ("`λΛcgr≡⊢pCmifFdDIExM" :: String))
                        )
 
 shrinkTag' :: Tag tk -> [Tag tk]
