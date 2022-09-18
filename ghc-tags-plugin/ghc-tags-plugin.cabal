@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                ghc-tags-plugin
-version:             0.4.0.1
+version:             0.5.0.0
 synopsis:            A compiler plugin which generates tags file from GHC parsed syntax tree.
 description:
   A [GHC compiler plugin](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/extending_ghc.html?highlight=compiler%20plugin#compiler-plugins)
@@ -18,7 +18,7 @@ extra-source-files:  CHANGELOG.md
                      README.md
 homepage:            https://github.com/coot/ghc-tags-plugin#readme
 bug-reports:         https://github.com/coot/ghc-tags-plugin/issues
-tested-with:         GHC==8.8.4, GHC==8.10.7, GHC==9.0.1, GHC==9.2.4, GHC==9.4.2
+tested-with:         GHC==8.8.4, GHC==8.10.7, GHC==9.0.2, GHC==9.2.4, GHC==9.4.2
 
 -- Don't build gtp-check command by default; it's a development tool.
 flag gtp-check

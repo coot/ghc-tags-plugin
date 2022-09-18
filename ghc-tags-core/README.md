@@ -16,4 +16,5 @@ Create and work with CTAGS and ETAGS files
 Projects using this library
 ---------------------------
 
+* [ghc-tags](https://hackage.haskell.org/package/ghc-tags)
 * [ghc-tags-plugin](https://hackage.haskell.org/package/ghc-tags-plugin)

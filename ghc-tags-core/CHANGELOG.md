@@ -1,5 +1,16 @@
 # Revision history for ghc-tags-core
 
+## 0.4.0.0
+
+* Record tags for instance methods.
+* Added instance method tag field which records instance head
+* Changed `Semigroup` instance for `TagFields` (a left biased monoid isomorphic
+  with `Map` monoid instance, rather than the free monoid)
+* Added `Semigroup` instance for `Tag` type (a left biased monoid)
+* Changed `TagKind` type: not indexed by `TAG_KIND`
+* Added `CTagMap` and `ETagMap` with parsers & formatters (for used by
+  `ghc-tag`)
+
 ## 0.3.1.1 -- 2022-08-05
 
 * Support `GHC-9.4`
