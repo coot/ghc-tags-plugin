@@ -24,7 +24,7 @@ import           Data.Maybe    (mapMaybe)
 #if __GLASGOW_HASKELL__ >= 900
 import           Data.Maybe    (maybeToList)
 #endif
-import           Data.Foldable (foldl')
+import           Data.Foldable (foldl', toList)
 import           Data.ByteString (ByteString)
 
 -- Ghc imports
@@ -138,15 +138,33 @@ import           Name           ( nameOccName
                                 )
 #endif
 #if   __GLASGOW_HASKELL__ >= 902
-import           GHC.Hs       ( HsModule (..)
+import           GHC.Hs       ( HsConDeclGADTDetails (..)
+                              , HsModule (..)
                               , HsSigType (..)
-                              , HsConDeclGADTDetails (..)
                               )
 import           GHC.Parser.Annotation (SrcSpanAnn' (..))
 #elif __GLASGOW_HASKELL__ >= 810
 import           GHC.Hs       ( HsModule (..) )
 #else
 import           HsSyn        ( HsModule (..) )
+#endif
+#if __GLASGOW_HASKELL__ >= 810
+import           GHC.Hs       ( GRHSs (..)
+                              , HsLocalBinds
+                              , HsLocalBindsLR (..)
+                              , HsValBindsLR (..)
+                              , Match (..)
+                              , MatchGroup (..)
+                              )
+#else
+import           HsExpr       ( GRHSs (..)
+                              , Match (..)
+                              , MatchGroup (..)
+                              )
+import           HsBinds      ( HsLocalBinds
+                              , HsLocalBindsLR (..)
+                              , HsValBindsLR (..)
+                              )
 #endif
 #if __GLASGOW_HASKELL__ >= 900
 import           GHC.Unit.Module.Name (moduleNameFS)
@@ -632,6 +650,14 @@ hsDeclsToGhcTags mies =
     mkConsTags _ _ XConDecl {} = []
 #endif
 
+    mkHsLocalBindsTags :: SrcSpan -> HsLocalBinds GhcPs -> [GhcTag]
+    mkHsLocalBindsTags decLoc (HsValBinds _ (ValBinds _ hsBindsLR sigs)) =
+         -- where clause bindings
+         concatMap (mkHsBindLRTags decLoc . unLoc) (toList hsBindsLR)
+      ++ concatMap (mkSigTags decLoc . unLoc) sigs
+
+    mkHsLocalBindsTags _ _ = []
+
     mkHsConDeclH98Details :: SrcSpan
                           -> Located RdrName
                           -> HsConDeclH98Details GhcPs
@@ -698,7 +724,19 @@ hsDeclsToGhcTags mies =
                    -> GhcTags
     mkHsBindLRTags decLoc hsBind =
       case hsBind of
-        FunBind { fun_id } -> [mkGhcTag' decLoc (unSpanAnn fun_id) GtkFunction]
+        FunBind { fun_id, fun_matches } ->
+          let binds = map (grhssLocalBinds . m_grhss . unLoc)
+                    . unLoc
+                    . mg_alts
+                    $ fun_matches
+          in   mkGhcTag' decLoc (unSpanAnn fun_id) GtkFunction
+             : concatMap
+#if __GLASGOW_HASKELL__ >= 902
+                 (mkHsLocalBindsTags decLoc)
+#else
+                 (mkHsLocalBindsTags decLoc . unLoc)
+#endif
+                 binds
 
         -- TODO
         -- This is useful fo generating tags for
