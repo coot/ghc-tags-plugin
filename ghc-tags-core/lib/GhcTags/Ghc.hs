@@ -355,12 +355,14 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
 --
 --  * /module name/
 --  * /top level terms/
+--  * /local bindings/
 --  * /data types/
 --  * /record fields/
 --  * /type synonyms/
 --  * /type classes/
 --  * /type class members/
 --  * /type class instances/
+--  * /type class instance members/
 --  * /type families/
 --  * /type family instances/
 --  * /data type families/
