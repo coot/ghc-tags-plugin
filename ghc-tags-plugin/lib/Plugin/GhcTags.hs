@@ -19,9 +19,6 @@ import qualified Data.ByteString.Lazy    as BSL
 import qualified Data.ByteString.Builder as BB
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
-#if __GLASGOW_HASKELL__ < 808
-import           Data.Functor (void, (<$))
-#endif
 import           Data.Functor.Identity (Identity (..))
 import           Data.List (sortBy)
 #if __GLASGOW_HASKELL__ < 810
