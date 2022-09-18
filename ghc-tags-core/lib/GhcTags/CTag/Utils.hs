@@ -9,6 +9,7 @@ import           GhcTags.Tag
 
 tagKindToChar :: TagKind -> Maybe Char
 tagKindToChar tk = case tk of
+    TkModule                  -> Just 'M'
     TkTerm                    -> Just '`'
     TkFunction                -> Just 'λ'
     TkTypeConstructor         -> Just 'Λ'
@@ -21,7 +22,7 @@ tagKindToChar tk = case tk of
     TkTypeClass               -> Just 'C'
     TkTypeClassMember         -> Just 'm'
     TkTypeClassInstance       -> Just 'i'
-    TkTypeClassInstanceMember -> Just 'M'
+    TkTypeClassInstanceMember -> Just 'x'
     TkTypeFamily              -> Just 'f'
     TkTypeFamilyInstance      -> Just 'F'
     TkDataTypeFamily          -> Just 'd'
@@ -35,6 +36,7 @@ tagKindToChar tk = case tk of
 
 charToTagKind :: Char -> TagKind
 charToTagKind c = case c of
+     'M' -> TkModule
      '`' -> TkTerm
      'λ' -> TkFunction
      'Λ' -> TkTypeConstructor
@@ -47,6 +49,7 @@ charToTagKind c = case c of
      'C' -> TkTypeClass
      'm' -> TkTypeClassMember
      'i' -> TkTypeClassInstance
+     'x' -> TkTypeClassInstanceMember
      'f' -> TkTypeFamily
      'F' -> TkTypeFamilyInstance
      'd' -> TkDataTypeFamily

@@ -21,6 +21,9 @@ module GhcTags.Ghc
 
 
 import           Data.Maybe    (mapMaybe)
+#if __GLASGOW_HASKELL__ >= 900
+import           Data.Maybe    (maybeToList)
+#endif
 import           Data.Foldable (foldl')
 import           Data.ByteString (ByteString)
 
@@ -145,6 +148,9 @@ import           GHC.Hs       ( HsModule (..) )
 #else
 import           HsSyn        ( HsModule (..) )
 #endif
+#if __GLASGOW_HASKELL__ >= 900
+import           GHC.Unit.Module.Name (moduleNameFS)
+#endif
 
 #if __GLASGOW_HASKELL__ < 902
 type HsConDeclH98Details ps = HsConDeclDetails ps
@@ -167,7 +173,8 @@ bytesFS = fs_bs
 -- | Kind of the term.
 --
 data GhcTagKind
-    = GtkTerm
+    = GtkModule
+    | GtkTerm
     | GtkFunction
     | GtkTypeConstructor        (Maybe (HsKind GhcPs))
 
@@ -328,6 +335,7 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
 --
 -- Supported identifiers:
 --
+--  * /module name/
 --  * /top level terms/
 --  * /data types/
 --  * /record fields/
@@ -343,11 +351,32 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
 --
 getGhcTags :: Located GhcPsModule
            -> GhcTags
-getGhcTags (L _ HsModule { hsmodDecls, hsmodExports }) =
-    hsDeclsToGhcTags mies hsmodDecls
+#if __GLASGOW_HASKELL__ >= 900
+getGhcTags (L _ HsModule { hsmodName, hsmodDecls, hsmodExports }) =
+       maybeToList (mkModNameTag <$> hsmodName)
+    ++
+#else
+getGhcTags (L _ HsModule {            hsmodDecls, hsmodExports }) =
+#endif
+       hsDeclsToGhcTags mies hsmodDecls
   where
     mies :: Maybe [IE GhcPs]
     mies = map unLoc . unLoc <$> hsmodExports
+
+#if __GLASGOW_HASKELL__ >= 900
+    mkModNameTag (L loc modName) =
+      GhcTag { gtSrcSpan =
+#if __GLASGOW_HASKELL__ >= 902
+                 locA loc
+#else
+                 loc
+#endif
+             , gtTag        = bytesFS $ moduleNameFS modName
+             , gtKind       = GtkModule
+             , gtIsExported = True
+             , gtFFI        = Nothing
+             }
+#endif
 
 
 hsDeclsToGhcTags :: Maybe [IE GhcPs]
