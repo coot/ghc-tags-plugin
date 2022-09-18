@@ -24,7 +24,11 @@ import           Data.Functor (void, (<$))
 #endif
 import           Data.Functor.Identity (Identity (..))
 import           Data.List (sortBy)
-import           Data.Either (partitionEithers)
+#if __GLASGOW_HASKELL__ < 810
+import           Data.Either (rights)
+#else
+import           Data.Either (partitionEithers, rights)
+#endif
 import           Data.Foldable (traverse_)
 import           Data.Maybe (mapMaybe)
 import           System.Directory
@@ -499,7 +503,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                 printMessageDoc dynFlags ParserException (Just ms_mod) err
 
               Right (Right !parsed) -> do
-                let (headers, !parsedTags) = partitionEithers parsed 
+                let !parsedTags = rights parsed 
 
                     tags :: [CTag]
                     tags = map (fixTagFilePath cwd tagsDir)
@@ -515,7 +519,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                     combined = combineTags CTag.compareTags modulePath tags parsedTags
 
                 BB.hPutBuilder writeHandle
-                          (    foldMap CTag.formatHeader headers
+                          (    foldMap CTag.formatHeader CTag.headers
                             <> foldMap CTag.formatTag combined
                           ) 
 
