@@ -227,10 +227,10 @@ instance Arbitrary ArbCTagKind where
     arbitrary = ArbCTagKind <$> genTagKind SingCTag
 
 
-tagKindTagKindToTagKindProp :: ArbCTagKind -> Bool
+tagKindTagKindToTagKindProp :: ArbCTagKind -> Property
 tagKindTagKindToTagKindProp (ArbCTagKind tk) =
       (case tk of
         NoKind -> Nothing
         _      -> Just tk)
-    ==
+    ===
       (CTag.charToTagKind <$> CTag.tagKindToChar tk)
