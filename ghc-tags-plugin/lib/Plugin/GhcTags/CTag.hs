@@ -26,6 +26,7 @@ headers =
     , Header FieldDescription haskellLang "instance" "class, type or data type instance"
     , Header FieldDescription haskellLang "Kind" "kind of a type"
 
+    , Header KindDescription haskellLang "M" "module name"
     , Header KindDescription haskellLang "`" "module top level term, but not a function"
     , Header KindDescription haskellLang "λ" "module top level function term"
     , Header KindDescription haskellLang "Λ" "type constructor"
@@ -38,6 +39,7 @@ headers =
     , Header KindDescription haskellLang "C" "type class"
     , Header KindDescription haskellLang "m" "type class member"
     , Header KindDescription haskellLang "i" "type class instance"
+    , Header KindDescription haskellLang "x" "type class instance member"
     , Header KindDescription haskellLang "F" "type family"
     , Header KindDescription haskellLang "f" "type family instance"
     , Header KindDescription haskellLang "D" "data type family"
