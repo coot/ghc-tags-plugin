@@ -184,6 +184,7 @@ data GhcTagKind
     | GtkTypeClass
     | GtkTypeClassMember               (HsType GhcPs)
     | GtkTypeClassInstance             (HsType GhcPs)
+    | GtkTypeClassInstanceMember       (HsType GhcPs)
     | GtkTypeFamily             (Maybe ([GhcPsHsTyVarBndr], Either (HsKind GhcPs) GhcPsHsTyVarBndr))
     -- ghc-8.6.5 does not provide 'TyFamInstDecl' for associated type families
     | GtkTypeFamilyInstance     (Maybe (TyFamInstDecl GhcPs))
@@ -493,13 +494,15 @@ hsDeclsToGhcTags mies =
                     L _ HsSig { sig_body = body } ->
 #endif
                       case mkLHsTypeTag decLoc body of
-                        Nothing  ->       tyFamTags ++ dataFamTags ++ bindsTags ++ tags
-                        Just tag -> tag : tyFamTags ++ dataFamTags ++ bindsTags ++ tags
+                        Nothing  ->       map (fixTagKind (unLoc body)) (tyFamTags ++ dataFamTags ++ bindsTags) ++ tags
+                        Just tag -> tag : map (fixTagKind (unLoc body)) (tyFamTags ++ dataFamTags ++ bindsTags) ++ tags
                 where
                   -- associated type and data type family instances
                   dataFamTags = (mkDataFamInstDeclTag decLoc . unLoc) `concatMap` cid_datafam_insts
                   tyFamTags   = (mkTyFamInstDeclTag   decLoc . unLoc) `mapMaybe`  cid_tyfam_insts
                   bindsTags   = foldl' (\tags' hsBind -> mkHsBindLRTags decLoc (unLoc hsBind) ++ tags') [] cid_binds
+
+                  fixTagKind body a = a { gtKind = GtkTypeClassInstanceMember body }
 
           -- data family instance
           DataFamInstD { dfid_inst } ->
