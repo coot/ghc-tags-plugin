@@ -479,7 +479,7 @@ hsDeclsToGhcTags mies =
               XClsInstDecl {} -> tags
 #endif
 
-              ClsInstDecl { cid_poly_ty, cid_tyfam_insts, cid_datafam_insts } ->
+              ClsInstDecl { cid_poly_ty, cid_tyfam_insts, cid_datafam_insts, cid_binds } ->
                   case cid_poly_ty of
 #if __GLASGOW_HASKELL__ < 900
                     XHsImplicitBndrs {} ->
@@ -493,12 +493,13 @@ hsDeclsToGhcTags mies =
                     L _ HsSig { sig_body = body } ->
 #endif
                       case mkLHsTypeTag decLoc body of
-                        Nothing  ->       tyFamTags ++ dataFamTags ++ tags
-                        Just tag -> tag : tyFamTags ++ dataFamTags ++ tags
+                        Nothing  ->       tyFamTags ++ dataFamTags ++ bindsTags ++ tags
+                        Just tag -> tag : tyFamTags ++ dataFamTags ++ bindsTags ++ tags
                 where
                   -- associated type and data type family instances
                   dataFamTags = (mkDataFamInstDeclTag decLoc . unLoc) `concatMap` cid_datafam_insts
                   tyFamTags   = (mkTyFamInstDeclTag   decLoc . unLoc) `mapMaybe`  cid_tyfam_insts
+                  bindsTags   = foldl' (\tags' hsBind -> mkHsBindLRTags decLoc (unLoc hsBind) ++ tags') [] cid_binds
 
           -- data family instance
           DataFamInstD { dfid_inst } ->
