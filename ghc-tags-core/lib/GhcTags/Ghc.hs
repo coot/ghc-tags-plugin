@@ -793,7 +793,7 @@ hsDeclsToGhcTags mies =
 
     -- used to generate tag of an instance declaration
     mkLHsTypeTag :: SrcSpan
-                 -- declartaion's 'SrcSpan'
+                 -- declaration's 'SrcSpan'
                  -> LHsType GhcPs
                  -> Maybe GhcTag
     mkLHsTypeTag decLoc (L _ hsType) =
@@ -812,7 +812,7 @@ hsDeclsToGhcTags mies =
 
         HsAppTy _ a _         -> hsTypeTagName (unLoc a)
 #if __GLASGOW_HASKELL__ >= 904
-        HsOpTy _ _ _ a _        -> Just $ unSpanAnn a
+        HsOpTy _ _ _ a _      -> Just $ unSpanAnn a
 #else
         HsOpTy _ _ a _        -> Just $ unSpanAnn a
 #endif
