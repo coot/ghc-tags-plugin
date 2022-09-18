@@ -155,6 +155,7 @@ instance NFData TagName where
 -- * 'TkForeignExport' - @E@
 --
 data TagKind where
+    TkModule                  :: TagKind
     TkTerm                    :: TagKind
     TkFunction                :: TagKind
     TkTypeConstructor         :: TagKind
@@ -474,6 +475,7 @@ ghcTagToTag sing  dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFF
   where
     fromGhcTagKind :: GhcTagKind -> TagKind
     fromGhcTagKind = \case
+      GtkModule                     -> TkModule
       GtkTerm                       -> TkTerm
       GtkFunction                   -> TkFunction
       GtkTypeConstructor {}         -> TkTypeConstructor
