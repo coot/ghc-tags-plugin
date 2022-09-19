@@ -49,7 +49,7 @@ module GhcTags.Tag
 
 import           Control.DeepSeq
 import           Data.Function (on)
-#if   __GLASGOW_HASKELL__ < 810
+#if   !MIN_VERSION_GHC(8,10)
 import           Data.ByteString (ByteString)
 #endif
 import qualified Data.ByteString as BS
@@ -61,20 +61,20 @@ import qualified Data.Text.Encoding as Text
 import           System.FilePath.ByteString (RawFilePath)
 
 -- GHC imports
-#if   __GLASGOW_HASKELL__ >= 900
+#if   MIN_VERSION_GHC(9,0)
 import           GHC.Driver.Session (DynFlags)
 #else
 import           DynFlags           (DynFlags (pprUserLength))
 #endif
-#if   __GLASGOW_HASKELL__ >= 900
+#if   MIN_VERSION_GHC(9,0)
 import           GHC.Data.FastString (bytesFS)
-#elif __GLASGOW_HASKELL__ >= 810
+#elif MIN_VERSION_GHC(8,10)
 import           FastString          (bytesFS)
 #else
 import           FastString          (FastString (fs_bs))
 #endif
 
-#if   __GLASGOW_HASKELL__ >= 900
+#if   MIN_VERSION_GHC(9,0)
 import           GHC.Types.SrcLoc
                               ( SrcSpan (..)
                               , srcSpanFile
@@ -92,13 +92,13 @@ import           SrcLoc       ( SrcSpan (..)
 import           GhcTags.Ghc  ( GhcTag (..)
                               , GhcTagKind (..)
                               )
-#if   __GLASGOW_HASKELL__ >= 900
+#if   MIN_VERSION_GHC(9,0)
 import qualified GHC.Utils.Outputable as Out
 #else
 import qualified Outputable as Out
 #endif
 
-#if   __GLASGOW_HASKELL__ < 810
+#if   !MIN_VERSION_GHC(8,10)
 bytesFS :: FastString -> ByteString
 bytesFS = fs_bs
 #endif
@@ -438,14 +438,14 @@ instance Semigroup (Tag tk) where
 --
 ghcTagToTag :: SingTagKind tk -> DynFlags
             -> GhcTag -> Maybe (Tag tk)
-#if   __GLASGOW_HASKELL__ >= 902
+#if   MIN_VERSION_GHC(9,2)
 ghcTagToTag sing _dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI } =
 #else
 ghcTagToTag sing  dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFFI } =
 #endif
     case gtSrcSpan of
       UnhelpfulSpan {} -> Nothing
-#if   __GLASGOW_HASKELL__ >= 900
+#if   MIN_VERSION_GHC(9,0)
       RealSrcSpan realSrcSpan _ ->
 #else
       RealSrcSpan realSrcSpan ->
@@ -606,12 +606,12 @@ ghcTagToTag sing  dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFF
         Text.intercalate " " -- remove all line breaks, tabs and multiple spaces
       . Text.words
       . Text.pack
-#if   __GLASGOW_HASKELL__ >= 902
+#if   MIN_VERSION_GHC(9,2)
       . Out.renderWithContext
           Out.defaultSDocContext { Out.sdocStyle = Out.mkErrStyle Out.neverQualify }
       . Out.ppr
       $ hsType
-#elif __GLASGOW_HASKELL__ >= 900
+#elif MIN_VERSION_GHC(9,0)
       $ Out.renderWithStyle
           (Out.initSDocContext
             dynFlags

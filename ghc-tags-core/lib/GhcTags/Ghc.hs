@@ -2,7 +2,7 @@
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-#if __GLASGOW_HASKELL__ >= 810
+#if MIN_VERSION_GHC(8,10)
 #define GHC_IMPORT(NAME) GHC.Hs.NAME
 #else
 #define GHC_IMPORT(NAME) Hs ## NAME
@@ -21,30 +21,30 @@ module GhcTags.Ghc
 
 
 import           Data.Maybe    (mapMaybe)
-#if __GLASGOW_HASKELL__ >= 900
+#if MIN_VERSION_GHC(9,0)
 import           Data.Maybe    (maybeToList)
 #endif
 import           Data.Foldable (foldl', toList)
 import           Data.ByteString (ByteString)
 
 -- Ghc imports
-#if   __GLASGOW_HASKELL__ >= 902
+#if   MIN_VERSION_GHC(9,2)
 import           GHC.Types.SourceText (SourceText (..))
-#elif __GLASGOW_HASKELL__ >= 900
+#elif MIN_VERSION_GHC(9,0)
 import           GHC.Types.Basic (SourceText (..))
 #else
 import           BasicTypes      (SourceText (..))
 #endif
-#if   __GLASGOW_HASKELL__ >= 900
+#if   MIN_VERSION_GHC(9,0)
 import           GHC.Data.FastString (bytesFS)
-#elif __GLASGOW_HASKELL__ >= 810
+#elif MIN_VERSION_GHC(8,10)
 import           FastString          (bytesFS)
 #else
 import           FastString          (FastString (fs_bs))
 #endif
-#if   __GLASGOW_HASKELL__ >= 900 && __GLASGOW_HASKELL__ < 902
+#if   MIN_VERSION_GHC(9,0) && !MIN_VERSION_GHC(9,2)
 import           GHC.Types.FieldLabel (FieldLbl (..))
-#elif __GLASGOW_HASKELL__ < 900
+#elif !MIN_VERSION_GHC(9,0)
 import           FieldLabel           (FieldLbl (..))
 #endif
 import           GHC_IMPORT(Binds)
@@ -63,7 +63,7 @@ import           GHC_IMPORT(Decls)
                               , FamilyResultSig (..)
                               , ForeignDecl (..)
                               , LHsDecl
-#if   __GLASGOW_HASKELL__ >= 902
+#if   MIN_VERSION_GHC(9,2)
                               , HsConDeclH98Details
 #else
                               , HsConDeclDetails
@@ -74,7 +74,7 @@ import           GHC_IMPORT(Decls)
                               , TyClDecl (..)
                               , TyFamInstDecl (..)
                               )
-#if   __GLASGOW_HASKELL__ >= 810
+#if   MIN_VERSION_GHC(8,10)
 import           GHC.Hs.Decls ( StandaloneKindSig (..) )
 #endif
 import           GHC_IMPORT(ImpExp)
@@ -86,9 +86,9 @@ import           GHC_IMPORT(Extension)
                               ( GhcPs
                               )
 
-#if   __GLASGOW_HASKELL__ >= 900
+#if   MIN_VERSION_GHC(9,0)
 import           GHC.Hs.Type
-#elif __GLASGOW_HASKELL__ >= 810
+#elif MIN_VERSION_GHC(8,10)
 import           GHC.Hs.Types
 #else
 import           HsTypes
@@ -96,7 +96,7 @@ import           HsTypes
                               ( ConDeclField (..)
                               , FieldOcc (..)
                               , HsConDetails (..)
-#if   __GLASGOW_HASKELL__ < 902
+#if   !MIN_VERSION_GHC(9,2)
                               , HsImplicitBndrs (..)
 #endif
                               , HsKind
@@ -110,7 +110,7 @@ import           HsTypes
                               , LHsType
                               )
 
-#if   __GLASGOW_HASKELL__ >= 900
+#if   MIN_VERSION_GHC(9,0)
 import           GHC.Types.SrcLoc
                                 ( GenLocated (..)
                                 , Located
@@ -137,18 +137,18 @@ import           Name           ( nameOccName
                                 , occNameFS
                                 )
 #endif
-#if   __GLASGOW_HASKELL__ >= 902
+#if   MIN_VERSION_GHC(9,2)
 import           GHC.Hs       ( HsConDeclGADTDetails (..)
                               , HsModule (..)
                               , HsSigType (..)
                               )
 import           GHC.Parser.Annotation (SrcSpanAnn' (..))
-#elif __GLASGOW_HASKELL__ >= 810
+#elif MIN_VERSION_GHC(8,10)
 import           GHC.Hs       ( HsModule (..) )
 #else
 import           HsSyn        ( HsModule (..) )
 #endif
-#if __GLASGOW_HASKELL__ >= 810
+#if MIN_VERSION_GHC(8,10)
 import           GHC.Hs       ( GRHSs (..)
                               , HsLocalBinds
                               , HsLocalBindsLR (..)
@@ -166,15 +166,15 @@ import           HsBinds      ( HsLocalBinds
                               , HsValBindsLR (..)
                               )
 #endif
-#if __GLASGOW_HASKELL__ >= 900
+#if MIN_VERSION_GHC(9,0)
 import           GHC.Unit.Module.Name (moduleNameFS)
 #endif
 
-#if __GLASGOW_HASKELL__ < 902
+#if !MIN_VERSION_GHC(9,2)
 type HsConDeclH98Details ps = HsConDeclDetails ps
 #endif
 
-#if __GLASGOW_HASKELL__ >= 900
+#if MIN_VERSION_GHC(9,0)
 type GhcPsModule = HsModule
 type GhcPsHsTyVarBndr = HsTyVarBndr () GhcPs
 #else
@@ -182,7 +182,7 @@ type GhcPsModule = HsModule GhcPs
 type GhcPsHsTyVarBndr = HsTyVarBndr    GhcPs
 #endif
 
-#if __GLASGOW_HASKELL__ < 810
+#if !MIN_VERSION_GHC(8,10)
 bytesFS :: FastString -> ByteString
 bytesFS = fs_bs
 #endif
@@ -249,7 +249,7 @@ isExported (Just ies) (L _ name) =
     ieName :: IE GhcPs -> Maybe RdrName
     ieName (IEVar _ (L _ n))              = Just $ ieWrappedName n
     ieName (IEThingAbs  _ (L _ n))        = Just $ ieWrappedName n
-#if __GLASGOW_HASKELL__ < 902
+#if !MIN_VERSION_GHC(9,2)
     ieName (IEThingWith _ (L _ n) _ _ _)  = Just $ ieWrappedName n
 #else
     ieName (IEThingWith _ (L _ n) _ _)    = Just $ ieWrappedName n
@@ -275,19 +275,19 @@ isMemberExported (Just ies) memberName  className  = any go ies
 
     go (IEThingAll _ (L _ n)) = ieWrappedName n == unLoc className
 
-#if __GLASGOW_HASKELL__ < 902
+#if !MIN_VERSION_GHC(9,2)
     go (IEThingWith _ _ IEWildcard{} _ _) = True
 #else
     go (IEThingWith _ _ IEWildcard{} _)   = True
 #endif
 
-#if __GLASGOW_HASKELL__ < 902
+#if !MIN_VERSION_GHC(9,2)
     go (IEThingWith _ (L _ n) NoIEWildcard ns lfls) =
 #else
     go (IEThingWith _ (L _ n) NoIEWildcard ns) =
 #endif
             ieWrappedName n == unLoc className
-#if __GLASGOW_HASKELL__ < 902
+#if !MIN_VERSION_GHC(9,2)
          && (isInWrappedNames || isInFieldLbls)
 #else
          &&  isInWrappedNames
@@ -297,7 +297,7 @@ isMemberExported (Just ies) memberName  className  = any go ies
         -- list and passed member or type class names (constructor / type
         -- constructor names, respectively)
         isInWrappedNames = any ((== occNameFS (rdrNameOcc (unLoc memberName))) . occNameFS . rdrNameOcc . ieWrappedName . unLoc) ns
-#if __GLASGOW_HASKELL__ < 902
+#if !MIN_VERSION_GHC(9,2)
         isInFieldLbls    = any ((== occNameFS (rdrNameOcc (unLoc memberName))) . occNameFS . rdrNameOcc . flSelector. unLoc) lfls
 #endif
 
@@ -371,7 +371,7 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
 --
 getGhcTags :: Located GhcPsModule
            -> GhcTags
-#if __GLASGOW_HASKELL__ >= 900
+#if MIN_VERSION_GHC(9,0)
 getGhcTags (L _ HsModule { hsmodName, hsmodDecls, hsmodExports }) =
        maybeToList (mkModNameTag <$> hsmodName)
     ++
@@ -383,10 +383,10 @@ getGhcTags (L _ HsModule {            hsmodDecls, hsmodExports }) =
     mies :: Maybe [IE GhcPs]
     mies = map unLoc . unLoc <$> hsmodExports
 
-#if __GLASGOW_HASKELL__ >= 900
+#if MIN_VERSION_GHC(9,0)
     mkModNameTag (L loc modName) =
       GhcTag { gtSrcSpan =
-#if __GLASGOW_HASKELL__ >= 902
+#if MIN_VERSION_GHC(9,2)
                  locA loc
 #else
                  loc
@@ -464,7 +464,7 @@ hsDeclsToGhcTags mies =
                    : (mkConsTags decLoc (unSpanAnn tcdLName) . unLoc) `concatMap` dd_cons
                   ++ tags
 
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
               XHsDataDefn {} -> tags
 #endif
 
@@ -488,10 +488,10 @@ hsDeclsToGhcTags mies =
             -- associated type defaults (data type families, type families
             -- (open or closed)
             ++ foldl'
-#if __GLASGOW_HASKELL__ < 810
+#if !MIN_VERSION_GHC(8,10)
                 (\tags' (L _ tyFamDeflEqn) ->
                   let decl = Nothing in
-#elif __GLASGOW_HASKELL__ < 902
+#elif !MIN_VERSION_GHC(9,2)
                 (\tags' (L _ decl'@(TyFamInstDecl HsIB { hsib_body = tyFamDeflEqn })) ->
                   let decl = Just decl' in
 #else
@@ -504,14 +504,14 @@ hsDeclsToGhcTags mies =
                           -- TODO: add a `default` field
                           Just a  -> mkGhcTag' decLoc a (GtkTypeFamilyInstance decl) : tags'
                           Nothing -> tags'
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
                       XFamEqn {} -> tags'
 #endif
                 )
                 [] tcdATDefs
             ++ tags
 
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
           XTyClDecl {} -> tags
 #endif
 
@@ -525,19 +525,19 @@ hsDeclsToGhcTags mies =
           -- class instance declaration
           ClsInstD { cid_inst } ->
             case cid_inst of
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
               XClsInstDecl {} -> tags
 #endif
 
               ClsInstDecl { cid_poly_ty, cid_tyfam_insts, cid_datafam_insts, cid_binds, cid_sigs } ->
                   case cid_poly_ty of
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
                     XHsImplicitBndrs {} ->
                       tyFamTags ++ dataFamTags ++ tags
 #endif
 
                     -- TODO: @hsbib_body :: LHsType GhcPs@
-#if __GLASGOW_HASKELL__ < 902
+#if !MIN_VERSION_GHC(9,2)
                     HsIB { hsib_body = body } ->
 #else
                     L _ HsSig { sig_body = body } ->
@@ -564,7 +564,7 @@ hsDeclsToGhcTags mies =
               Nothing  ->       tags
               Just tag -> tag : tags
 
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
           XInstDecl {} -> tags
 #endif
 
@@ -577,14 +577,14 @@ hsDeclsToGhcTags mies =
       -- signature declaration
       SigD _ sig -> mkSigTags decLoc sig ++ tags
 
-#if __GLASGOW_HASKELL__ >= 810
+#if MIN_VERSION_GHC(8,10)
       -- standalone kind signatures
       KindSigD _ stdKindSig ->
         case stdKindSig of
           StandaloneKindSig _ ksName sigType ->
            mkGhcTag' decLoc (unSpanAnn ksName)  (GtkTypeKindSignature sigType) : tags
 
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
           XStandaloneKindSig {} -> tags
 #endif
 #endif
@@ -608,7 +608,7 @@ hsDeclsToGhcTags mies =
               mkGhcTag' decLoc (unSpanAnn fd_name) GtkForeignExport
             : tags
 
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
           XForeignDecl {} -> tags
 #endif
 
@@ -620,7 +620,7 @@ hsDeclsToGhcTags mies =
       SpliceD {}    -> tags
       DocD {}       -> tags
       RoleAnnotD {} -> tags
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
       XHsDecl {}    -> tags
 #endif
 
@@ -634,7 +634,7 @@ hsDeclsToGhcTags mies =
                -- constructor declaration
                -> GhcTags
 
-#if __GLASGOW_HASKELL__ < 902
+#if !MIN_VERSION_GHC(9,2)
     mkConsTags decLoc tyName con@ConDeclGADT { con_names, con_args } =
 #else
     mkConsTags decLoc tyName con@ConDeclGADT { con_names, con_g_args = con_args } =
@@ -649,7 +649,7 @@ hsDeclsToGhcTags mies =
           (GtkDataConstructor con)
       : mkHsConDeclH98Details decLoc tyName con_args
 
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
     mkConsTags _ _ XConDecl {} = []
 #endif
 
@@ -670,19 +670,19 @@ hsDeclsToGhcTags mies =
       where
         f :: GhcTags -> LConDeclField GhcPs -> GhcTags
         f ts (L _ ConDeclField { cd_fld_names }) = foldl' g ts cd_fld_names
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
         f ts _ = ts
 #endif
 
         g :: GhcTags -> LFieldOcc GhcPs -> GhcTags
         g ts (L _ fo@FieldOcc {}) =
-#if __GLASGOW_HASKELL__ >= 904
+#if MIN_VERSION_GHC(9,4)
             mkGhcTagForMember decLoc (unSpanAnn $ foLabel fo) tyName GtkRecordField
 #else
             mkGhcTagForMember decLoc (unSpanAnn $ rdrNameFieldOcc fo) tyName GtkRecordField
 #endif
           : ts
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
         g ts _ = ts
 #endif
 
@@ -690,16 +690,16 @@ hsDeclsToGhcTags mies =
 
     mkHsConDeclGADTDetails :: SrcSpan
                            -> Located RdrName
-#if __GLASGOW_HASKELL__ < 902
+#if !MIN_VERSION_GHC(9,2)
                            -> HsConDeclH98Details  GhcPs
 #else
                            -> HsConDeclGADTDetails GhcPs
 #endif
                            -> GhcTags
-#if __GLASGOW_HASKELL__ < 902
+#if !MIN_VERSION_GHC(9,2)
     mkHsConDeclGADTDetails = mkHsConDeclH98Details
 #else
-#if __GLASGOW_HASKELL__ < 904
+#if !MIN_VERSION_GHC(9,4)
     mkHsConDeclGADTDetails decLoc tyName (RecConGADT (L _ fields)) =
 #else
     mkHsConDeclGADTDetails decLoc tyName (RecConGADT (L _ fields) _) =
@@ -711,7 +711,7 @@ hsDeclsToGhcTags mies =
 
         g :: GhcTags -> LFieldOcc GhcPs -> GhcTags
         g ts (L _ fo) =
-#if __GLASGOW_HASKELL__ >= 904
+#if MIN_VERSION_GHC(9,4)
             mkGhcTagForMember decLoc (unSpanAnn $ foLabel fo) tyName GtkRecordField
 #else
             mkGhcTagForMember decLoc (unSpanAnn $ rdrNameFieldOcc fo) tyName GtkRecordField
@@ -734,7 +734,7 @@ hsDeclsToGhcTags mies =
                     $ fun_matches
           in   mkGhcTag' decLoc (unSpanAnn fun_id) GtkFunction
              : concatMap
-#if __GLASGOW_HASKELL__ >= 902
+#if MIN_VERSION_GHC(9,2)
                  (mkHsLocalBindsTags decLoc)
 #else
                  (mkHsLocalBindsTags decLoc . unLoc)
@@ -751,17 +751,17 @@ hsDeclsToGhcTags mies =
         VarBind { var_id, var_rhs = L srcSpan _ } ->
           [mkGhcTag' decLoc (unSpanAnn $ L srcSpan var_id) GtkTerm]
 
-#if __GLASGOW_HASKELL__ < 904
+#if !MIN_VERSION_GHC(9,4)
         -- abstraction binding is only used after translation
         AbsBinds {} -> []
 #endif
 
         PatSynBind _ PSB { psb_id } -> [mkGhcTag' decLoc (unSpanAnn psb_id) GtkPatternSynonym]
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
         PatSynBind _ XPatSynBind {} -> []
 #endif
 
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
         XHsBindsLR {} -> []
 #endif
 
@@ -775,7 +775,7 @@ hsDeclsToGhcTags mies =
       ( (\n -> mkGhcTagForMember decLoc n clsName GtkPatternSynonym)
       . unSpanAnn )
       `map` lhs
-#if __GLASGOW_HASKELL__ < 902
+#if !MIN_VERSION_GHC(9,2)
     mkClsMemberTags decLoc clsName (ClassOpSig _ _ lhs HsIB { hsib_body = L _ hsType}) =
 #else
     mkClsMemberTags decLoc clsName (ClassOpSig _ _ lhs (L _ hsType)) =
@@ -797,7 +797,7 @@ hsDeclsToGhcTags mies =
                                        = ( flip (mkGhcTag' decLoc) GtkPatternSynonym
                                          . unSpanAnn )
                                          `map` lhs
-#if __GLASGOW_HASKELL__ < 902
+#if !MIN_VERSION_GHC(9,2)
     mkSigTags decLoc (ClassOpSig _ _ lhs HsIB { hsib_body = L _ hsType })
 #else
     mkSigTags decLoc (ClassOpSig _ _ lhs (L _ hsType))
@@ -808,7 +808,7 @@ hsDeclsToGhcTags mies =
                                          . unSpanAnn
                                          )
                                          `map` lhs
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
     mkSigTags _ (ClassOpSig _ _ _ XHsImplicitBndrs {})
                                        = []
 #endif
@@ -825,7 +825,7 @@ hsDeclsToGhcTags mies =
     mkSigTags _ SCCFunSig {}           = []
     -- COMPLETE pragma
     mkSigTags _ CompleteMatchSig {}    = []
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
     mkSigTags _ XSig {}                = []
 #endif
 
@@ -845,7 +845,7 @@ hsDeclsToGhcTags mies =
 
         mb_fdvars = case fdTyVars of
           HsQTvs { hsq_explicit } -> Just $ unLoc `map` hsq_explicit
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
           XLHsQTyVars {} -> Nothing
 #endif
         mb_resultsig = famResultKindSignature familyResultSig
@@ -856,7 +856,7 @@ hsDeclsToGhcTags mies =
               DataFamily           -> GtkDataTypeFamily mb_typesig
               OpenTypeFamily       -> GtkTypeFamily     mb_typesig
               ClosedTypeFamily {}  -> GtkTypeFamily     mb_typesig
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
     mkFamilyDeclTags _ XFamilyDecl {} _ = Nothing
 #endif
 
@@ -881,7 +881,7 @@ hsDeclsToGhcTags mies =
         HsTyVar _ _ a         -> Just $ unSpanAnn a
 
         HsAppTy _ a _         -> hsTypeTagName (unLoc a)
-#if __GLASGOW_HASKELL__ >= 904
+#if MIN_VERSION_GHC(9,4)
         HsOpTy _ _ _ a _      -> Just $ unSpanAnn a
 #else
         HsOpTy _ _ a _        -> Just $ unSpanAnn a
@@ -896,11 +896,11 @@ hsDeclsToGhcTags mies =
     mkDataFamInstDeclTag :: SrcSpan -> DataFamInstDecl GhcPs -> GhcTags
     mkDataFamInstDeclTag decLoc DataFamInstDecl { dfid_eqn } =
       case dfid_eqn of
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
         XHsImplicitBndrs {} -> []
 #endif
 
-#if __GLASGOW_HASKELL__ < 902
+#if !MIN_VERSION_GHC(9,2)
         HsIB { hsib_body = FamEqn { feqn_tycon, feqn_rhs } } ->
 #else
         FamEqn { feqn_tycon, feqn_rhs } ->
@@ -913,7 +913,7 @@ hsDeclsToGhcTags mies =
               : (mkConsTags decLoc (unSpanAnn feqn_tycon) . unLoc)
                 `concatMap` dd_cons
 
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
             XHsDataDefn {} ->
               [mkGhcTag' decLoc feqn_tycon (GtkDataTypeFamilyInstance Nothing)]
 
@@ -926,23 +926,23 @@ hsDeclsToGhcTags mies =
     mkTyFamInstDeclTag :: SrcSpan -> TyFamInstDecl GhcPs -> Maybe GhcTag
     mkTyFamInstDeclTag decLoc decl@TyFamInstDecl { tfid_eqn } =
       case tfid_eqn of
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
         XHsImplicitBndrs {} -> Nothing
 #endif
 
         -- TODO: should we check @feqn_rhs :: LHsType GhcPs@ as well?
-#if __GLASGOW_HASKELL__ < 902
+#if !MIN_VERSION_GHC(9,2)
         HsIB { hsib_body = FamEqn { feqn_tycon } } ->
 #else
         FamEqn { feqn_tycon } ->
 #endif
           Just $ mkGhcTag' decLoc (unSpanAnn feqn_tycon) (GtkTypeFamilyInstance (Just decl))
 
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
         HsIB { hsib_body = XFamEqn {} } -> Nothing
 #endif
 
-#if __GLASGOW_HASKELL__ < 902
+#if !MIN_VERSION_GHC(9,2)
 unSpanAnn :: Located RdrName -> Located RdrName
 unSpanAnn = id
 #else
@@ -950,7 +950,7 @@ unSpanAnn :: GenLocated (SrcSpanAnn' x) RdrName -> Located RdrName
 unSpanAnn (L s a) = L (locA s) a
 #endif
 
-#if __GLASGOW_HASKELL__ < 902
+#if !MIN_VERSION_GHC(9,2)
 locAnn :: SrcSpan -> SrcSpan
 locAnn = id
 #else
@@ -958,7 +958,7 @@ locAnn :: SrcSpanAnn' a -> SrcSpan
 locAnn = locA
 #endif
 
-#if __GLASGOW_HASKELL__ < 902
+#if !MIN_VERSION_GHC(9,2)
 hsSigTypeToHsType :: HsType GhcPs -> HsType GhcPs
 hsSigTypeToHsType = id
 #else
@@ -975,6 +975,6 @@ famResultKindSignature :: FamilyResultSig GhcPs
 famResultKindSignature (NoSig _)           = Nothing
 famResultKindSignature (KindSig _ ki)      = Just (Left (unLoc ki))
 famResultKindSignature (TyVarSig _ bndr)   = Just (Right (unLoc bndr))
-#if __GLASGOW_HASKELL__ < 900
+#if !MIN_VERSION_GHC(9,0)
 famResultKindSignature XFamilyResultSig {} = Nothing
 #endif
