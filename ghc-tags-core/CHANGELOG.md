@@ -1,5 +1,11 @@
 # Revision history for ghc-tags-core
 
+## 0.4.2.0
+
+* Added `ghc` cabal flag, when not set, `ghc-tags-core` will be build with
+  `ghc-lib` instead of `ghc` library.  By default `ghc-tags-core` is built with
+  `ghc` library.
+
 ## 0.4.0.0
 
 * Record tags for instance methods.
