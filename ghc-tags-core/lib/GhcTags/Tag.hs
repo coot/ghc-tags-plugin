@@ -244,6 +244,7 @@ data TagDefinition (tk :: TAG_KIND) where
 
 deriving instance Show (TagDefinition tk)
 deriving instance Eq   (TagDefinition tk)
+deriving instance Ord  (TagDefinition tk)
 instance NFData (TagDefinition tt) where
   rnf x = x `seq` ()
 
@@ -278,6 +279,7 @@ data TagFields (tk :: TAG_KIND) where
 
 deriving instance Show (TagFields tk)
 deriving instance Eq   (TagFields tk)
+deriving instance Ord  (TagFields tk)
 
 -- | Left biased semigroup.
 --
@@ -315,7 +317,7 @@ instance NFData TagFilePath where
 --
 data Tag (tk :: TAG_KIND) = Tag
   { tagName       :: !TagName
-    -- ^ name of the tag
+    -- ^ name of the tag, Eq, Ord)
   , tagKind       :: !TagKind
     -- ^ ctags specific field, which classifies tags
   , tagFilePath   :: !TagFilePath
@@ -328,7 +330,7 @@ data Tag (tk :: TAG_KIND) = Tag
   , tagFields     :: !(TagFields tk)
     -- ^ ctags specific field
   }
-  deriving Show
+  deriving (Show, Ord)
 
 instance Eq (Tag tk) where
     t0 == t1 = on (==) tagName t0 t1

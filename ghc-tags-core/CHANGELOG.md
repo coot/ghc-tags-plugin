@@ -1,5 +1,9 @@
 # Revision history for ghc-tags-core
 
+## 0.4.2.2
+
+- Added `Ord` instances: `TagDefinition`, `TagFields`, `Tag`
+
 ## 0.4.2.1
 
 - Changed the `ghc` cabal flag in `ghc-tags-core` into `ghc-lib` flag.
