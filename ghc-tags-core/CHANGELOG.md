@@ -1,5 +1,9 @@
 # Revision history for ghc-tags-core
 
+## 0.4.2.1
+
+- Changed the `ghc` cabal flag in `ghc-tags-core` into `ghc-lib` flag.
+
 ## 0.4.2.0
 
 * Added `ghc` cabal flag, when not set, `ghc-tags-core` will be build with

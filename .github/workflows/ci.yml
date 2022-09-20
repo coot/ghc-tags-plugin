@@ -56,7 +56,7 @@ jobs:
     - name: Record dependencies
       id: record-deps
       run: |
-        cabal build all -f-ghc --dry-run
+        cabal build all -f+ghc-lib --dry-run
         cat dist-newstyle/cache/plan.json | jq -r '."install-plan"[].id' | sort | uniq > dependencies.txt
 
     - name: Cache `cabal store`
@@ -80,16 +80,16 @@ jobs:
         cat ./cabal.project.local
 
     - name: Build dependencies
-      run: cabal --builddir="$CABAL_BUILDDIR" build -f+ghc --only-dependencies all
+      run: cabal --builddir="$CABAL_BUILDDIR" build -f-ghc-lib --only-dependencies all
 
     - name: Build dependencies with `ghc-lib`
-      run: cabal --builddir="$CABAL_BUILDDIR" build -f-ghc --only-dependencies all
+      run: cabal --builddir="$CABAL_BUILDDIR" build -f+ghc-lib --only-dependencies all
 
     - name: build ghc-tags-core with `ghc-lib` [build]
-      run: cabal --builddir="$CABAL_BUILDDIR" build -f-ghc ghc-tags-core
+      run: cabal --builddir="$CABAL_BUILDDIR" build -f+ghc-lib ghc-tags-core
 
     - name: ghc-tags-core `ghc-lib` [test]
-      run: cabal --builddir="$CABAL_BUILDDIR" run -f-ghc ghc-tags-core:test
+      run: cabal --builddir="$CABAL_BUILDDIR" run -f+ghc-lib ghc-tags-core:test
 
     - name: Build projects [build]
       run: cabal --builddir="$CABAL_BUILDDIR" build all
