@@ -13,8 +13,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ghc: ["8.8.4", "8.10.7", "9.0.2", "9.2.4", "9.4.2"]
+        ghc: ["8.10.7", "9.0.2", "9.2.4", "9.4.2"]
         os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - ghc: "8.8.4"
+            os: ubuntu-latest
+          - ghc: "8.8.4"
+            os: windows-latest
+          # 8.8.4 fails on macos in preprocessor phase
 
     steps:
     - name: Install Haskell
