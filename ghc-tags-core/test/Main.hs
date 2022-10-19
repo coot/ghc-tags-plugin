@@ -17,7 +17,7 @@ import           System.Directory
 
 main ::IO ()
 main = do
-    -- useing 'IO' 'Monoid' instance
+    -- using 'IO' 'Monoid' instance
     mGoldenDir
       <- doesGoldenDirectoryExist (normalise "test/golden")
       <> doesGoldenDirectoryExist (normalise "ghc-tags-core/test/golden")
