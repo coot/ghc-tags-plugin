@@ -233,7 +233,7 @@ parseHeader = do
     parseComment :: Parser Text
     parseComment =
          AChar.char '/'
-      *> (Text.init . Text.decodeUtf8 <$> AChar.takeWhile notNewLine)
+      *> (Text.init . Text.decodeUtf8 <$> AChar.takeWhile Utils.notNewLine)
       <* endOfLine
 
 
@@ -275,7 +275,4 @@ endOfLine = AB.string "\r\n" $> ()
 
 
 notTabOrNewLine :: Char -> Bool
-notTabOrNewLine = \x -> x /= '\t' && notNewLine x
-
-notNewLine :: Char -> Bool
-notNewLine = \x -> x /= '\n' && x /= '\r'
+notTabOrNewLine = \x -> x /= '\t' && Utils.notNewLine x
