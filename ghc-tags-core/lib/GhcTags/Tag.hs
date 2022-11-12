@@ -404,8 +404,8 @@ compareTags t0 t1 = on compare tagName t0 t1
 -- with respect to the given ordering function, e.g. 'GhcTags.CTags.orderTags'
 -- or 'GhcTags.ETags.orderTags'.
 --
--- This is performance crtitical function.  Tags from the first list are
--- assumeed to be from the same file.
+-- This is performance critical function.  Tags from the first list are
+-- assumed to be from the same file.
 --
 -- complexity: /O(max n m)/
 --

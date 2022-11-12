@@ -742,7 +742,7 @@ hsDeclsToGhcTags mies =
                  binds
 
         -- TODO
-        -- This is useful fo generating tags for
+        -- This is useful to generating tags for
         -- ````
         -- Just x = lhs
         -- ```
