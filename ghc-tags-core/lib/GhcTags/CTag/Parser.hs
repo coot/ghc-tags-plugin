@@ -266,7 +266,7 @@ parseTagsFileMap =
 
 
 -- | Unlike 'AChar.endOfLine', it also matches for a single '\r' characters (which
--- marks enf of lines on darwin).
+-- marks end of lines on darwin).
 --
 endOfLine :: Parser ()
 endOfLine = AB.string "\r\n" $> ()

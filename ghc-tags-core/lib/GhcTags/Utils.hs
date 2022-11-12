@@ -5,11 +5,11 @@ module GhcTags.Utils
   , notNewLine
   ) where
 
--- | Platform dependend eol:
+-- | Platform dependent eol:
 --
--- * windows      "CRNL"
--- * maxos        "CR"
--- * linux (unit) "NL"
+-- * Windows      "CRNL"
+-- * MacOS        "CR"
+-- * Linux (unit) "NL"
 --
 endOfLine :: String
 #if defined(mingw32_HOST_OS)
