@@ -1,0 +1,73 @@
+cabal-version:      3.0
+name:               ghc-tags-test
+version:            0.1.0.0
+synopsis:           ghc-tags-core test suite
+-- description:
+homepage:           https://github.com/coot/ghc-tags-plugin
+license:            MPL-2.0
+license-file:       LICENSE
+author:             Marcin Szamotulski
+maintainer:         coot@coot.me
+-- copyright:
+category:           Development
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+-- extra-source-files:
+
+common warnings
+    ghc-options: -Wall
+                 -Wno-unticked-promoted-constructors
+                 -Wno-incomplete-uni-patterns
+                 -Wno-incomplete-record-updates
+                 -Wpartial-fields
+                 -Widentities
+                 -Wredundant-constraints
+
+test-suite test
+  import:              warnings
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Main.hs
+  other-modules:       Test.Golden.Parser
+                       Test.Tag
+                       Test.Tag.Generators
+                       Test.CTag
+                       Test.ETag
+  default-language:    Haskell2010      
+  build-depends:       attoparsec,
+                       base,
+                       bytestring,
+                       directory,
+                       filepath,
+                       filepath-bytestring,
+                       lattices,
+                       mtl,
+                       pipes,
+                       QuickCheck,
+                       quickcheck-instances,
+                       tasty,
+                       tasty-golden,
+                       tasty-quickcheck,
+                       text,
+
+                       ghc-tags-core,
+                       ghc-tags-pipes
+
+benchmark benchmark
+  hs-source-dirs:      bench
+  main-is:             Main.hs
+  type:                exitcode-stdio-1.0
+  default-language:    Haskell2010
+  build-depends:       base
+                     , bytestring
+                     , criterion
+                     , deepseq
+                     , filepath-bytestring
+                     , ghc-tags-core
+                     , ghc-tags-pipes
+                     , mtl
+                     , pipes
+                     , pipes-attoparsec
+                     , pipes-bytestring
+                     , text
+  ghc-options:         -Wall -rtsopts

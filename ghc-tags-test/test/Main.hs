@@ -20,7 +20,7 @@ main = do
     -- using 'IO' 'Monoid' instance
     mGoldenDir
       <- doesGoldenDirectoryExist (normalise "test/golden")
-      <> doesGoldenDirectoryExist (normalise "ghc-tags-core/test/golden")
+      <> doesGoldenDirectoryExist (normalise "ghc-tags-test/test/golden")
 
     case mGoldenDir :: First FilePath of
       First Nothing ->
