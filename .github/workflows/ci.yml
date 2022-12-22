@@ -89,15 +89,15 @@ jobs:
     - name: build ghc-tags-core with `ghc-lib` [build]
       run: cabal --builddir="$CABAL_BUILDDIR" build -f+ghc-lib ghc-tags-core
 
-    - name: ghc-tags-core `ghc-lib` [test]
-      run: cabal --builddir="$CABAL_BUILDDIR" run -f+ghc-lib ghc-tags-core:test
+    - name: ghc-tags-test `ghc-lib` [test]
+      run: cabal --builddir="$CABAL_BUILDDIR" run -f+ghc-lib ghc-tags-test:test
 
     - name: Build projects [build]
       run: cabal --builddir="$CABAL_BUILDDIR" build all
 
-    - name: ghc-tags-core [test]
-      run: cabal --builddir="$CABAL_BUILDDIR" run ghc-tags-core:test
+    - name: ghc-tags-test [test]
+      run: cabal --builddir="$CABAL_BUILDDIR" run ghc-tags-test:test
 
-    - name: ghc-tags-core [benchmarks]
-      run: cabal build ghc-tags-core:benchmark
+    - name: ghc-tags-test [benchmarks]
+      run: cabal build ghc-tags-test:benchmark
 
