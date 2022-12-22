@@ -2,6 +2,8 @@ index-state: 2022-10-22T00:00:00Z
 
 packages: ghc-tags-plugin
           ghc-tags-core
+          ghc-tags-pipes
+          ghc-tags-test
 
 package ghc-tags-core
   tests: True

@@ -1,0 +1,43 @@
+cabal-version:      3.0
+name:               ghc-tags-pipes
+version:            0.1.0.0
+synopsis:           Streaming interface for ghc-tags-core
+homepage:           https://github.com/coot/ghc-tags-plugin#readme
+bug-reports:        https://github.com/coot/ghc-tags-plugin/issues
+license:            MPL-2.0
+license-file:       LICENSE
+author:             Marcin Szamotulski
+maintainer:         coot@coot.me
+copyright:          (c) 2022, Marcin Szamotulski
+category:           Development
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+
+common warnings
+    ghc-options: -Wall
+                 -Wno-unticked-promoted-constructors
+                 -Wcompat
+                 -- the following three warnings are enabled by -Wall in
+                 -- ghc-9.2
+                 -Wno-incomplete-uni-patterns
+                 -Wno-incomplete-record-updates
+                 -Wpartial-fields
+                 -Widentities
+                 -Wredundant-constraints
+
+library
+  import:              warnings
+  hs-source-dirs:      lib
+  exposed-modules:     GhcTags.Stream
+  build-depends:       attoparsec           >=0.13.0.0,
+                       base                 >=4.12.0.0 && <4.18,
+                       bytestring           >=0.10,
+                       filepath-bytestring ^>=1.4,
+                       mtl,
+                       pipes               ^>=4.3,
+                       pipes-attoparsec    ^>=0.5,
+                       pipes-bytestring    ^>=2.1,
+                       text                 >=1.2 && <2.1,
+                       ghc-tags-core
+
+  default-language:    Haskell2010
