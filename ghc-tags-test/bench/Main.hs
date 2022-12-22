@@ -48,71 +48,71 @@ main :: IO ()
 main = defaultMain
   [ bgroup "Parse tags"
     [ -- 381 tags
-      env (BS.readFile "test/golden/io-sim-classes.tags") $ \bs ->
+      env (BS.readFile "ghc-tags-test/test/golden/io-sim-classes.tags") $ \bs ->
       bench "parse io-sim-classes.tags" $
         whnfAppIO (fmap evalTags . CTag.parseTagsFile) bs
 
     , -- 6767 tags
-      env (BS.readFile "test/golden/ouroboros-consensus.tags") $ \bs ->
+      env (BS.readFile "ghc-tags-test/test/golden/ouroboros-consensus.tags") $ \bs ->
       bench "parse ouroboros-consensus.tags" $
         whnfAppIO (fmap evalTags . CTag.parseTagsFile) bs
 
     , -- 12549 tags
-      env (BS.readFile "bench/data.tags") $ \bs ->
+      env (BS.readFile "ghc-tags-test/bench/data.tags") $ \bs ->
       bench "data.tags" $
         whnfAppIO (fmap evalTags . CTag.parseTagsFile) bs
 
     , -- 23741 tags
-      env (BS.readFile "test/golden/vim.tags") $ \bs ->
+      env (BS.readFile "ghc-tags-test/test/golden/vim.tags") $ \bs ->
       bench "parse vim.tags" $
         whnfAppIO (fmap evalTags . CTag.parseTagsFile) bs
     ]
   , bgroup "read parse & format"
     [ bench "io-sim-classes.tags" $
-        nfIO $ benchReadParseFormat "test/golden/io-sim-classes.tags"
+        nfIO $ benchReadParseFormat "ghc-tags-test/test/golden/io-sim-classes.tags"
     , bench "ouroboros-consensus.tags" $
-        nfIO $ benchReadParseFormat "test/golden/ouroboros-consensus.tags"
+        nfIO $ benchReadParseFormat "ghc-tags-test/test/golden/ouroboros-consensus.tags"
     , bench "data.tags" $
-        nfIO $ benchReadParseFormat "bench/data.tags"
+        nfIO $ benchReadParseFormat "ghc-tags-test/bench/data.tags"
     , bench "vim.tags" $
-        nfIO $ benchReadParseFormat "test/golden/vim.tags"
+        nfIO $ benchReadParseFormat "ghc-tags-test/test/golden/vim.tags"
     ]
   , bgroup "stream parse & format"
     [ bench "io-sim-classes.tags" $
-        nfIO $ benchStreamParseFormat "test/golden/io-sim-classes.tags"
+        nfIO $ benchStreamParseFormat "ghc-tags-test/test/golden/io-sim-classes.tags"
     , bench "ouroboros-consensus.tags" $
-        nfIO $ benchStreamParseFormat "test/golden/ouroboros-consensus.tags"
+        nfIO $ benchStreamParseFormat "ghc-tags-test/test/golden/ouroboros-consensus.tags"
     , bench "data.tags" $
-        nfIO $ benchStreamParseFormat "bench/data.tags"
+        nfIO $ benchStreamParseFormat "ghc-tags-test/bench/data.tags"
     , bench "vim.tags" $
-        nfIO $ benchStreamParseFormat "test/golden/vim.tags"
+        nfIO $ benchStreamParseFormat "ghc-tags-test/test/golden/vim.tags"
     ]
     , bgroup "end-to-end"
       [ env
           (do
-            bs <- BS.readFile "test/golden/io-sim-classes.tags"
+            bs <- BS.readFile "ghc-tags-test/test/golden/io-sim-classes.tags"
             Right tags  <- fmap (mapMaybe (either (const Nothing) Just))
                            <$> CTag.parseTagsFile bs
             return (encodeTagFilePath (tagFilePath (head tags)), TagsNF tags)
           )
           $ \ ~(modPath, TagsNF tags) ->
             bgroup "small"
-              [ bench "streamTags" (whnfAppIO (benchStreamTags "test/golden/vim.tags" modPath) tags)
+              [ bench "streamTags" (whnfAppIO (benchStreamTags "ghc-tags-test/test/golden/vim.tags" modPath) tags)
 
-              , bench "readTags" (whnfAppIO (benchReadTags "test/golden/vim.tags" modPath) tags)
+              , bench "readTags" (whnfAppIO (benchReadTags "ghc-tags-test/test/golden/vim.tags" modPath) tags)
               ]
       , env
           (do
-            bs <- BS.readFile "test/golden/ouroboros-network.tags"
+            bs <- BS.readFile "ghc-tags-test/test/golden/ouroboros-network.tags"
             Right tags  <- fmap (mapMaybe (either (const Nothing) Just))
                            <$> CTag.parseTagsFile bs
             return (encodeTagFilePath (tagFilePath (head tags)), TagsNF tags)
           )
           $ \ ~(modPath, TagsNF tags) ->
             bgroup "medium"
-              [ bench "streamTags" (whnfAppIO (benchStreamTags "test/golden/vim.tags" modPath) tags)
+              [ bench "streamTags" (whnfAppIO (benchStreamTags "ghc-tags-test/test/golden/vim.tags" modPath) tags)
 
-              , bench "readTags" (whnfAppIO (benchReadTags "test/golden/vim.tags" modPath) tags)
+              , bench "readTags" (whnfAppIO (benchReadTags "ghc-tags-test/test/golden/vim.tags" modPath) tags)
               ]
       ]
 
