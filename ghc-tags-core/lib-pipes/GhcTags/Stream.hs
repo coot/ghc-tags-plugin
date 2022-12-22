@@ -64,6 +64,8 @@ combineTagsPipe compareFn modPath = go
     go :: Tag tk -> [Tag tk]
        -> Pipes.Producer (Tag tk) m [Tag tk]
 
+    -- omitt all the tags which point to 'modPath'
+    --
     -- note: we check that 'tagFilePath' ends with 'modPath', which is
     -- a relative path from the corresponding cabal file.
     go tag as
