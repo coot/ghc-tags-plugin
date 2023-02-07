@@ -2,7 +2,7 @@ cabal-version:      3.0
 name:               ghc-tags-pipes
 version:            0.1.0.0
 synopsis:           Streaming interface for ghc-tags-core
-description:        Streaming interface for ghc-tags-core
+description:        Interface to stream tags using `pipes` library.
 homepage:           https://github.com/coot/ghc-tags-plugin#readme
 bug-reports:        https://github.com/coot/ghc-tags-plugin/issues
 license:            MPL-2.0
