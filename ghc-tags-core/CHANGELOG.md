@@ -1,5 +1,10 @@
 # Revision history for ghc-tags-core
 
+## 0.5.0.0
+
+- Removed dependency on `pipes` package, some functionality moved to
+  `ghc-tags-pipes` package.
+
 ## 0.4.2.2
 
 - Added `Ord` instances: `TagDefinition`, `TagFields`, `Tag`
