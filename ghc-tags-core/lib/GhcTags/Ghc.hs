@@ -40,10 +40,8 @@ import           BasicTypes      (SourceText (..))
 #endif
 #if   MIN_VERSION_GHC(9,0)
 import           GHC.Data.FastString (bytesFS)
-#elif MIN_VERSION_GHC(8,10)
-import           FastString          (bytesFS)
 #else
-import           FastString          (FastString (fs_bs))
+import           FastString          (bytesFS)
 #endif
 #if   MIN_VERSION_GHC(9,0) && !MIN_VERSION_GHC(9,2)
 import           GHC.Types.FieldLabel (FieldLbl (..))
@@ -77,9 +75,7 @@ import           GHC_IMPORT(Decls)
                               , TyClDecl (..)
                               , TyFamInstDecl (..)
                               )
-#if   MIN_VERSION_GHC(8,10)
 import           GHC.Hs.Decls ( StandaloneKindSig (..) )
-#endif
 import           GHC_IMPORT(ImpExp)
                               ( IE (..)
                               , IEWildcard (..)
@@ -91,10 +87,8 @@ import           GHC_IMPORT(Extension)
 
 #if   MIN_VERSION_GHC(9,0)
 import           GHC.Hs.Type
-#elif MIN_VERSION_GHC(8,10)
-import           GHC.Hs.Types
 #else
-import           HsTypes
+import           GHC.Hs.Types
 #endif
                               ( ConDeclField (..)
                               , FieldOcc (..)
@@ -152,12 +146,9 @@ import           GHC.Hs       ( HsConDeclGADTDetails (..)
 import           GHC.Types.ForeignCall (CCallTarget (..))
 #endif
 import           GHC.Parser.Annotation (SrcSpanAnn' (..))
-#elif MIN_VERSION_GHC(8,10)
-import           GHC.Hs       ( HsModule (..) )
 #else
-import           HsSyn        ( HsModule (..) )
+import           GHC.Hs       ( HsModule (..) )
 #endif
-#if MIN_VERSION_GHC(8,10)
 import           GHC.Hs       ( GRHSs (..)
                               , HsLocalBinds
                               , HsLocalBindsLR (..)
@@ -165,16 +156,6 @@ import           GHC.Hs       ( GRHSs (..)
                               , Match (..)
                               , MatchGroup (..)
                               )
-#else
-import           HsExpr       ( GRHSs (..)
-                              , Match (..)
-                              , MatchGroup (..)
-                              )
-import           HsBinds      ( HsLocalBinds
-                              , HsLocalBindsLR (..)
-                              , HsValBindsLR (..)
-                              )
-#endif
 #if MIN_VERSION_GHC(9,6)
 import           Language.Haskell.Syntax.Module.Name (moduleNameFS)
 #elif MIN_VERSION_GHC(9,0)
@@ -194,11 +175,6 @@ type GhcPsHsTyVarBndr = HsTyVarBndr () GhcPs
 #else
 type GhcPsModule = HsModule GhcPs
 type GhcPsHsTyVarBndr = HsTyVarBndr    GhcPs
-#endif
-
-#if !MIN_VERSION_GHC(8,10)
-bytesFS :: FastString -> ByteString
-bytesFS = fs_bs
 #endif
 
 
@@ -502,10 +478,7 @@ hsDeclsToGhcTags mies =
             -- associated type defaults (data type families, type families
             -- (open or closed)
             ++ foldl'
-#if !MIN_VERSION_GHC(8,10)
-                (\tags' (L _ tyFamDeflEqn) ->
-                  let decl = Nothing in
-#elif !MIN_VERSION_GHC(9,2)
+#if !MIN_VERSION_GHC(9,2)
                 (\tags' (L _ decl'@(TyFamInstDecl HsIB { hsib_body = tyFamDeflEqn })) ->
                   let decl = Just decl' in
 #else
@@ -591,7 +564,6 @@ hsDeclsToGhcTags mies =
       -- signature declaration
       SigD _ sig -> mkSigTags decLoc sig ++ tags
 
-#if MIN_VERSION_GHC(8,10)
       -- standalone kind signatures
       KindSigD _ stdKindSig ->
         case stdKindSig of
@@ -600,7 +572,6 @@ hsDeclsToGhcTags mies =
 
 #if !MIN_VERSION_GHC(9,0)
           XStandaloneKindSig {} -> tags
-#endif
 #endif
 
       -- default declaration
