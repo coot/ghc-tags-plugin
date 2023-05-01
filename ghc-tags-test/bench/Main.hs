@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP         #-}
 {-# LANGUAGE RankNTypes  #-}
 {-# OPTIONS -Wno-orphans #-}
 
@@ -5,17 +6,21 @@ module Main (main) where
 
 import           Control.Exception
 import           Control.DeepSeq
+#if __GLASGOW_HASKELL__ >= 906
 import           Control.Monad.State.Strict
+#else
+import           Control.Monad.State.Strict hiding (void)
+#endif
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString         as BS
 import qualified Data.ByteString.Lazy    as BSL
 import qualified Data.ByteString.Builder as BB
 import           Data.Either (rights)
 import           Data.Foldable (traverse_)
+import           Data.Functor (void)
 import           Data.Maybe (mapMaybe)
 import qualified Data.Text.Encoding as Text
 import           System.IO
-import           System.FilePath.ByteString (RawFilePath)
 
 import qualified Pipes               as Pipes
 import qualified Pipes.Attoparsec    as Pipes.AP
@@ -173,4 +178,4 @@ benchReadTags filePath modPath tags = do
          BB.hPutBuilder writeHandle (CTag.formatTagsFile (Right `map` tags''))
 
 encodeTagFilePath :: TagFilePath -> RawFilePath
-encodeTagFilePath = Text.encodeUtf8 . getRawFilePath
+encodeTagFilePath = rawFilePathFromBS . Text.encodeUtf8 . getRawFilePath

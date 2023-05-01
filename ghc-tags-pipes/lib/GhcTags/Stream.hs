@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE FlexibleContexts    #-}
@@ -13,16 +14,19 @@ module GhcTags.Stream
     , runCombineTagsPipe
     ) where
 
+#if __GLASGOW_HASKELL__ >= 906
 import           Control.Monad.State.Strict
+#else
+import           Control.Monad.State.Strict hiding (void)
+#endif
 import           Data.ByteString (ByteString)
 import           Data.Attoparsec.ByteString (Parser)
 import qualified Data.ByteString as BS
 import           Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as BS
-import           Data.Functor (($>))
+import           Data.Functor (void, ($>))
 import qualified Data.Text.Encoding as Text
 import           System.IO
-import           System.FilePath.ByteString (RawFilePath)
 
 import           Pipes ((>->), (~>))
 import qualified Pipes as Pipes
@@ -61,6 +65,7 @@ combineTagsPipe
     -> Pipes.Producer (Tag tk) m [Tag tk]
 combineTagsPipe compareFn modPath = go
   where
+    modPath' = rawFilePathToBS modPath
     go :: Tag tk -> [Tag tk]
        -> Pipes.Producer (Tag tk) m [Tag tk]
 
@@ -69,7 +74,7 @@ combineTagsPipe compareFn modPath = go
     -- note: we check that 'tagFilePath' ends with 'modPath', which is
     -- a relative path from the corresponding cabal file.
     go tag as
-      | modPath `BS.isSuffixOf` Text.encodeUtf8 (getRawFilePath (tagFilePath tag))
+      | modPath' `BS.isSuffixOf` Text.encodeUtf8 (getRawFilePath (tagFilePath tag))
       = pure as
 
     go tag as@(a : as')

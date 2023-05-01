@@ -24,6 +24,9 @@ import           Data.Maybe    (mapMaybe)
 #if MIN_VERSION_GHC(9,0)
 import           Data.Maybe    (maybeToList)
 #endif
+#if MIN_VERSION_GHC(9,6)
+import qualified Data.List.NonEmpty as NonEmpty
+#endif
 import           Data.Foldable (foldl', toList)
 import           Data.ByteString (ByteString)
 
@@ -141,7 +144,13 @@ import           Name           ( nameOccName
 import           GHC.Hs       ( HsConDeclGADTDetails (..)
                               , HsModule (..)
                               , HsSigType (..)
+#if   MIN_VERSION_GHC(9,6)
+                              , CImportSpec (..) 
+#endif
                               )
+#if   MIN_VERSION_GHC(9,6)
+import           GHC.Types.ForeignCall (CCallTarget (..))
+#endif
 import           GHC.Parser.Annotation (SrcSpanAnn' (..))
 #elif MIN_VERSION_GHC(8,10)
 import           GHC.Hs       ( HsModule (..) )
@@ -166,7 +175,9 @@ import           HsBinds      ( HsLocalBinds
                               , HsValBindsLR (..)
                               )
 #endif
-#if MIN_VERSION_GHC(9,0)
+#if MIN_VERSION_GHC(9,6)
+import           Language.Haskell.Syntax.Module.Name (moduleNameFS)
+#elif MIN_VERSION_GHC(9,0)
 import           GHC.Unit.Module.Name (moduleNameFS)
 #endif
 
@@ -174,7 +185,10 @@ import           GHC.Unit.Module.Name (moduleNameFS)
 type HsConDeclH98Details ps = HsConDeclDetails ps
 #endif
 
-#if MIN_VERSION_GHC(9,0)
+#if MIN_VERSION_GHC(9,6)
+type GhcPsModule = HsModule GhcPs
+type GhcPsHsTyVarBndr = HsTyVarBndr () GhcPs
+#elif MIN_VERSION_GHC(9,0)
 type GhcPsModule = HsModule
 type GhcPsHsTyVarBndr = HsTyVarBndr () GhcPs
 #else
@@ -595,7 +609,14 @@ hsDeclsToGhcTags mies =
       -- foreign declaration
       ForD _ foreignDecl ->
         case foreignDecl of
+#if MIN_VERSION_GHC(9,6)
+          ForeignImport { fd_fi = CImport _ _ _mheader _ CLabel {} } -> tags
+          ForeignImport { fd_fi = CImport _ _ _mheader _ CWrapper } -> tags
+          ForeignImport { fd_fi = CImport _ _ _mheader _ (CFunction DynamicTarget) } -> tags
+          ForeignImport { fd_fi = CImport _ _ _mheader _ (CFunction ((StaticTarget sourceText _ _ _))), fd_name } ->
+#else
           ForeignImport { fd_name, fd_fi = CImport _ _ _mheader _ (L _ sourceText) } ->
+#endif
                 case sourceText of
                   NoSourceText -> tag
                   -- TODO: add header information from '_mheader'
@@ -641,8 +662,14 @@ hsDeclsToGhcTags mies =
 #endif
          ( (\n -> mkGhcTagForMember decLoc n tyName (GtkGADTConstructor con))
          . unSpanAnn )
-         `map` con_names
+         `map` con_names'
       ++ mkHsConDeclGADTDetails decLoc tyName con_args
+      where
+#if MIN_VERSION_GHC(9,6)
+        con_names' = NonEmpty.toList con_names
+#else
+        con_names' = con_names
+#endif
 
     mkConsTags decLoc tyName con@ConDeclH98  { con_name, con_args } =
         mkGhcTagForMember decLoc (unSpanAnn con_name) tyName
@@ -812,7 +839,9 @@ hsDeclsToGhcTags mies =
     mkSigTags _ (ClassOpSig _ _ _ XHsImplicitBndrs {})
                                        = []
 #endif
+#if !MIN_VERSION_GHC(9,6)
     mkSigTags _ IdSig {}               = []
+#endif
     -- TODO: generate theses with additional info (fixity)
     mkSigTags _ FixSig {}              = []
     mkSigTags _ InlineSig {}           = []

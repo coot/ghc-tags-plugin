@@ -33,7 +33,6 @@ import qualified Data.Map.Strict as Map
 import           Data.Text          (Text)
 import qualified Data.Text          as Text
 import qualified Data.Text.Encoding as Text
-import qualified System.FilePath.ByteString as FilePath
 
 import           GhcTags.Tag
 import qualified GhcTags.Utils as Utils
@@ -100,7 +99,10 @@ parseTag =
 
     parseTagFileName :: Parser TagFilePath
     parseTagFileName =
-          TagFilePath . Text.decodeUtf8 . FilePath.normalise
+          TagFilePath . Text.decodeUtf8
+                      . rawFilePathToBS
+                      . normaliseRawFilePath
+                      . rawFilePathFromBS
       <$> AChar.takeWhile (/= '\t')
 
     parseExCommand :: Parser ExCommand

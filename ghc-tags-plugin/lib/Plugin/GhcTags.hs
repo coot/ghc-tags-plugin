@@ -11,12 +11,18 @@
 module Plugin.GhcTags ( plugin, Options (..) ) where
 
 import           Control.Exception
+import           Control.Monad (when)
+#if __GLASGOW_HASKELL__ >= 906
 import           Control.Monad.State.Strict
+#else
+import           Control.Monad.State.Strict hiding (when, void)
+#endif
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString         as BS
 import qualified Data.ByteString.Char8   as BSC
 import qualified Data.ByteString.Lazy    as BSL
 import qualified Data.ByteString.Builder as BB
+import           Data.Functor (void)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import           Data.Functor.Identity (Identity (..))
@@ -28,10 +34,12 @@ import           Data.Either (partitionEithers, rights)
 #endif
 import           Data.Foldable (traverse_)
 import           Data.Maybe (mapMaybe)
+#if __GLASGOW_HASKELL__ > 906
+import           System.Directory.OsPath
+#else
 import           System.Directory
-import           System.FilePath
-import           System.FilePath.ByteString (RawFilePath)
-import qualified System.FilePath.ByteString as FilePath
+#endif
+import qualified System.FilePath as FilePath
 import           System.IO
 
 import           Options.Applicative.Types (ParserFailure (..))
@@ -163,7 +171,9 @@ bytesFS :: FastString -> ByteString
 bytesFS = fs_bs
 #endif
 
-#if   __GLASGOW_HASKELL__ >= 900
+#if   __GLASGOW_HASKELL__ >= 906
+type GhcPsModule = HsModule GhcPs
+#elif __GLASGOW_HASKELL__ >= 900
 type GhcPsModule = HsModule
 #else
 type GhcPsModule = HsModule GhcPs
@@ -251,8 +261,8 @@ ghcTagsParserPlugin options
                                 (displayException ioerr))
                      throwIO (GhcTagsParserPluginIOException ioerr)) $
 
-                let lockFile = case splitFileName tagsFile of
-                      (dir, name) -> dir </> "." ++ name ++ ".lock" in
+                let lockFile = case FilePath.splitFileName tagsFile of
+                      (dir, name) -> dir FilePath.</> "." ++ name ++ ".lock" in
                 -- Take advisory exclusive lock (a BSD lock using `flock`) on the tags
                 -- file.  This is needed when `cabal` compiles in parallel.
                 -- We take the lock on the copy, otherwise the lock would be removed when
@@ -334,8 +344,8 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
     -- is then renamed to tags file.
     updateCTags_stream = do
       tagsFileExists <- doesFileExist tagsFile
-      let destFile = case splitFileName tagsFile of
-            (dir, name) -> dir </> "." ++ name
+      let destFile = case FilePath.splitFileName tagsFile of
+            (dir, name) -> dir FilePath.</> "." ++ name
 
       mbInSize <-
         if debug
@@ -348,14 +358,14 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
 
       withFile destFile WriteMode  $ \writeHandle ->
         withFile tagsFile ReadWriteMode $ \readHandle -> do
-          cwd <- BSC.pack <$> getCurrentDirectory
+          cwd <- rawFilePathFromBS . BSC.pack <$> getCurrentDirectory
           -- absolute directory path of the tags file; we need canonical path
           -- (without ".." and ".") to make 'makeRelative' works.
-          tagsDir <- BSC.pack <$> canonicalizePath (fst $ splitFileName tagsFile)
+          tagsDir <- rawFilePathFromBS . BSC.pack <$> canonicalizePath (fst $ FilePath.splitFileName tagsFile)
           case ml_hs_file ms_location of
             Nothing         -> pure ()
             Just sourcePath -> do
-              let sourcePathBS = Text.encodeUtf8 (Text.pack sourcePath)
+              let sourcePathBS = rawFilePathFromBS $ Text.encodeUtf8 (Text.pack sourcePath)
                   -- path of the compiled module; it is relative to the cabal file,
                   -- not the project.
                   modulePath =
@@ -365,7 +375,8 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
 #else
                       GHC.RealSrcSpan rss ->
 #endif
-                          bytesFS
+                          rawFilePathFromBS
+                        . bytesFS
                         . GHC.srcSpanFile
                         $ rss
                       GHC.UnhelpfulSpan {} ->
@@ -468,14 +479,14 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                         then BS.readFile tagsFile
                         else return mempty
       withFile tagsFile WriteMode $ \writeHandle -> do
-        cwd <- BSC.pack <$> getCurrentDirectory
+        cwd <- rawFilePathFromBS . BSC.pack <$> getCurrentDirectory
         -- absolute directory path of the tags file; we need canonical path
         -- (without ".." and ".") to make 'makeRelative' works.
-        tagsDir <- BSC.pack <$> canonicalizePath (fst $ splitFileName tagsFile)
+        tagsDir <- rawFilePathFromBS . BSC.pack <$> canonicalizePath (fst $ FilePath.splitFileName tagsFile)
         case ml_hs_file ms_location of
           Nothing         -> pure ()
           Just sourcePath -> do
-            let sourcePathBS = Text.encodeUtf8 (Text.pack sourcePath)
+            let sourcePathBS = rawFilePathFromBS $ Text.encodeUtf8 (Text.pack sourcePath)
                 -- path of the compiled module; it is relative to the cabal file,
                 -- not the project.
                 modulePath =
@@ -485,7 +496,8 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
 #else
                     GHC.RealSrcSpan rss ->
 #endif
-                        bytesFS
+                        rawFilePathFromBS
+                      . bytesFS
                       . GHC.srcSpanFile
                       $ rss
                     GHC.UnhelpfulSpan {} ->
@@ -553,10 +565,10 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                         then BS.readFile tagsFile
                         else return mempty
       withFile tagsFile WriteMode $ \writeHandle -> do
-          cwd <- BSC.pack <$> getCurrentDirectory
+          cwd <- rawFilePathFromBS . BSC.pack <$> getCurrentDirectory
           -- absolute directory path of the tags file; we need canonical path
           -- (without ".." and ".") to make 'makeRelative' works.
-          tagsDir <- BSC.pack <$> canonicalizePath (fst $ splitFileName tagsFile)
+          tagsDir <- rawFilePathFromBS . BSC.pack <$> canonicalizePath (fst $ FilePath.splitFileName tagsFile)
 
           case ml_hs_file ms_location of
             Nothing         -> pure ()
@@ -570,7 +582,8 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                   printMessageDoc dynFlags ParserException (Just ms_mod) err
 
                 Right (Right parsedTags) -> do
-                  let sourcePathBS = Text.encodeUtf8 (Text.pack sourcePath)
+                  let sourcePathBS = rawFilePathFromBS
+                                   $ Text.encodeUtf8 (Text.pack sourcePath)
 
                       tags :: [ETag]
                       tags = filterAdjacentTags
@@ -679,8 +692,8 @@ ghcTagsMetaHook options dynFlags request expr =
                                (displayException ioerr))
                      throwIO (GhcTagsDynFlagsPluginIOException ioerr)) $
             withFileLock debug tagsFile ExclusiveLock $ \_ -> do
-            cwd <- BSC.pack <$> getCurrentDirectory
-            tagsDir <- BSC.pack <$> canonicalizePath (fst $ splitFileName tagsFile)
+            cwd <- rawFilePathFromBS . BSC.pack <$> getCurrentDirectory
+            tagsDir <- rawFilePathFromBS . BSC.pack <$> canonicalizePath (fst $ FilePath.splitFileName tagsFile)
             tagsContent <- BSC.readFile tagsFile
             if etags
               then do
@@ -694,7 +707,7 @@ ghcTagsMetaHook options dynFlags request expr =
                         tags' = sortBy ETag.compareTags $
                                   tags
                                   ++
-                                  (fmap (fixTagFilePath  cwd tagsDir)
+                                  (fmap (fixTagFilePath cwd tagsDir)
                                   . ghcTagToTag SingETag dynFlags)
                                     `mapMaybe`
                                      hsDeclsToGhcTags Nothing decls
@@ -712,7 +725,7 @@ ghcTagsMetaHook options dynFlags request expr =
                                 sortBy CTag.compareTags
                                 ( tags
                                   ++
-                                  (fmap (fixTagFilePath  cwd tagsDir)
+                                  (fmap (fixTagFilePath cwd tagsDir)
                                     . ghcTagToTag SingCTag dynFlags)
                                     `mapMaybe`
                                     hsDeclsToGhcTags Nothing decls
@@ -759,9 +772,9 @@ fixFilePath :: RawFilePath
             -- ^ tag's file path
             -> RawFilePath
 fixFilePath cwd tagsDir =
-    FilePath.normalise
-  . FilePath.makeRelative tagsDir
-  . (cwd FilePath.</>)
+    normaliseRawFilePath
+  . makeRelativeRawFilePath tagsDir
+  . (cwd </>)
 
 
 -- we are missing `Text` based `FilePath` library!
@@ -773,9 +786,9 @@ fixTagFilePath :: RawFilePath
 fixTagFilePath cwd tagsDir tag@Tag { tagFilePath = TagFilePath fp } =
   tag { tagFilePath =
           TagFilePath
-            (Text.decodeUtf8
-              (fixFilePath cwd tagsDir
-                (Text.encodeUtf8 fp)))
+            ( Text.decodeUtf8 . rawFilePathToBS
+            $ fixFilePath cwd tagsDir
+                          (rawFilePathFromBS $ Text.encodeUtf8 fp))
       }
 
 --

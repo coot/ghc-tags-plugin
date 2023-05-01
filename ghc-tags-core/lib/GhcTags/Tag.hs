@@ -42,7 +42,13 @@ module GhcTags.Tag
     -- ** Ordering and combining tags
   , compareTags
   , combineTags
-
+    -- ** File paths
+  , RawFilePath
+  , rawFilePathToBS
+  , rawFilePathFromBS
+  , normaliseRawFilePath
+  , makeRelativeRawFilePath
+  , (</>)
   -- * Create 'Tag' from a 'GhcTag'
   , ghcTagToTag
   ) where
@@ -53,12 +59,22 @@ import           Data.Function (on)
 import           Data.ByteString (ByteString)
 #endif
 import qualified Data.ByteString as BS
+#if __GLASGOW_HASKELL__ >= 906
+import qualified Data.ByteString.Char8 as BS.Char8
+#endif
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import           Data.Text   (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
+#if __GLASGOW_HASKELL__ >= 906
+import           System.OsPath (OsPath)
+import qualified System.OsPath as OsPath
+import           System.IO.Unsafe (unsafePerformIO)
+#else
 import           System.FilePath.ByteString (RawFilePath)
+import qualified System.FilePath.ByteString as FilePath.BS
+#endif
 
 -- GHC imports
 #if   MIN_VERSION_GHC(9,0)
@@ -101,6 +117,46 @@ import qualified Outputable as Out
 #if   !MIN_VERSION_GHC(8,10)
 bytesFS :: FastString -> ByteString
 bytesFS = fs_bs
+#endif
+
+
+#if __GLASGOW_HASKELL__ >= 906
+type RawFilePath = OsPath
+#endif
+
+rawFilePathToBS :: RawFilePath -> BS.ByteString
+#if   __GLASGOW_HASKELL__ >= 906
+rawFilePathToBS = \a -> unsafePerformIO $ BS.Char8.pack <$> OsPath.decodeFS a 
+#else
+rawFilePathToBS = id
+#endif
+
+rawFilePathFromBS :: BS.ByteString -> RawFilePath
+#if    __GLASGOW_HASKELL__ >= 906
+rawFilePathFromBS = unsafePerformIO . OsPath.encodeFS . BS.Char8.unpack
+#else
+rawFilePathFromBS = id
+#endif
+
+normaliseRawFilePath :: RawFilePath -> RawFilePath
+#if __GLASGOW_HASKELL__ >= 906
+normaliseRawFilePath = OsPath.normalise
+#else
+normaliseRawFilePath = FilePath.BS.normalise
+#endif
+
+makeRelativeRawFilePath :: RawFilePath -> RawFilePath -> RawFilePath
+#if __GLASGOW_HASKELL__ >= 906
+makeRelativeRawFilePath = OsPath.makeRelative
+#else
+makeRelativeRawFilePath = FilePath.BS.makeRelative
+#endif
+
+(</>) :: RawFilePath -> RawFilePath -> RawFilePath
+#if __GLASGOW_HASKELL__ >= 906
+(</>) = (OsPath.</>)
+#else
+(</>) = (FilePath.BS.</>)
 #endif
 
 --
@@ -414,14 +470,15 @@ combineTags :: (Tag tk -> Tag tk -> Ordering)
             -> [Tag tk] -> [Tag tk] -> [Tag tk]
 combineTags compareFn modPath = go
   where
+    modPath' = rawFilePathToBS modPath
     go as@(a : as') bs@(b : bs')
-      | modPath `BS.isSuffixOf` Text.encodeUtf8 (getRawFilePath (tagFilePath b))
+      | modPath' `BS.isSuffixOf` Text.encodeUtf8 (getRawFilePath (tagFilePath b))
       = go as bs'
       | otherwise = case a `compareFn` b of
           LT -> a : go as' bs
           EQ -> a : go as' bs'
           GT -> b : go as  bs'
-    go [] bs = filter (\b -> not (modPath `BS.isSuffixOf` Text.encodeUtf8 (getRawFilePath (tagFilePath b)))) bs
+    go [] bs = filter (\b -> not (modPath' `BS.isSuffixOf` Text.encodeUtf8 (getRawFilePath (tagFilePath b)))) bs
     go as [] = as
     {-# INLINE go #-}
 

@@ -11,7 +11,6 @@ import qualified Data.ByteString.Lazy as BL
 import           Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
-import qualified System.FilePath.ByteString as FilePath
 
 import           Test.Tasty (TestTree, testGroup)
 import           Test.Tasty.QuickCheck (testProperty)
@@ -84,7 +83,9 @@ roundTripCTagProp (ArbCTag tag) =
     projectTag t@Tag {tagFilePath = TagFilePath path, tagAddr} =
       t { tagFilePath = TagFilePath
                       . Text.decodeUtf8
-                      . FilePath.normalise
+                      . rawFilePathToBS
+                      . normaliseRawFilePath
+                      . rawFilePathFromBS
                       . Text.encodeUtf8
                       $ path
         , tagAddr = case tagAddr of
