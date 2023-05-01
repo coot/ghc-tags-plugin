@@ -41,7 +41,7 @@ fixFilePath = TagFilePath
 genTagFilePath :: Gen TagFilePath
 genTagFilePath =
     suchThat
-      (fixFilePath . TagFilePath <$> arbitrary)
+      (fixFilePath . TagFilePath . Text.pack <$> arbitrary)
       (not . Text.null . getRawFilePath)
 
 genField :: Gen TagField
@@ -145,6 +145,6 @@ shrinkTag :: Tag tk -> [Tag tk]
 shrinkTag tag@Tag {tagFilePath = TagFilePath tagFilePath} =
       shrinkTag' tag
    ++ [ tag { tagFilePath = tagFilePath' }
-      | tagFilePath' <- (fixFilePath . TagFilePath) `map` shrink tagFilePath
+      | tagFilePath' <- (fixFilePath . TagFilePath . Text.pack) `map` shrink (Text.unpack tagFilePath)
       , not (Text.null $ getRawFilePath tagFilePath')
       ]
