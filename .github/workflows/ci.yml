@@ -55,6 +55,7 @@ jobs:
         cat dist-newstyle/cache/plan.json | jq -r '."install-plan"[].id' | sort | uniq > dependencies.txt
 
     - name: Cache `cabal store`
+      id: cabal-store
       uses: actions/cache@v3
       with:
         path: ${{ steps.setup-haskell.outputs.cabal-store }}
@@ -79,6 +80,13 @@ jobs:
 
     - name: Build dependencies with `ghc-lib`
       run: cabal --builddir="$CABAL_BUILDDIR" build -f+ghc-lib --only-dependencies all
+
+    - name: Save cache
+      uses: actions/cache/save@v3
+      if: steps.cabal-store.outputs.cache-hit != 'true'
+      with:
+        path: ${{ steps.setup-haskell.outputs.cabal-store }}
+        key: cabal-store-${{ env.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('dependencies.txt') }}
 
     - name: build ghc-tags-core with `ghc-lib` [build]
       run: cabal --builddir="$CABAL_BUILDDIR" build -f+ghc-lib ghc-tags-core
