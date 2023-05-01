@@ -55,9 +55,6 @@ module GhcTags.Tag
 
 import           Control.DeepSeq
 import           Data.Function (on)
-#if   !MIN_VERSION_GHC(8,10)
-import           Data.ByteString (ByteString)
-#endif
 import qualified Data.ByteString as BS
 #if __GLASGOW_HASKELL__ >= 906
 import qualified Data.ByteString.Char8 as BS.Char8
@@ -84,10 +81,8 @@ import           DynFlags           (DynFlags (pprUserLength))
 #endif
 #if   MIN_VERSION_GHC(9,0)
 import           GHC.Data.FastString (bytesFS)
-#elif MIN_VERSION_GHC(8,10)
-import           FastString          (bytesFS)
 #else
-import           FastString          (FastString (fs_bs))
+import           FastString          (bytesFS)
 #endif
 
 #if   MIN_VERSION_GHC(9,0)
@@ -112,11 +107,6 @@ import           GhcTags.Ghc  ( GhcTag (..)
 import qualified GHC.Utils.Outputable as Out
 #else
 import qualified Outputable as Out
-#endif
-
-#if   !MIN_VERSION_GHC(8,10)
-bytesFS :: FastString -> ByteString
-bytesFS = fs_bs
 #endif
 
 

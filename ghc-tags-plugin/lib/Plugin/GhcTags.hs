@@ -27,11 +27,7 @@ import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import           Data.Functor.Identity (Identity (..))
 import           Data.List (sortBy)
-#if __GLASGOW_HASKELL__ < 810
-import           Data.Either (rights)
-#else
 import           Data.Either (partitionEithers, rights)
-#endif
 import           Data.Foldable (traverse_)
 import           Data.Maybe (mapMaybe)
 #if __GLASGOW_HASKELL__ > 906
@@ -121,22 +117,17 @@ import qualified SrcLoc as GHC (SrcSpan (..), getLoc, srcSpanFile)
 import           GHC.Driver.Session (DynFlags)
 #elif __GLASGOW_HASKELL__ >= 900
 import           GHC.Driver.Session (DynFlags (DynFlags, hooks))
-#elif __GLASGOW_HASKELL__ >= 810
-import           DynFlags (DynFlags (DynFlags, hooks))
 #else
-import           DynFlags (DynFlags)
+import           DynFlags (DynFlags (DynFlags, hooks))
 #endif
 
 #if   __GLASGOW_HASKELL__ >= 900
 import           GHC.Hs (GhcPs, GhcTc, HsModule (..), LHsDecl, LHsExpr)
-#elif __GLASGOW_HASKELL__ >= 810
+#else
 import           GHC.Hs (GhcPs, GhcTc, HsModule (..), LHsDecl, LHsExpr)
 import           TcSplice
 import           TcRnMonad
 import           Hooks
-#else
-import           HsExtension (GhcPs)
-import           HsSyn (HsModule (..))
 #endif
 #if __GLASGOW_HASKELL__ >= 900
 import           GHC.Utils.Outputable (($+$), ($$))
@@ -149,10 +140,8 @@ import qualified PprColour
 #endif
 #if   __GLASGOW_HASKELL__ >= 900
 import           GHC.Data.FastString (bytesFS)
-#elif __GLASGOW_HASKELL__ >= 810
-import           FastString          (bytesFS)
 #else
-import           FastString          (FastString (fs_bs))
+import           FastString          (bytesFS)
 #endif
 
 import           GhcTags.Ghc
@@ -165,11 +154,6 @@ import           Plugin.GhcTags.Options
 import           Plugin.GhcTags.FileLock
 import qualified Plugin.GhcTags.CTag as CTag
 
-
-#if   __GLASGOW_HASKELL__ < 810
-bytesFS :: FastString -> ByteString
-bytesFS = fs_bs
-#endif
 
 #if   __GLASGOW_HASKELL__ >= 906
 type GhcPsModule = HsModule GhcPs
@@ -219,7 +203,7 @@ plugin = GhcPlugins.defaultPlugin {
 #endif
 #if   __GLASGOW_HASKELL__ >= 902
       driverPlugin       = ghcTagsDriverPlugin,
-#elif __GLASGOW_HASKELL__ >= 810
+#else
       dynflagsPlugin     = ghcTagsDynflagsPlugin,
 #endif
       pluginRecompile    = GhcPlugins.purePlugin
@@ -656,7 +640,6 @@ filterAdjacentTags tags =
       _  -> map Just (tail tags) ++ [Nothing]
 
 
-#if __GLASGOW_HASKELL__ >= 810
 --
 -- Tags for Template-Haskell splices
 --
@@ -757,7 +740,6 @@ ghcTagsMetaHook options dynFlags request expr =
         res <- metaRequestD h e
         k res <$ f res
       MetaAW k -> k <$> metaRequestAW h e
-#endif
 
 
 --
