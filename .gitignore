@@ -8,3 +8,4 @@ TODO.md
 benchmarks.*
 .ghc-tags-plugin.env
 .ghcid
+/ghc-tags-test/**/*.out
