@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE BangPatterns               #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE LambdaCase                 #-}
@@ -26,7 +27,6 @@ import           Data.Functor (($>))
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
-import qualified System.FilePath.ByteString as FilePath
 
 import           GhcTags.Tag
 import qualified GhcTags.Utils as Utils
@@ -61,7 +61,10 @@ parseTagFileSection = do
 
 parseTagFilePath :: Parser TagFilePath
 parseTagFilePath =
-      TagFilePath . Text.decodeUtf8 . FilePath.normalise
+      TagFilePath . Text.decodeUtf8
+                  . rawFilePathToBS
+                  . normaliseRawFilePath
+                  . rawFilePathFromBS
   <$> AChar.takeWhile (\x -> x /= ',' && Utils.notNewLine x)
   <*  AChar.char ','
   <*  (AChar.decimal :: Parser Int)

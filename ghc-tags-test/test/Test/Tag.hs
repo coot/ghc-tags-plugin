@@ -17,7 +17,6 @@ import           Data.Foldable (traverse_)
 import           Data.List (nub, sortBy)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
-import           System.FilePath.ByteString (RawFilePath)
 
 import           Test.Tasty (TestTree, testGroup)
 import           Test.Tasty.QuickCheck (testProperty)
@@ -240,7 +239,7 @@ instance Arbitrary ArbTagsFromFile where
 --
 
 encodeTagFilePath :: TagFilePath -> RawFilePath
-encodeTagFilePath = Text.encodeUtf8 . getRawFilePath
+encodeTagFilePath = rawFilePathFromBS . Text.encodeUtf8 . getRawFilePath
 
 -- properties
 
@@ -266,7 +265,7 @@ combineTags_idempotent (ArbTagsFromFile fp as) (ArbTagList bs) =
     fp' = encodeTagFilePath fp
 
 
--- | The tag list cannot connot contain duplicates for this property to hold.
+-- | The tag list cannot cannot contain duplicates for this property to hold.
 --
 combineTags_identity :: ArbTagsFromFile
                      -> Bool

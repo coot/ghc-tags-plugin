@@ -41,7 +41,6 @@ test-suite test
                        bytestring,
                        directory,
                        filepath,
-                       filepath-bytestring,
                        lattices,
                        mtl,
                        pipes,
@@ -64,7 +63,6 @@ benchmark benchmark
                      , bytestring
                      , criterion
                      , deepseq
-                     , filepath-bytestring
                      , ghc-tags-core
                      , ghc-tags-pipes
                      , mtl
@@ -73,3 +71,5 @@ benchmark benchmark
                      , pipes-bytestring
                      , text
   ghc-options:         -Wall -rtsopts
+  if impl(ghc >= 9.6)
+    build-depends: filepath ^>= 1.4.1

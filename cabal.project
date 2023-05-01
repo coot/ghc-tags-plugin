@@ -1,4 +1,4 @@
-index-state: 2022-10-22T00:00:00Z
+index-state: 2023-04-30T00:00:00Z
 
 packages: ghc-tags-plugin
           ghc-tags-core
@@ -7,3 +7,8 @@ packages: ghc-tags-plugin
 
 package ghc-tags-core
   tests: True
+
+source-repository-package
+  type: git
+  location: https://github.com/coot/pipes-attoparsec
+  tag: c9f1c7e966cef86afd2acfe2553ecc4d852b0352
