@@ -1,5 +1,9 @@
 # Revision history for ghctags
 
+## 0.6.0.0 -- 2023-05-01
+
+- `GHC-9.6` support; dropped support of `GHC-8.8`.
+
 ## 0.5.1.0
 
 - tags for local bindings (from `where` clauses)

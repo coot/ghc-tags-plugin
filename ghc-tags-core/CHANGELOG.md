@@ -1,5 +1,9 @@
 # Revision history for ghc-tags-core
 
+## 0.6.0.0 -- 2023-05-01
+
+- `GHC-9.6` support; dropped support of `GHC-8.8`.
+
 ## 0.5.0.0
 
 - Removed dependency on `pipes` package, some functionality moved to
