@@ -2,11 +2,17 @@
 # install, uninstall and friends ghc-tags-plugin in cabal store
 #
 
-GHC_VERSION ?= 9.4.2
+GHC_VERSION ?= 9.6.1
 GHC=ghc-${GHC_VERSION}
 GHC_PKG=ghc-pkg-${GHC_VERSION}
 
-PACKAGE_DB = ${HOME}/.cabal/store/ghc-${GHC_VERSION}/package.db
+
+ifneq (,$(wildcard ${HOME}/.local/state/cabal/store))
+	PACKAGE_DB = ${HOME}/.local/state/cabal/store/ghc-${GHC_VERSION}/package.db
+else
+	PACKAGE_DB = ${HOME}/.cabal/store/ghc-${GHC_VERSION}/package.db
+endif
+
 # this avoids changing the default environment:
 # ~/.ghc/x86_64-linux-8.6.5/environments/default
 # file; Unfortunatelly `/dev/null` is not accepted.
