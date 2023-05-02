@@ -1,26 +1,8 @@
 cabal-version:       3.0
 name:                ghc-tags-core
 version:             0.6.0.0
-synopsis:            a library to work with tags created from Haskell parsed tree
-description:
-  === library scope
-  .
-  'ghc-tags-core' library provides:
-  .
-  * a function to extract /tag/ information from @'HsModule' 'GhcPs'@ parsed tree representation of Haskell code,
-  * parsers for __ctag__ and __etag__ style tag files (/vim/ \/ /emacs/),
-  * formatting tags into __ctag__ and __etag__ files,
-  * tries to be compatible with [universal-ctags](https://github.com/universal-ctags/ctags).
-  .
-  === developer tools
-  Check out these projects:
-  .
-  * [ghc-tags](https://hackage.haskell.org/package/ghc-tags) - a standalone ghc tags generator;
-  * [ghc-tags-plugin](https://hackage.haskell.org/package/ghc-tags-plugin) -
-    a ghc [compiler
-    plugin](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/extending_ghc.html?highlight=compiler%20plugin#compiler-plugins)
-    which extracts tags during @GHC@'s parser pass and from TH splices.
-  .
+synopsis:            CTags and ETags from Haskell syntax tree.
+description:         A library to work with tags created from GHC syntax tree.
 license:             MPL-2.0
 license-file:        LICENSE
 author:              Marcin Szamotulski

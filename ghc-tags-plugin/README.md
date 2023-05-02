@@ -2,7 +2,7 @@ Ghc Tags Compiler Plugin
 ========================
 [![Haskell](https://img.shields.io/badge/language-Haskell-8D82AC.svg?style=for-the-badge)](https://haskell.org)
 [![MPL-2.0 License](http://img.shields.io/badge/license-MPL20-brightgreen.svg?style=for-the-badge)](https://github.com/coot/ghc-tags-plugin/blob/master/ghc-tags-core/LICENSE)
-[![Haskell CI](https://img.shields.io/github/workflow/status/coot/ghc-tags-plugin/Haskell%20CI?label=Build&style=for-the-badge)](https://github.com/coot/ghc-tags-plugin/actions/workflows/ci.yml)
+[![Haskell CI](https://img.shields.io/github/actions/workflow/status/coot/ghc-tags-plugin/ci.yml?branch=master&label=Build&style=for-the-badge)](https://github.com/coot/ghc-tags-plugin/actions/workflows/ci.yml)
 
 A library and a [GHC compiler
 plugin](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/extending_ghc.html#compiler-plugins)

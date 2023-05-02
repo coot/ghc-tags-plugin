@@ -13,6 +13,7 @@ copyright:          (c) 2022, Marcin Szamotulski
 category:           Development
 build-type:         Simple
 extra-doc-files:    CHANGELOG.md
+                    README.md
 
 common warnings
     ghc-options: -Wall
@@ -37,7 +38,7 @@ library
                        bytestring           >=0.10,
                        mtl,
                        pipes               ^>=4.3,
-                       pipes-attoparsec    ^>=0.5,
+                       pipes-attoparsec    ^>=0.6,
                        pipes-bytestring    ^>=2.1,
                        text                 >=1.2 && <2.1,
                        ghc-tags-core
