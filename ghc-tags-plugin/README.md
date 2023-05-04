@@ -18,7 +18,6 @@ for template-haskell splices, but it requires: `ghc >= 8.10`.
 `ghc-9.4` includes a [fix][ghc-issue-20417] which makes `cabal` cache mechanism
 works again.
 
-
 ● Plugin options
 ----------------
 
@@ -43,7 +42,7 @@ This is useful if for *cabal packages* which are located in subdirectories.
 
 ## ● Emacs support
 
-To produce `etags` file you will need to pass the follwing option
+To produce `etags` file you will need to pass the following option
 ```
 -fplugin-opt=Plugin.GhcTags:--etags
 ```
@@ -114,7 +113,7 @@ absolute* path to your `tags` file.
 
 This is alternative method, which also could be modified for `cabal` (but it is
 not as nice as the previous method where you don't need to modify any files
-checked in vcs).
+checked in a VCS).
 
 Add `ghc-tags-plugin` to  `build-depends` in your `*.cabal` files. (You should
 hide it behind a cabal flag).  And add these lines to `stack.yaml` file:
@@ -169,7 +168,7 @@ ghc: panic! (the 'impossible' happened)
     `~/.ghc/x86_64-linux-8.6.5/environments/default`
   (or whatever is your default environment)
 
-  * unregister the installeld version from cabal store (you can check what is
+  * unregister the installed version from cabal store (you can check what is
   installed in your store with `ghc-pkg --package=PACKAGE_DB list | grep ghc-tags`
   for the following command):
 
@@ -207,4 +206,14 @@ state) as of `IO`, and does not
 [modify/](https://github.com/coot/ghc-tags-plugin/blob/master/src/Plugin/GhcTags.hs#L95)
 the syntax tree.
 
+● ghc-tags - standalone program
+-------------------------------
+
+[`ghc-tags-fork`] is a fork of [`ghc-tags-hackage`]. Both provide a standalone
+`ghc-tags` command.  Unlike the `hackage` version [ghc-tags-fork] is using the
+latest [`ghc-tags-core`] version.
+
 [ghc-issue-20417]: https://gitlab.haskell.org/ghc/ghc/-/issues/20417
+[`ghc-tags-fork`]: https://github.com/coot/ghc-tags
+[`ghc-tags-hackage`]: https://hackage.haskell.org/package/ghc-tags
+[`ghc-tags-core`]: https//hackage.haskell.org/package/ghc-tags-core

@@ -6,7 +6,10 @@ description:
   A [GHC compiler plugin](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/extending_ghc.html?highlight=compiler%20plugin#compiler-plugins)
   which takes parsed Haskell representation @HsModule GhcPs@,
   extracts __tags__ information and saves it either in __ctags__ or
-  __etags__ format.
+  __etags__ format.  For a standalone `ghc-tags` command look for or
+  [ghc-tags](https://hackage.haskell.org/package/ghc-tags) or its
+  [fork](https://github.com/coot/ghc-tags) (the fork is using `ghc-tags-core`,
+  the same library which `ghc-tags-plugin` is using).
 license:             MPL-2.0
 license-file:        LICENSE
 author:              Marcin Szamotulski
