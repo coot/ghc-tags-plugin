@@ -9,7 +9,7 @@ license:            MPL-2.0
 license-file:       LICENSE
 author:             Marcin Szamotulski
 maintainer:         coot@coot.me
-copyright:          (c) 2022, Marcin Szamotulski
+copyright:          (c) 2022-2023, Marcin Szamotulski
 category:           Development
 build-type:         Simple
 extra-doc-files:    CHANGELOG.md

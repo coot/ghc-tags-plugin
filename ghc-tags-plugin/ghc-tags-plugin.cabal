@@ -12,7 +12,7 @@ license:             MPL-2.0
 license-file:        LICENSE
 author:              Marcin Szamotulski
 maintainer:          coot@coot.me
-copyright:           (c) 2020-2022, Marcin Szamotulski
+copyright:           (c) 2020-2023, Marcin Szamotulski
 category:            Development
 stability:           alpha
 extra-source-files:  CHANGELOG.md
@@ -67,14 +67,8 @@ library
                        pipes-safe       ^>=2.3,
                        text              >=1.2 && <2.1,
 
-  -- on macos `ghc-tags-core-0.4.2.0` does not build (preprocessor error)
-  if impl(ghc < 8.10) && os(darwin)
-    build-depends:     ghc-tags-core < 0.4.2.0,
+                       ghc-tags-core,
                        ghc-tags-pipes
-  else
-    build-depends:     ghc-tags-core,
-                       ghc-tags-pipes
-
   default-language:    Haskell2010
 
 

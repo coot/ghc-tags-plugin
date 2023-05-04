@@ -7,6 +7,7 @@ homepage:           https://github.com/coot/ghc-tags-plugin
 license:            MPL-2.0
 license-file:       LICENSE
 author:             Marcin Szamotulski
+copyright:          (c) 2020-2023, Marcin Szamotulski
 maintainer:         coot@coot.me
 -- copyright:
 category:           Development
