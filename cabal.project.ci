@@ -7,3 +7,9 @@ package ghc-tags-core
 
 package ghc-tags-plugin
   ghc-options: -j2 -Werror
+
+package ghc-tags-pipes
+  ghc-options: -j2 -Werror
+
+package ghc-tags-test
+  ghc-options: -j2 -Werror
