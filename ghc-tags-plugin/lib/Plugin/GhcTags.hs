@@ -245,13 +245,11 @@ ghcTagsParserPlugin options
                                 (displayException ioerr))
                      throwIO (GhcTagsParserPluginIOException ioerr)) $
 
-                let lockFile = case FilePath.splitFileName tagsFile of
-                      (dir, name) -> dir FilePath.</> "." ++ name ++ ".lock" in
                 -- Take advisory exclusive lock (a BSD lock using `flock`) on the tags
                 -- file.  This is needed when `cabal` compiles in parallel.
                 -- We take the lock on the copy, otherwise the lock would be removed when
                 -- we move the file.
-                withFileLock debug lockFile ExclusiveLock $ \_ -> do
+                withFileLock debug (lockFilePath tagsFile) ExclusiveLock $ \_ -> do
                     mbInSize <-
                       if debug
                         then Just <$> getFileSize tagsFile
@@ -674,7 +672,7 @@ ghcTagsMetaHook options dynFlags request expr =
                              (messageDoc UnhandledException Nothing
                                (displayException ioerr))
                      throwIO (GhcTagsDynFlagsPluginIOException ioerr)) $
-            withFileLock debug tagsFile ExclusiveLock $ \_ -> do
+            withFileLock debug (lockFilePath tagsFile) ExclusiveLock $ \_ -> do
             cwd <- rawFilePathFromBS . BSC.pack <$> getCurrentDirectory
             tagsDir <- rawFilePathFromBS . BSC.pack <$> canonicalizePath (fst $ FilePath.splitFileName tagsFile)
             tagsContent <- BSC.readFile tagsFile
@@ -772,6 +770,11 @@ fixTagFilePath cwd tagsDir tag@Tag { tagFilePath = TagFilePath fp } =
             $ fixFilePath cwd tagsDir
                           (rawFilePathFromBS $ Text.encodeUtf8 fp))
       }
+
+lockFilePath :: FilePath -> FilePath
+lockFilePath tagsFile =
+    case FilePath.splitFileName tagsFile of
+      (dir, name) -> dir FilePath.</> "." ++ name ++ ".lock"
 
 --
 -- Error Formatting
