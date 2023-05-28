@@ -566,6 +566,19 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                 Right (Right parsedTags) -> do
                   let sourcePathBS = rawFilePathFromBS
                                    $ Text.encodeUtf8 (Text.pack sourcePath)
+                      modulePath =
+                        case GHC.getLoc lmodule of
+#if __GLASGOW_HASKELL__ >= 900
+                          GHC.RealSrcSpan rss _ ->
+#else
+                          GHC.RealSrcSpan rss ->
+#endif
+                              rawFilePathFromBS
+                            . bytesFS
+                            . GHC.srcSpanFile
+                            $ rss
+                          GHC.UnhelpfulSpan {} ->
+                            fixFilePath cwd tagsDir sourcePathBS
 
                       tags :: [ETag]
                       tags = filterAdjacentTags
@@ -576,10 +589,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                            $ lmodule
 
                       combined :: [ETag]
-                      combined = combineTags ETag.compareTags
-                                   (fixFilePath cwd tagsDir sourcePathBS)
-                                   tags
-                                   (sortBy ETag.compareTags tags)
+                      combined = combineTags ETag.compareTags modulePath tags parsedTags
 
                   BB.hPutBuilder writeHandle (ETag.formatETagsFile combined)
 
