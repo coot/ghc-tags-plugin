@@ -1,6 +1,9 @@
-{-# LANGUAGE CPP         #-}
-{-# LANGUAGE RankNTypes  #-}
-{-# OPTIONS -Wno-orphans #-}
+{-# LANGUAGE CPP           #-}
+{-# LANGUAGE RankNTypes    #-}
+{-# OPTIONS -Wno-orphans   #-}
+#if __GLASGOW_HASKELL__ >= 908
+{-# OPTIONS -Wno-x-partial #-}
+#endif
 
 module Main (main) where
 
