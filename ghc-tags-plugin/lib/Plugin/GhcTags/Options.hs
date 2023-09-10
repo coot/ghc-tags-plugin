@@ -29,7 +29,7 @@ streamParser = switch $
     <> help ( "stream tags from the tags file when updating its contents"
            ++ " with the tags found in the current module" )
 
-filePathParser :: Parser (FilePath)
+filePathParser :: Parser FilePath
 filePathParser =
     strArgument $
          help "tags file: default tags or TAGS (when --etags is specified)"
@@ -49,9 +49,9 @@ data Options f = Options
 
   , stream   ::   Bool
     -- ^ be default we read the tags file and overwrite it.  When this option
-    -- is on, we stream tags from it while interliving the tags found in the
+    -- is on, we stream tags from it while interleaving the tags found in the
     -- current module to a new destination, which is then moved to the tags
-    -- file desintation.
+    -- file destination.
 
   , filePath :: f FilePath
     -- ^ file path to the tags file (relative to the @*.cabal@ file).  The

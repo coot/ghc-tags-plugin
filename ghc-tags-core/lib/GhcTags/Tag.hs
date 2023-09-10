@@ -167,7 +167,7 @@ data SingTagKind (tk :: TAG_KIND) where
     SingETag :: SingTagKind ETAG
 
 
--- | 'ByteString' which encodes a tag name.
+-- | A tag name.
 --
 newtype TagName = TagName { getTagName :: Text }
   deriving (Eq, Ord, Show)
