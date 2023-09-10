@@ -25,7 +25,7 @@ import           System.IO
 import           System.FilePath.ByteString (RawFilePath)
 
 import           Pipes ((>->), (~>))
-import qualified Pipes as Pipes
+import qualified Pipes
 import qualified Pipes.Lift as Pipes
 import qualified Pipes.Attoparsec as Pipes.AP
 import qualified Pipes.ByteString as Pipes.BS
@@ -41,8 +41,8 @@ tagParser :: MonadIO m
           -- line and return the tag, e.g  'parseTagLine'.
           -> Pipes.Producer ByteString m ()
           -> Pipes.Producer (Tag tk) m ()
-tagParser parser producer = void $
-  Pipes.for
+tagParser parser producer =
+  Pipes.for_
     (Pipes.AP.parsed parser producer)
     $ \case
       -- ignore header lines
@@ -71,7 +71,7 @@ combineTagsPipe compareFn modPath = go
       = pure as
 
     go tag as@(a : as')
-      | otherwise = case a `compareFn` tag of
+      = case a `compareFn` tag of
           LT -> Pipes.yield a >> go tag as'
           EQ -> Pipes.yield a $> as'
           GT -> Pipes.yield tag $> as
@@ -92,5 +92,5 @@ runCombineTagsPipe
 runCombineTagsPipe writeHandle compareFn formatTag modPath =
        (\tag -> Pipes.stateP $ fmap ((),) . combineTagsPipe compareFn modPath tag)
     ~> Pipes.yield . BS.toLazyByteString . formatTag
-    ~> (\bs -> Pipes.BS.fromLazy bs)
+    ~> Pipes.BS.fromLazy
     ~> (\bs -> Pipes.yield bs >-> Pipes.BS.toHandle writeHandle)

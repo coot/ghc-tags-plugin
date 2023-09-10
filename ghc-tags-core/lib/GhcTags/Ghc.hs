@@ -400,7 +400,7 @@ hsDeclsToGhcTags mies =
   where
     fixLoc :: SrcSpan -> GhcTag -> GhcTag
     fixLoc loc gt@GhcTag { gtSrcSpan = UnhelpfulSpan {} } = gt { gtSrcSpan = loc }
-    fixLoc _   gt                                      = gt
+    fixLoc _   gt                                         = gt
 
     -- like 'mkGhcTag' but checks if the identifier is exported
     mkGhcTag' :: SrcSpan
