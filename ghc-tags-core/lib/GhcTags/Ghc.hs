@@ -38,6 +38,9 @@ import           GHC.Types.Basic (SourceText (..))
 #else
 import           BasicTypes      (SourceText (..))
 #endif
+#if   MIN_VERSION_GHC(9,8)
+import qualified GHC.Data.FastString as FastString
+#endif
 #if   MIN_VERSION_GHC(9,0)
 import           GHC.Data.FastString (bytesFS)
 #else
@@ -591,7 +594,11 @@ hsDeclsToGhcTags mies =
                 case sourceText of
                   NoSourceText -> tag
                   -- TODO: add header information from '_mheader'
+#if MIN_VERSION_GHC(9,8)
+                  SourceText s -> tag { gtFFI = Just (FastString.unpackFS s) }
+#else
                   SourceText s -> tag { gtFFI = Just s }
+#endif
               : tags
             where
               tag = mkGhcTag' decLoc (unSpanAnn fd_name) GtkForeignImport
@@ -843,13 +850,20 @@ hsDeclsToGhcTags mies =
         Just clsName -> Just $ mkGhcTagForMember decLoc (unSpanAnn fdLName) clsName tk
       where
 
+        mb_fdvars :: Maybe [GhcPsHsTyVarBndr]
         mb_fdvars = case fdTyVars of
+#if MIN_VERSION_GHC(9,8)
+          HsQTvs {} -> Nothing
+#else
           HsQTvs { hsq_explicit } -> Just $ unLoc `map` hsq_explicit
+#endif
 #if !MIN_VERSION_GHC(9,0)
           XLHsQTyVars {} -> Nothing
 #endif
+        mb_resultsig :: Maybe (Either (HsKind GhcPs) GhcPsHsTyVarBndr)
         mb_resultsig = famResultKindSignature familyResultSig
 
+        mb_typesig :: Maybe ([GhcPsHsTyVarBndr], Either (HsKind GhcPs) GhcPsHsTyVarBndr)
         mb_typesig = (,) <$> mb_fdvars <*> mb_resultsig
 
         tk = case fdInfo of

@@ -30,7 +30,8 @@ import           Data.List (sortBy)
 import           Data.Either (partitionEithers, rights)
 import           Data.Foldable (traverse_)
 import           Data.Maybe (mapMaybe)
-#if __GLASGOW_HASKELL__ > 906
+#if MIN_VERSION_filepath(1,4,100)
+import qualified System.OsPath as OsPath
 import           System.Directory.OsPath
 #else
 import           System.Directory
@@ -238,6 +239,9 @@ ghcTagsParserPlugin options
                              } ->
 
            liftIO $ do
+#if MIN_VERSION_filepath(1,4,100)
+            tagsPath <- OsPath.encodeUtf tagsFile
+#endif
             -- wrap 'IOException's
             handle (\ioerr -> do
                      putDocLn dynFlags
@@ -252,13 +256,23 @@ ghcTagsParserPlugin options
                 withFileLock debug (lockFilePath tagsFile) ExclusiveLock $ \_ -> do
                     mbInSize <-
                       if debug
-                        then Just <$> getFileSize tagsFile
+                        then Just <$> getFileSize
+#if MIN_VERSION_filepath(1,4,100)
+                                      tagsPath
+#else
+                                      tagsFile
+#endif
                                       `catch` \(_ :: IOException) -> pure 0
                         else pure Nothing
                     updateTags opts moduleSummary hpm_module
                     when debug $ do
                       let Just inSize = mbInSize
-                      outSize <- getFileSize tagsFile
+                      outSize <- getFileSize
+#if MIN_VERSION_filepath(1,4,100)
+                                   tagsPath
+#else
+                                   tagsFile
+#endif
                       when (inSize > outSize)
                         $ liftIO
                         $ putDocLn dynFlags
@@ -325,7 +339,15 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
     -- the current module.  The results are written to a destination file which
     -- is then renamed to tags file.
     updateCTags_stream = do
-      tagsFileExists <- doesFileExist tagsFile
+#if MIN_VERSION_filepath(1,4,100)
+      tagsPath <- OsPath.encodeUtf tagsFile
+#endif
+      tagsFileExists <- doesFileExist
+#if MIN_VERSION_filepath(1,4,100)
+                          tagsPath
+#else
+                          tagsFile
+#endif
       let destFile = case FilePath.splitFileName tagsFile of
             (dir, name) -> dir FilePath.</> "." ++ name
 
@@ -333,17 +355,30 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
         if debug
           then
             if tagsFileExists
-              then Just <$> getFileSize tagsFile
+              then Just <$> getFileSize
+#if MIN_VERSION_filepath(1,4,100)
+                              tagsPath
+#else
+                              tagsFile
+#endif
                         `catch` \(_ :: IOException) -> pure 0
               else pure (Just 0)
           else pure Nothing
 
       withFile destFile WriteMode  $ \writeHandle ->
         withFile tagsFile ReadWriteMode $ \readHandle -> do
+#if MIN_VERSION_filepath(1,4,100)
+          cwd <- getCurrentDirectory
+#else
           cwd <- rawFilePathFromBS . BSC.pack <$> getCurrentDirectory
+#endif
           -- absolute directory path of the tags file; we need canonical path
           -- (without ".." and ".") to make 'makeRelative' works.
+#if MIN_VERSION_filepath(1,4,100)
+          tagsDir <- canonicalizePath (fst $ OsPath.splitFileName tagsPath)
+#else
           tagsDir <- rawFilePathFromBS . BSC.pack <$> canonicalizePath (fst $ FilePath.splitFileName tagsFile)
+#endif
           case ml_hs_file ms_location of
             Nothing         -> pure ()
             Just sourcePath -> do
@@ -423,7 +458,12 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
               hFlush writeHandle
 
               when debug $ do
-                outSize <- getFileSize tagsFile
+                outSize <- getFileSize
+#if MIN_VERSION_filepath(1,4,100)
+                          tagsPath
+#else
+                          tagsFile
+#endif
                 let Just inSize = mbInSize
                 printMessageDoc dynFlags DebugMessage (Just ms_mod)
                   (concat [ "path: "
@@ -438,33 +478,61 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                           , show outSize
                           ])
       
+#if MIN_VERSION_filepath(1,4,100)
+      destPath <- OsPath.encodeUtf destFile
+      destFileExists <- doesFileExist destPath
+#else
       destFileExists <- doesFileExist destFile
+#endif
       when destFileExists $
+#if MIN_VERSION_filepath(1,4,100)
+        renameFile destPath tagsPath
+#else
         renameFile destFile tagsFile
+#endif
 
 
     --
     -- update ctags (non streaming)
     --
     updateCTags = do
+#if MIN_VERSION_filepath(1,4,100)
+      tagsPath <- OsPath.encodeUtf tagsFile
+      tagsFileExists <- doesFileExist tagsPath
+#else
       tagsFileExists <- doesFileExist tagsFile
+#endif
 
       mbInSize <-
         if debug
           then
             if tagsFileExists
-              then Just <$> getFileSize tagsFile
+              then
+#if MIN_VERSION_filepath(1,4,100)
+                   Just <$> getFileSize tagsPath
                         `catch` \(_ :: IOException) -> pure 0
+#else
+                   Just <$> getFileSize tagsFile
+                        `catch` \(_ :: IOException) -> pure 0
+#endif
               else pure (Just 0)
           else pure Nothing
       !tagsContent <- if tagsFileExists
                         then BS.readFile tagsFile
                         else return mempty
       withFile tagsFile WriteMode $ \writeHandle -> do
+#if MIN_VERSION_filepath(1,4,100)
+        cwd <- getCurrentDirectory
+#else
         cwd <- rawFilePathFromBS . BSC.pack <$> getCurrentDirectory
+#endif
         -- absolute directory path of the tags file; we need canonical path
         -- (without ".." and ".") to make 'makeRelative' works.
+#if MIN_VERSION_filepath(1,4,100)
+        tagsDir <- canonicalizePath (fst $ OsPath.splitFileName tagsPath)
+#else
         tagsDir <- rawFilePathFromBS . BSC.pack <$> canonicalizePath (fst $ FilePath.splitFileName tagsFile)
+#endif
         case ml_hs_file ms_location of
           Nothing         -> pure ()
           Just sourcePath -> do
@@ -515,7 +583,11 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                           ) 
 
                 when debug $ do
+#if MIN_VERSION_filepath(1,4,100)
+                  outSize <- getFileSize tagsPath
+#else
                   outSize <- getFileSize tagsFile
+#endif
                   let Just inSize = mbInSize
                   printMessageDoc dynFlags DebugMessage (Just ms_mod)
                     (concat [ "parsed: "
@@ -533,24 +605,43 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
     -- update etags file
     --
     updateETags = do
+#if MIN_VERSION_filepath(1,4,100)
+      tagsPath <- OsPath.encodeUtf tagsFile
+      tagsFileExists <- doesFileExist tagsPath
+#else
       tagsFileExists <- doesFileExist tagsFile
+#endif
 
       mbInSize <-
         if debug
           then
             if tagsFileExists
-              then Just <$> getFileSize tagsFile
+              then
+#if MIN_VERSION_filepath(1,4,100)
+                   Just <$> getFileSize tagsPath
                         `catch` \(_ :: IOException) -> pure 0
+#else
+                   Just <$> getFileSize tagsFile
+                        `catch` \(_ :: IOException) -> pure 0
+#endif
               else pure (Just 0)
           else pure Nothing
       !tagsContent <- if tagsFileExists
                         then BS.readFile tagsFile
                         else return mempty
       withFile tagsFile WriteMode $ \writeHandle -> do
+#if MIN_VERSION_filepath(1,4,100)
+          cwd <- getCurrentDirectory
+#else
           cwd <- rawFilePathFromBS . BSC.pack <$> getCurrentDirectory
+#endif
           -- absolute directory path of the tags file; we need canonical path
           -- (without ".." and ".") to make 'makeRelative' works.
+#if MIN_VERSION_filepath(1,4,100)
+          tagsDir <- canonicalizePath (fst $ OsPath.splitFileName tagsPath)
+#else
           tagsDir <- rawFilePathFromBS . BSC.pack <$> canonicalizePath (fst $ FilePath.splitFileName tagsFile)
+#endif
 
           case ml_hs_file ms_location of
             Nothing         -> pure ()
@@ -594,7 +685,11 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                   BB.hPutBuilder writeHandle (ETag.formatETagsFile combined)
 
                   when debug $ do
+#if MIN_VERSION_filepath(1,4,100)
+                    outSize <- getFileSize tagsPath
+#else
                     outSize <- getFileSize tagsFile
+#endif
                     let Just inSize = mbInSize
                     printMessageDoc dynFlags DebugMessage (Just ms_mod)
                       (concat [ "parsed: "
@@ -644,8 +739,8 @@ filterAdjacentTags tags =
 
     -- next
     tags'' = case tags of
-      [] -> []
-      _  -> map Just (tail tags) ++ [Nothing]
+      []   -> []
+      _:ts -> map Just ts ++ [Nothing]
 
 
 --
@@ -683,8 +778,17 @@ ghcTagsMetaHook options dynFlags request expr =
                                (displayException ioerr))
                      throwIO (GhcTagsDynFlagsPluginIOException ioerr)) $
             withFileLock debug (lockFilePath tagsFile) ExclusiveLock $ \_ -> do
+#if MIN_VERSION_filepath(1,4,100)
+            cwd <- getCurrentDirectory
+#else
             cwd <- rawFilePathFromBS . BSC.pack <$> getCurrentDirectory
+#endif
+#if MIN_VERSION_filepath(1,4,100)
+            tagsPath <- OsPath.encodeUtf tagsFile
+            tagsDir <- canonicalizePath (fst $ OsPath.splitFileName tagsPath)
+#else
             tagsDir <- rawFilePathFromBS . BSC.pack <$> canonicalizePath (fst $ FilePath.splitFileName tagsFile)
+#endif
             tagsContent <- BSC.readFile tagsFile
             if etags
               then do
