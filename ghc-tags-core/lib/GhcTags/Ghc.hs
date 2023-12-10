@@ -21,9 +21,7 @@ module GhcTags.Ghc
 
 
 import           Data.Maybe    (mapMaybe)
-#if MIN_VERSION_GHC(9,0)
 import           Data.Maybe    (maybeToList)
-#endif
 #if MIN_VERSION_GHC(9,6)
 import qualified Data.List.NonEmpty as NonEmpty
 #endif
@@ -31,26 +29,11 @@ import           Data.Foldable (foldl', toList)
 import           Data.ByteString (ByteString)
 
 -- Ghc imports
-#if   MIN_VERSION_GHC(9,2)
 import           GHC.Types.SourceText (SourceText (..))
-#elif MIN_VERSION_GHC(9,0)
-import           GHC.Types.Basic (SourceText (..))
-#else
-import           BasicTypes      (SourceText (..))
-#endif
 #if   MIN_VERSION_GHC(9,8)
 import qualified GHC.Data.FastString as FastString
 #endif
-#if   MIN_VERSION_GHC(9,0)
 import           GHC.Data.FastString (bytesFS)
-#else
-import           FastString          (bytesFS)
-#endif
-#if   MIN_VERSION_GHC(9,0) && !MIN_VERSION_GHC(9,2)
-import           GHC.Types.FieldLabel (FieldLbl (..))
-#elif !MIN_VERSION_GHC(9,0)
-import           FieldLabel           (FieldLbl (..))
-#endif
 import           GHC_IMPORT(Binds)
                               ( HsBindLR (..)
                               , PatSynBind (..)
@@ -67,11 +50,7 @@ import           GHC_IMPORT(Decls)
                               , FamilyResultSig (..)
                               , ForeignDecl (..)
                               , LHsDecl
-#if   MIN_VERSION_GHC(9,2)
                               , HsConDeclH98Details
-#else
-                              , HsConDeclDetails
-#endif
                               , HsDecl (..)
                               , HsDataDefn (..)
                               , InstDecl (..)
@@ -88,17 +67,10 @@ import           GHC_IMPORT(Extension)
                               ( GhcPs
                               )
 
-#if   MIN_VERSION_GHC(9,0)
 import           GHC.Hs.Type
-#else
-import           GHC.Hs.Types
-#endif
                               ( ConDeclField (..)
                               , FieldOcc (..)
                               , HsConDetails (..)
-#if   !MIN_VERSION_GHC(9,2)
-                              , HsImplicitBndrs (..)
-#endif
                               , HsKind
                               , HsTyVarBndr (..)
                               , HsType (..)
@@ -110,7 +82,6 @@ import           GHC.Hs.Types
                               , LHsType
                               )
 
-#if   MIN_VERSION_GHC(9,0)
 import           GHC.Types.SrcLoc
                                 ( GenLocated (..)
                                 , Located
@@ -124,20 +95,6 @@ import           GHC.Types.Name.Reader
 import           GHC.Types.Name ( nameOccName
                                 , occNameFS
                                 )
-#else
-import           SrcLoc         ( GenLocated (..)
-                                , Located
-                                , SrcSpan (..)
-                                , unLoc
-                                )
-import           RdrName        ( RdrName (..)
-                                , rdrNameOcc
-                                )
-import           Name           ( nameOccName
-                                , occNameFS
-                                )
-#endif
-#if   MIN_VERSION_GHC(9,2)
 import           GHC.Hs       ( HsConDeclGADTDetails (..)
                               , HsModule (..)
                               , HsSigType (..)
@@ -149,9 +106,6 @@ import           GHC.Hs       ( HsConDeclGADTDetails (..)
 import           GHC.Types.ForeignCall (CCallTarget (..))
 #endif
 import           GHC.Parser.Annotation (SrcSpanAnn' (..))
-#else
-import           GHC.Hs       ( HsModule (..) )
-#endif
 import           GHC.Hs       ( GRHSs (..)
                               , HsLocalBinds
                               , HsLocalBindsLR (..)
@@ -161,23 +115,16 @@ import           GHC.Hs       ( GRHSs (..)
                               )
 #if MIN_VERSION_GHC(9,6)
 import           Language.Haskell.Syntax.Module.Name (moduleNameFS)
-#elif MIN_VERSION_GHC(9,0)
+#else
 import           GHC.Unit.Module.Name (moduleNameFS)
-#endif
-
-#if !MIN_VERSION_GHC(9,2)
-type HsConDeclH98Details ps = HsConDeclDetails ps
 #endif
 
 #if MIN_VERSION_GHC(9,6)
 type GhcPsModule = HsModule GhcPs
 type GhcPsHsTyVarBndr = HsTyVarBndr () GhcPs
-#elif MIN_VERSION_GHC(9,0)
+#else
 type GhcPsModule = HsModule
 type GhcPsHsTyVarBndr = HsTyVarBndr () GhcPs
-#else
-type GhcPsModule = HsModule GhcPs
-type GhcPsHsTyVarBndr = HsTyVarBndr    GhcPs
 #endif
 
 
@@ -242,11 +189,7 @@ isExported (Just ies) (L _ name) =
     ieName :: IE GhcPs -> Maybe RdrName
     ieName (IEVar _ (L _ n))              = Just $ ieWrappedName n
     ieName (IEThingAbs  _ (L _ n))        = Just $ ieWrappedName n
-#if !MIN_VERSION_GHC(9,2)
-    ieName (IEThingWith _ (L _ n) _ _ _)  = Just $ ieWrappedName n
-#else
     ieName (IEThingWith _ (L _ n) _ _)    = Just $ ieWrappedName n
-#endif
     ieName (IEThingAll  _ (L _ n))        = Just $ ieWrappedName n
     ieName _ = Nothing
 
@@ -268,31 +211,16 @@ isMemberExported (Just ies) memberName  className  = any go ies
 
     go (IEThingAll _ (L _ n)) = ieWrappedName n == unLoc className
 
-#if !MIN_VERSION_GHC(9,2)
-    go (IEThingWith _ _ IEWildcard{} _ _) = True
-#else
     go (IEThingWith _ _ IEWildcard{} _)   = True
-#endif
 
-#if !MIN_VERSION_GHC(9,2)
-    go (IEThingWith _ (L _ n) NoIEWildcard ns lfls) =
-#else
     go (IEThingWith _ (L _ n) NoIEWildcard ns) =
-#endif
             ieWrappedName n == unLoc className
-#if !MIN_VERSION_GHC(9,2)
-         && (isInWrappedNames || isInFieldLbls)
-#else
          &&  isInWrappedNames
-#endif
       where
         -- the 'NameSpace' does not agree between things that are in the 'IE'
         -- list and passed member or type class names (constructor / type
         -- constructor names, respectively)
         isInWrappedNames = any ((== occNameFS (rdrNameOcc (unLoc memberName))) . occNameFS . rdrNameOcc . ieWrappedName . unLoc) ns
-#if !MIN_VERSION_GHC(9,2)
-        isInFieldLbls    = any ((== occNameFS (rdrNameOcc (unLoc memberName))) . occNameFS . rdrNameOcc . flSelector. unLoc) lfls
-#endif
 
     go _ = False
 
@@ -364,32 +292,21 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
 --
 getGhcTags :: Located GhcPsModule
            -> GhcTags
-#if MIN_VERSION_GHC(9,0)
 getGhcTags (L _ HsModule { hsmodName, hsmodDecls, hsmodExports }) =
        maybeToList (mkModNameTag <$> hsmodName)
     ++
-#else
-getGhcTags (L _ HsModule {            hsmodDecls, hsmodExports }) =
-#endif
        hsDeclsToGhcTags mies hsmodDecls
   where
     mies :: Maybe [IE GhcPs]
     mies = map unLoc . unLoc <$> hsmodExports
 
-#if MIN_VERSION_GHC(9,0)
     mkModNameTag (L loc modName) =
-      GhcTag { gtSrcSpan =
-#if MIN_VERSION_GHC(9,2)
-                 locA loc
-#else
-                 loc
-#endif
+      GhcTag { gtSrcSpan = locA loc
              , gtTag        = bytesFS $ moduleNameFS modName
              , gtKind       = GtkModule
              , gtIsExported = True
              , gtFFI        = Nothing
              }
-#endif
 
 
 hsDeclsToGhcTags :: Maybe [IE GhcPs]
@@ -457,10 +374,6 @@ hsDeclsToGhcTags mies =
                    : (mkConsTags decLoc (unSpanAnn tcdLName) . unLoc) `concatMap` dd_cons
                   ++ tags
 
-#if !MIN_VERSION_GHC(9,0)
-              XHsDataDefn {} -> tags
-#endif
-
           -- Type class declaration:
           --   type class name,
           --   type class members,
@@ -481,29 +394,17 @@ hsDeclsToGhcTags mies =
             -- associated type defaults (data type families, type families
             -- (open or closed)
             ++ foldl'
-#if !MIN_VERSION_GHC(9,2)
-                (\tags' (L _ decl'@(TyFamInstDecl HsIB { hsib_body = tyFamDeflEqn })) ->
-                  let decl = Just decl' in
-#else
                 (\tags' (L _ decl'@(TyFamInstDecl { tfid_eqn = tyFamDeflEqn })) ->
                   let decl = Just decl' in
-#endif
                     case tyFamDeflEqn of
                       FamEqn { feqn_rhs = L _ hsType } ->
                         case hsTypeTagName hsType of
                           -- TODO: add a `default` field
                           Just a  -> mkGhcTag' decLoc a (GtkTypeFamilyInstance decl) : tags'
                           Nothing -> tags'
-#if !MIN_VERSION_GHC(9,0)
-                      XFamEqn {} -> tags'
-#endif
                 )
                 [] tcdATDefs
             ++ tags
-
-#if !MIN_VERSION_GHC(9,0)
-          XTyClDecl {} -> tags
-#endif
 
       -- Instance declarations
       --  class instances
@@ -515,23 +416,12 @@ hsDeclsToGhcTags mies =
           -- class instance declaration
           ClsInstD { cid_inst } ->
             case cid_inst of
-#if !MIN_VERSION_GHC(9,0)
-              XClsInstDecl {} -> tags
-#endif
 
               ClsInstDecl { cid_poly_ty, cid_tyfam_insts, cid_datafam_insts, cid_binds, cid_sigs } ->
                   case cid_poly_ty of
-#if !MIN_VERSION_GHC(9,0)
-                    XHsImplicitBndrs {} ->
-                      tyFamTags ++ dataFamTags ++ tags
-#endif
 
                     -- TODO: @hsbib_body :: LHsType GhcPs@
-#if !MIN_VERSION_GHC(9,2)
-                    HsIB { hsib_body = body } ->
-#else
                     L _ HsSig { sig_body = body } ->
-#endif
                       case mkLHsTypeTag decLoc body of
                         Nothing  ->       map (fixTagKind (unLoc body)) (tyFamTags ++ dataFamTags ++ bindsTags ++ sigsTags) ++ tags
                         Just tag -> tag : map (fixTagKind (unLoc body)) (tyFamTags ++ dataFamTags ++ bindsTags ++ sigsTags) ++ tags
@@ -554,9 +444,6 @@ hsDeclsToGhcTags mies =
               Nothing  ->       tags
               Just tag -> tag : tags
 
-#if !MIN_VERSION_GHC(9,0)
-          XInstDecl {} -> tags
-#endif
 
       -- deriving declaration
       DerivD {} -> tags
@@ -572,10 +459,6 @@ hsDeclsToGhcTags mies =
         case stdKindSig of
           StandaloneKindSig _ ksName sigType ->
            mkGhcTag' decLoc (unSpanAnn ksName)  (GtkTypeKindSignature sigType) : tags
-
-#if !MIN_VERSION_GHC(9,0)
-          XStandaloneKindSig {} -> tags
-#endif
 
       -- default declaration
       DefD {} -> tags
@@ -607,10 +490,6 @@ hsDeclsToGhcTags mies =
               mkGhcTag' decLoc (unSpanAnn fd_name) GtkForeignExport
             : tags
 
-#if !MIN_VERSION_GHC(9,0)
-          XForeignDecl {} -> tags
-#endif
-
       WarningD {}   -> tags
       AnnD {}       -> tags
 
@@ -619,10 +498,6 @@ hsDeclsToGhcTags mies =
       SpliceD {}    -> tags
       DocD {}       -> tags
       RoleAnnotD {} -> tags
-#if !MIN_VERSION_GHC(9,0)
-      XHsDecl {}    -> tags
-#endif
-
 
     -- generate tags of all constructors of a type
     --
@@ -633,11 +508,7 @@ hsDeclsToGhcTags mies =
                -- constructor declaration
                -> GhcTags
 
-#if !MIN_VERSION_GHC(9,2)
-    mkConsTags decLoc tyName con@ConDeclGADT { con_names, con_args } =
-#else
     mkConsTags decLoc tyName con@ConDeclGADT { con_names, con_g_args = con_args } =
-#endif
          ( (\n -> mkGhcTagForMember decLoc n tyName (GtkGADTConstructor con))
          . unSpanAnn )
          `map` con_names'
@@ -653,10 +524,6 @@ hsDeclsToGhcTags mies =
         mkGhcTagForMember decLoc (unSpanAnn con_name) tyName
           (GtkDataConstructor con)
       : mkHsConDeclH98Details decLoc tyName con_args
-
-#if !MIN_VERSION_GHC(9,0)
-    mkConsTags _ _ XConDecl {} = []
-#endif
 
     mkHsLocalBindsTags :: SrcSpan -> HsLocalBinds GhcPs -> [GhcTag]
     mkHsLocalBindsTags decLoc (HsValBinds _ (ValBinds _ hsBindsLR sigs)) =
@@ -675,40 +542,19 @@ hsDeclsToGhcTags mies =
       where
         f :: GhcTags -> LConDeclField GhcPs -> GhcTags
         f ts (L _ ConDeclField { cd_fld_names }) = foldl' g ts cd_fld_names
-#if !MIN_VERSION_GHC(9,0)
-        f ts _ = ts
-#endif
 
         g :: GhcTags -> LFieldOcc GhcPs -> GhcTags
         g ts (L _ fo@FieldOcc {}) =
-#if MIN_VERSION_GHC(9,4)
             mkGhcTagForMember decLoc (unSpanAnn $ foLabel fo) tyName GtkRecordField
-#else
-            mkGhcTagForMember decLoc (unSpanAnn $ rdrNameFieldOcc fo) tyName GtkRecordField
-#endif
           : ts
-#if !MIN_VERSION_GHC(9,0)
-        g ts _ = ts
-#endif
 
     mkHsConDeclH98Details _ _ _ = []
 
     mkHsConDeclGADTDetails :: SrcSpan
                            -> Located RdrName
-#if !MIN_VERSION_GHC(9,2)
-                           -> HsConDeclH98Details  GhcPs
-#else
                            -> HsConDeclGADTDetails GhcPs
-#endif
                            -> GhcTags
-#if !MIN_VERSION_GHC(9,2)
-    mkHsConDeclGADTDetails = mkHsConDeclH98Details
-#else
-#if !MIN_VERSION_GHC(9,4)
-    mkHsConDeclGADTDetails decLoc tyName (RecConGADT (L _ fields)) =
-#else
     mkHsConDeclGADTDetails decLoc tyName (RecConGADT (L _ fields) _) =
-#endif
         foldl' f [] fields
       where
         f :: GhcTags -> LConDeclField GhcPs -> GhcTags
@@ -716,14 +562,9 @@ hsDeclsToGhcTags mies =
 
         g :: GhcTags -> LFieldOcc GhcPs -> GhcTags
         g ts (L _ fo) =
-#if MIN_VERSION_GHC(9,4)
             mkGhcTagForMember decLoc (unSpanAnn $ foLabel fo) tyName GtkRecordField
-#else
-            mkGhcTagForMember decLoc (unSpanAnn $ rdrNameFieldOcc fo) tyName GtkRecordField
-#endif
           : ts
     mkHsConDeclGADTDetails _ _ _ = []
-#endif
 
 
     mkHsBindLRTags :: SrcSpan
@@ -739,11 +580,7 @@ hsDeclsToGhcTags mies =
                     $ fun_matches
           in   mkGhcTag' decLoc (unSpanAnn fun_id) GtkFunction
              : concatMap
-#if MIN_VERSION_GHC(9,2)
                  (mkHsLocalBindsTags decLoc)
-#else
-                 (mkHsLocalBindsTags decLoc . unLoc)
-#endif
                  binds
 
         -- TODO
@@ -756,19 +593,7 @@ hsDeclsToGhcTags mies =
         VarBind { var_id, var_rhs = L srcSpan _ } ->
           [mkGhcTag' decLoc (unSpanAnn $ L srcSpan var_id) GtkTerm]
 
-#if !MIN_VERSION_GHC(9,4)
-        -- abstraction binding is only used after translation
-        AbsBinds {} -> []
-#endif
-
         PatSynBind _ PSB { psb_id } -> [mkGhcTag' decLoc (unSpanAnn psb_id) GtkPatternSynonym]
-#if !MIN_VERSION_GHC(9,0)
-        PatSynBind _ XPatSynBind {} -> []
-#endif
-
-#if !MIN_VERSION_GHC(9,0)
-        XHsBindsLR {} -> []
-#endif
 
 
     mkClsMemberTags :: SrcSpan -> Located RdrName -> Sig GhcPs -> GhcTags
@@ -780,11 +605,7 @@ hsDeclsToGhcTags mies =
       ( (\n -> mkGhcTagForMember decLoc n clsName GtkPatternSynonym)
       . unSpanAnn )
       `map` lhs
-#if !MIN_VERSION_GHC(9,2)
-    mkClsMemberTags decLoc clsName (ClassOpSig _ _ lhs HsIB { hsib_body = L _ hsType}) =
-#else
     mkClsMemberTags decLoc clsName (ClassOpSig _ _ lhs (L _ hsType)) =
-#endif
       ( (\n -> mkGhcTagForMember decLoc n clsName
                                 (GtkTypeClassMember $ hsSigTypeToHsType hsType))
       . unSpanAnn )
@@ -802,21 +623,13 @@ hsDeclsToGhcTags mies =
                                        = ( flip (mkGhcTag' decLoc) GtkPatternSynonym
                                          . unSpanAnn )
                                          `map` lhs
-#if !MIN_VERSION_GHC(9,2)
-    mkSigTags decLoc (ClassOpSig _ _ lhs HsIB { hsib_body = L _ hsType })
-#else
     mkSigTags decLoc (ClassOpSig _ _ lhs (L _ hsType))
-#endif
                                        = ( flip (mkGhcTag' decLoc)
                                                 ( GtkTypeClassMember
                                                 $ hsSigTypeToHsType hsType )
                                          . unSpanAnn
                                          )
                                          `map` lhs
-#if !MIN_VERSION_GHC(9,0)
-    mkSigTags _ (ClassOpSig _ _ _ XHsImplicitBndrs {})
-                                       = []
-#endif
 #if !MIN_VERSION_GHC(9,6)
     mkSigTags _ IdSig {}               = []
 #endif
@@ -832,9 +645,6 @@ hsDeclsToGhcTags mies =
     mkSigTags _ SCCFunSig {}           = []
     -- COMPLETE pragma
     mkSigTags _ CompleteMatchSig {}    = []
-#if !MIN_VERSION_GHC(9,0)
-    mkSigTags _ XSig {}                = []
-#endif
 
 
     mkFamilyDeclTags :: SrcSpan
@@ -857,9 +667,6 @@ hsDeclsToGhcTags mies =
 #else
           HsQTvs { hsq_explicit } -> Just $ unLoc `map` hsq_explicit
 #endif
-#if !MIN_VERSION_GHC(9,0)
-          XLHsQTyVars {} -> Nothing
-#endif
         mb_resultsig :: Maybe (Either (HsKind GhcPs) GhcPsHsTyVarBndr)
         mb_resultsig = famResultKindSignature familyResultSig
 
@@ -870,9 +677,6 @@ hsDeclsToGhcTags mies =
               DataFamily           -> GtkDataTypeFamily mb_typesig
               OpenTypeFamily       -> GtkTypeFamily     mb_typesig
               ClosedTypeFamily {}  -> GtkTypeFamily     mb_typesig
-#if !MIN_VERSION_GHC(9,0)
-    mkFamilyDeclTags _ XFamilyDecl {} _ = Nothing
-#endif
 
 
     -- used to generate tag of an instance declaration
@@ -895,11 +699,7 @@ hsDeclsToGhcTags mies =
         HsTyVar _ _ a         -> Just $ unSpanAnn a
 
         HsAppTy _ a _         -> hsTypeTagName (unLoc a)
-#if MIN_VERSION_GHC(9,4)
         HsOpTy _ _ _ a _      -> Just $ unSpanAnn a
-#else
-        HsOpTy _ _ a _        -> Just $ unSpanAnn a
-#endif
         HsKindSig _ a _       -> hsTypeTagName (unLoc a)
 
         _                     -> Nothing
@@ -910,15 +710,8 @@ hsDeclsToGhcTags mies =
     mkDataFamInstDeclTag :: SrcSpan -> DataFamInstDecl GhcPs -> GhcTags
     mkDataFamInstDeclTag decLoc DataFamInstDecl { dfid_eqn } =
       case dfid_eqn of
-#if !MIN_VERSION_GHC(9,0)
-        XHsImplicitBndrs {} -> []
-#endif
 
-#if !MIN_VERSION_GHC(9,2)
-        HsIB { hsib_body = FamEqn { feqn_tycon, feqn_rhs } } ->
-#else
         FamEqn { feqn_tycon, feqn_rhs } ->
-#endif
           case feqn_rhs of
             HsDataDefn { dd_cons, dd_kindSig } ->
                 mkGhcTag' decLoc (unSpanAnn feqn_tycon)
@@ -927,58 +720,25 @@ hsDeclsToGhcTags mies =
               : (mkConsTags decLoc (unSpanAnn feqn_tycon) . unLoc)
                 `concatMap` dd_cons
 
-#if !MIN_VERSION_GHC(9,0)
-            XHsDataDefn {} ->
-              [mkGhcTag' decLoc feqn_tycon (GtkDataTypeFamilyInstance Nothing)]
-
-        HsIB { hsib_body = XFamEqn {} } -> []
-#endif
-
 
     -- type family instance declaration
     --
     mkTyFamInstDeclTag :: SrcSpan -> TyFamInstDecl GhcPs -> Maybe GhcTag
     mkTyFamInstDeclTag decLoc decl@TyFamInstDecl { tfid_eqn } =
       case tfid_eqn of
-#if !MIN_VERSION_GHC(9,0)
-        XHsImplicitBndrs {} -> Nothing
-#endif
 
         -- TODO: should we check @feqn_rhs :: LHsType GhcPs@ as well?
-#if !MIN_VERSION_GHC(9,2)
-        HsIB { hsib_body = FamEqn { feqn_tycon } } ->
-#else
         FamEqn { feqn_tycon } ->
-#endif
           Just $ mkGhcTag' decLoc (unSpanAnn feqn_tycon) (GtkTypeFamilyInstance (Just decl))
 
-#if !MIN_VERSION_GHC(9,0)
-        HsIB { hsib_body = XFamEqn {} } -> Nothing
-#endif
-
-#if !MIN_VERSION_GHC(9,2)
-unSpanAnn :: Located RdrName -> Located RdrName
-unSpanAnn = id
-#else
 unSpanAnn :: GenLocated (SrcSpanAnn' x) RdrName -> Located RdrName
 unSpanAnn (L s a) = L (locA s) a
-#endif
 
-#if !MIN_VERSION_GHC(9,2)
-locAnn :: SrcSpan -> SrcSpan
-locAnn = id
-#else
 locAnn :: SrcSpanAnn' a -> SrcSpan
 locAnn = locA
-#endif
 
-#if !MIN_VERSION_GHC(9,2)
-hsSigTypeToHsType :: HsType GhcPs -> HsType GhcPs
-hsSigTypeToHsType = id
-#else
 hsSigTypeToHsType :: HsSigType GhcPs -> HsType GhcPs
 hsSigTypeToHsType = unLoc . sig_body
-#endif
 
 --
 --
@@ -989,6 +749,3 @@ famResultKindSignature :: FamilyResultSig GhcPs
 famResultKindSignature (NoSig _)           = Nothing
 famResultKindSignature (KindSig _ ki)      = Just (Left (unLoc ki))
 famResultKindSignature (TyVarSig _ bndr)   = Just (Right (unLoc bndr))
-#if !MIN_VERSION_GHC(9,0)
-famResultKindSignature XFamilyResultSig {} = Nothing
-#endif
