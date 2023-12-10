@@ -1,5 +1,9 @@
 # Revision history for ghctags
 
+## 0.6.1.0 -- 2023-12-10
+
+- `GHC-9.8` support; droppped support of `GHC-{8.10, 9.0, 9.2}`.
+
 ## 0.6.0.0 -- 2023-05-01
 
 - `GHC-9.6` support; dropped support of `GHC-8.8`.
