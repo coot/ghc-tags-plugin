@@ -46,17 +46,11 @@ import           Pipes.Safe (SafeT)
 import qualified Pipes.Safe
 import qualified Pipes.ByteString as Pipes.BS
 
-#if __GLASGOW_HASKELL__ >= 900
 import           GHC.Driver.Plugins
-#else
-import           GhcPlugins
-#endif
                             ( CommandLineOption
                             , Plugin (..)
                             )
-#if    __GLASGOW_HASKELL__ >= 900
 import qualified GHC.Driver.Plugins as GhcPlugins
-#if    __GLASGOW_HASKELL__ >= 902
 import           GHC.Driver.Env   ( Hsc
                                   , HscEnv (..)
                                   )
@@ -72,20 +66,6 @@ import           GHC.Types.Meta   ( MetaHook
                                   , metaRequestP
                                   , metaRequestT
                                   )
-#else
-import           GHC.Driver.Types ( Hsc
-                                  , HsParsedModule (..)
-                                  , ModSummary (..)
-                                  , MetaHook
-                                  , MetaRequest (..)
-                                  , MetaResult
-                                  , metaRequestAW
-                                  , metaRequestD
-                                  , metaRequestE
-                                  , metaRequestP
-                                  , metaRequestT
-                                  )
-#endif
 import           GHC.Driver.Hooks (Hooks (..))
 import           GHC.Unit.Types   (Module)
 import           GHC.Unit.Module.Location   (ModLocation (..))
@@ -93,57 +73,13 @@ import           GHC.Tc.Types (TcM)
 import           GHC.Tc.Gen.Splice (defaultRunMeta)
 import           GHC.Types.SrcLoc (Located)
 import qualified GHC.Types.SrcLoc as GHC (SrcSpan (..), getLoc, srcSpanFile)
-#else
-import qualified GhcPlugins
-import           GhcPlugins ( Hsc
-                            , HsParsedModule (..)
-                            , Located
-                            , Module
-                            , ModLocation (..)
-                            , ModSummary (..)
-#if __GLASGOW_HASKELL__ >= 810
-                            , MetaHook
-                            , MetaRequest (..)
-                            , MetaResult
-                            , metaRequestAW
-                            , metaRequestD
-                            , metaRequestE
-                            , metaRequestP
-                            , metaRequestT
-#endif
-                            )
-import qualified SrcLoc as GHC (SrcSpan (..), getLoc, srcSpanFile)
-#endif
-#if   __GLASGOW_HASKELL__ >= 902
 import           GHC.Driver.Session (DynFlags)
-#elif __GLASGOW_HASKELL__ >= 900
-import           GHC.Driver.Session (DynFlags (DynFlags, hooks))
-#else
-import           DynFlags (DynFlags (DynFlags, hooks))
-#endif
 
-#if   __GLASGOW_HASKELL__ >= 900
 import           GHC.Hs (GhcPs, GhcTc, HsModule (..), LHsDecl, LHsExpr)
-#else
-import           GHC.Hs (GhcPs, GhcTc, HsModule (..), LHsDecl, LHsExpr)
-import           TcSplice
-import           TcRnMonad
-import           Hooks
-#endif
-#if __GLASGOW_HASKELL__ >= 900
 import           GHC.Utils.Outputable (($+$), ($$))
 import qualified GHC.Utils.Outputable as Out
 import qualified GHC.Utils.Ppr.Colour as PprColour
-#else
-import           Outputable (($+$), ($$))
-import qualified Outputable as Out
-import qualified PprColour
-#endif
-#if   __GLASGOW_HASKELL__ >= 900
 import           GHC.Data.FastString (bytesFS)
-#else
-import           FastString          (bytesFS)
-#endif
 
 import           GhcTags.Ghc
 import           GhcTags.Tag
@@ -158,10 +94,8 @@ import qualified Plugin.GhcTags.CTag as CTag
 
 #if   __GLASGOW_HASKELL__ >= 906
 type GhcPsModule = HsModule GhcPs
-#elif __GLASGOW_HASKELL__ >= 900
-type GhcPsModule = HsModule
 #else
-type GhcPsModule = HsModule GhcPs
+type GhcPsModule = HsModule
 #endif
 
 
@@ -195,18 +129,10 @@ type GhcPsModule = HsModule GhcPs
 plugin :: Plugin
 plugin = GhcPlugins.defaultPlugin {
       parsedResultAction =
-#if   __GLASGOW_HASKELL__ >= 904
       -- TODO: add warnings / errors to 'ParsedResult'
        \args summary result@GhcPlugins.ParsedResult { GhcPlugins.parsedResultModule } ->
                      result <$ ghcTagsParserPlugin args summary parsedResultModule,
-#else
-        ghcTagsParserPlugin,
-#endif
-#if   __GLASGOW_HASKELL__ >= 902
       driverPlugin       = ghcTagsDriverPlugin,
-#else
-      dynflagsPlugin     = ghcTagsDynflagsPlugin,
-#endif
       pluginRecompile    = GhcPlugins.purePlugin
    }
 
@@ -387,11 +313,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                   -- not the project.
                   modulePath =
                     case GHC.getLoc lmodule of
-#if __GLASGOW_HASKELL__ >= 900
                       GHC.RealSrcSpan rss _ ->
-#else
-                      GHC.RealSrcSpan rss ->
-#endif
                           rawFilePathFromBS
                         . bytesFS
                         . GHC.srcSpanFile
@@ -541,11 +463,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                 -- not the project.
                 modulePath =
                   case GHC.getLoc lmodule of
-#if __GLASGOW_HASKELL__ >= 900
                     GHC.RealSrcSpan rss _ ->
-#else
-                    GHC.RealSrcSpan rss ->
-#endif
                         rawFilePathFromBS
                       . bytesFS
                       . GHC.srcSpanFile
@@ -659,11 +577,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                                    $ Text.encodeUtf8 (Text.pack sourcePath)
                       modulePath =
                         case GHC.getLoc lmodule of
-#if __GLASGOW_HASKELL__ >= 900
                           GHC.RealSrcSpan rss _ ->
-#else
-                          GHC.RealSrcSpan rss ->
-#endif
                               rawFilePathFromBS
                             . bytesFS
                             . GHC.srcSpanFile
@@ -747,18 +661,11 @@ filterAdjacentTags tags =
 -- Tags for Template-Haskell splices
 --
 
-#if __GLASGOW_HASKELL__ >= 902
 ghcTagsDriverPlugin :: [CommandLineOption] -> HscEnv -> IO HscEnv
 ghcTagsDriverPlugin opts env@HscEnv{ hsc_hooks } = do
     let hook = ghcTagsMetaHook opts (hsc_dflags env)
     return env { hsc_hooks = hsc_hooks { runMetaHook = Just hook } }
-#else
-ghcTagsDynflagsPlugin :: [CommandLineOption] -> DynFlags -> IO DynFlags
-ghcTagsDynflagsPlugin options dynFlags@DynFlags { hooks } = do
-    let hook = ghcTagsMetaHook options dynFlags
-    return dynFlags { hooks = hooks { runMetaHook = Just hook } }
 
-#endif
 
 -- | DynFlags plugin which extract tags from TH splices.
 --
@@ -939,29 +846,11 @@ messageDoc errorType mb_mod errorMessage =
 
 
 putDocLn :: DynFlags -> Out.SDoc -> IO ()
-#if   __GLASGOW_HASKELL__ >= 902
 putDocLn _dynFlags sdoc =
-#else
-putDocLn  dynFlags sdoc =
-#endif
     putStrLn $
-#if   __GLASGOW_HASKELL__ >= 902
       Out.renderWithContext
         Out.defaultSDocContext { Out.sdocStyle = Out.mkErrStyle Out.neverQualify }
         sdoc
-#elif __GLASGOW_HASKELL__ >= 900
-      Out.renderWithStyle
-        (Out.initSDocContext
-          dynFlags
-          (Out.setStyleColoured False
-            $ Out.mkErrStyle Out.neverQualify))
-        sdoc
-#else
-      Out.renderWithStyle
-        dynFlags
-        sdoc
-        (Out.setStyleColoured True $ Out.defaultErrStyle dynFlags)
-#endif
 
 
 printMessageDoc :: DynFlags -> MessageType -> Maybe Module -> String -> IO ()
