@@ -7,7 +7,7 @@ homepage:           https://github.com/coot/ghc-tags-plugin
 license:            MPL-2.0
 license-file:       LICENSE
 author:             Marcin Szamotulski
-copyright:          (c) 2020-2023, Marcin Szamotulski
+copyright:          (c) 2020-2024, Marcin Szamotulski
 maintainer:         coot@coot.me
 -- copyright:
 category:           Development
@@ -16,13 +16,13 @@ extra-doc-files:    CHANGELOG.md
 -- extra-source-files:
 
 common warnings
-    ghc-options: -Wall
-                 -Wno-unticked-promoted-constructors
-                 -Wno-incomplete-uni-patterns
-                 -Wno-incomplete-record-updates
-                 -Wpartial-fields
-                 -Widentities
-                 -Wredundant-constraints
+  ghc-options: -Wall
+               -Wno-unticked-promoted-constructors
+               -Wno-incomplete-uni-patterns
+               -Wno-incomplete-record-updates
+               -Wpartial-fields
+               -Widentities
+               -Wredundant-constraints
   if impl(ghc >= 9)
     ghc-options: -Wunused-packages
 
