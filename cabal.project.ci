@@ -1,5 +1,6 @@
 documentation: True
 tests: True
+benchmarks: True
 flags: +gtp-check
 
 package ghc-tags-core
