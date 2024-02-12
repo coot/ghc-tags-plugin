@@ -104,4 +104,3 @@ jobs:
 
     - name: ghc-tags-test [benchmarks]
       run: cabal build ghc-tags-test:benchmark
-
