@@ -1,6 +1,6 @@
 cabal-version:       3.0
 name:                ghc-tags-plugin
-version:             0.6.1.0
+version:             0.6.1.1
 synopsis:            A compiler plugin which generates tags file from GHC parsed syntax tree.
 description:
   __etags__ format.  For a standalone `ghc-tags` command look for or

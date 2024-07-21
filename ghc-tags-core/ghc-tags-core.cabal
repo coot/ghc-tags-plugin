@@ -1,6 +1,6 @@
 cabal-version:       3.0
 name:                ghc-tags-core
-version:             0.6.1.0
+version:             0.6.1.1
 synopsis:            CTags and ETags from Haskell syntax tree.
 description:         A library to work with tags created from GHC syntax tree.
 license:             MPL-2.0
