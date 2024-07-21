@@ -22,10 +22,14 @@ module GhcTags.Ghc
 
 import           Data.Maybe    (mapMaybe)
 import           Data.Maybe    (maybeToList)
-#if MIN_VERSION_GHC(9,6)
+#if MIN_VERSION_base(4,18,0)
 import qualified Data.List.NonEmpty as NonEmpty
 #endif
+#if MIN_VERSION_base(4,20,0)
+import           Data.Foldable (toList)
+#else
 import           Data.Foldable (foldl', toList)
+#endif
 import           Data.ByteString (ByteString)
 
 -- Ghc imports
@@ -101,11 +105,18 @@ import           GHC.Hs       ( HsConDeclGADTDetails (..)
 #if   MIN_VERSION_GHC(9,6)
                               , CImportSpec (..) 
 #endif
+#if   MIN_VERSION_GHC(9,10)
+                              , HasLoc
+                              , SrcSpanAnnA
+                              , locA
+#endif
                               )
 #if   MIN_VERSION_GHC(9,6)
 import           GHC.Types.ForeignCall (CCallTarget (..))
 #endif
+#if  !MIN_VERSION_GHC(9,10)
 import           GHC.Parser.Annotation (SrcSpanAnn' (..))
+#endif
 import           GHC.Hs       ( GRHSs (..)
                               , HsLocalBinds
                               , HsLocalBindsLR (..)
@@ -187,11 +198,19 @@ isExported (Just ies) (L _ name) =
   where
     -- TODO: the GHC's one is partial, and I got a panic error.
     ieName :: IE GhcPs -> Maybe RdrName
+#if MIN_VERSION_GHC(9,10)
+    ieName (IEVar _ (L _ n) _)            = Just $ ieWrappedName n
+    ieName (IEThingAbs  _ (L _ n) _)      = Just $ ieWrappedName n
+    ieName (IEThingWith _ (L _ n) _ _ _)  = Just $ ieWrappedName n
+    ieName (IEThingAll  _ (L _ n) _)      = Just $ ieWrappedName n
+    ieName _ = Nothing
+#else
     ieName (IEVar _ (L _ n))              = Just $ ieWrappedName n
     ieName (IEThingAbs  _ (L _ n))        = Just $ ieWrappedName n
     ieName (IEThingWith _ (L _ n) _ _)    = Just $ ieWrappedName n
     ieName (IEThingAll  _ (L _ n))        = Just $ ieWrappedName n
     ieName _ = Nothing
+#endif
 
 
 -- | Check if a class member or a type constructors is exported.
@@ -205,6 +224,24 @@ isMemberExported (Just ies) memberName  className  = any go ies
   where
     go :: IE GhcPs -> Bool
 
+#if MIN_VERSION_GHC(9,10)
+    go (IEVar _ (L _ n) _) = ieWrappedName n == unLoc memberName
+
+    go (IEThingAbs _ _ _) = False
+
+    go (IEThingAll _ (L _ n) _) = ieWrappedName n == unLoc className
+
+    go (IEThingWith _ _ IEWildcard{} _ _) = True
+
+    go (IEThingWith _ (L _ n) NoIEWildcard ns _) =
+            ieWrappedName n == unLoc className
+         &&  isInWrappedNames
+      where
+        -- the 'NameSpace' does not agree between things that are in the 'IE'
+        -- list and passed member or type class names (constructor / type
+        -- constructor names, respectively)
+        isInWrappedNames = any ((== occNameFS (rdrNameOcc (unLoc memberName))) . occNameFS . rdrNameOcc . ieWrappedName . unLoc) ns
+#else
     go (IEVar _ (L _ n)) = ieWrappedName n == unLoc memberName
 
     go (IEThingAbs _ _)  = False
@@ -221,6 +258,7 @@ isMemberExported (Just ies) memberName  className  = any go ies
         -- list and passed member or type class names (constructor / type
         -- constructor names, respectively)
         isInWrappedNames = any ((== occNameFS (rdrNameOcc (unLoc memberName))) . occNameFS . rdrNameOcc . ieWrappedName . unLoc) ns
+#endif
 
     go _ = False
 
@@ -301,7 +339,7 @@ getGhcTags (L _ HsModule { hsmodName, hsmodDecls, hsmodExports }) =
     mies = map unLoc . unLoc <$> hsmodExports
 
     mkModNameTag (L loc modName) =
-      GhcTag { gtSrcSpan = locA loc
+      GhcTag { gtSrcSpan    = locA loc
              , gtTag        = bytesFS $ moduleNameFS modName
              , gtKind       = GtkModule
              , gtIsExported = True
@@ -554,7 +592,11 @@ hsDeclsToGhcTags mies =
                            -> Located RdrName
                            -> HsConDeclGADTDetails GhcPs
                            -> GhcTags
+#if MIN_VERSION_GHC(9,10)
+    mkHsConDeclGADTDetails decLoc tyName (RecConGADT _ (L _ fields)) =
+#else
     mkHsConDeclGADTDetails decLoc tyName (RecConGADT (L _ fields) _) =
+#endif
         foldl' f [] fields
       where
         f :: GhcTags -> LConDeclField GhcPs -> GhcTags
@@ -731,10 +773,18 @@ hsDeclsToGhcTags mies =
         FamEqn { feqn_tycon } ->
           Just $ mkGhcTag' decLoc (unSpanAnn feqn_tycon) (GtkTypeFamilyInstance (Just decl))
 
+#if MIN_VERSION_GHC(9,10)
+unSpanAnn :: HasLoc a => GenLocated a e -> GenLocated SrcSpan e
+#else
 unSpanAnn :: GenLocated (SrcSpanAnn' x) RdrName -> Located RdrName
+#endif
 unSpanAnn (L s a) = L (locA s) a
 
+#if MIN_VERSION_GHC(9,10)
+locAnn :: SrcSpanAnnA -> SrcSpan
+#else
 locAnn :: SrcSpanAnn' a -> SrcSpan
+#endif
 locAnn = locA
 
 hsSigTypeToHsType :: HsSigType GhcPs -> HsType GhcPs

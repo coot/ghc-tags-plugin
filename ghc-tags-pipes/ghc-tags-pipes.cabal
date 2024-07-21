@@ -34,7 +34,7 @@ library
   hs-source-dirs:      lib
   exposed-modules:     GhcTags.Stream
   build-depends:       attoparsec           >=0.13.0.0,
-                       base                 >=4.12.0.0 && <4.20,
+                       base                 >=4.12.0.0 && <4.21,
                        bytestring           >=0.10,
                        mtl,
                        pipes               ^>=4.3,
