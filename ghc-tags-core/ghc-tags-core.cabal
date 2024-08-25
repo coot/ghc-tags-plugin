@@ -14,7 +14,7 @@ extra-source-files:  CHANGELOG.md
                      README.md
 homepage:            https://github.com/coot/ghc-tags-plugin#readme
 bug-reports:         https://github.com/coot/ghc-tags-plugin/issues
-tested-with:         GHC == { 9.4, 9.6, 9.8 }
+tested-with:         GHC == { 9.6, 9.8, 9.10 }
 
 flag ghc-lib
   default: False
