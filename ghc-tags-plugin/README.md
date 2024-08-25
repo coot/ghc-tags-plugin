@@ -12,7 +12,7 @@ which generates tags for each compiled module or component.
 ● Requirements
 --------------
 
-The plugin requires at least: `ghc >= 9.4`.
+The plugin requires at least: `ghc >= 9.6`.
 
 ● Plugin options
 ----------------
