@@ -5,12 +5,13 @@
 GHC_VERSION ?= 9.10.1
 GHC=ghc-${GHC_VERSION}
 GHC_PKG=ghc-pkg-${GHC_VERSION}
+GHC_STORE_TAG ?= ""
 
 
 ifneq (,$(wildcard ${HOME}/.local/state/cabal/store))
-	PACKAGE_DB = ${HOME}/.local/state/cabal/store/ghc-${GHC_VERSION}/package.db
+	PACKAGE_DB = ${HOME}/.local/state/cabal/store/ghc-${GHC_VERSION}${GHC_STORE_TAG}/package.db
 else
-	PACKAGE_DB = ${HOME}/.cabal/store/ghc-${GHC_VERSION}/package.db
+	PACKAGE_DB = ${HOME}/.cabal/store/ghc-${GHC_VERSION}${GHC_STORE_TAG}/package.db
 endif
 
 # this avoids changing the default environment:
