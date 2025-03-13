@@ -3,15 +3,20 @@
 #
 
 GHC_VERSION ?= 9.10.1
-GHC=ghc-${GHC_VERSION}
-GHC_PKG=ghc-pkg-${GHC_VERSION}
-GHC_STORE_TAG ?= ""
+GHC_STORE_TAG ?=
 
+GHC_PKG=ghc-pkg-${GHC_VERSION}
+GHC=ghc-${GHC_VERSION}
+ifdef GHC_STORE_TAG
+	GHC_STORE_TAG_PREFIXED = -${GHC_STORE_TAG}
+else
+	GHC_STORE_TAG_PREFIXED =
+endif
 
 ifneq (,$(wildcard ${HOME}/.local/state/cabal/store))
-	PACKAGE_DB = ${HOME}/.local/state/cabal/store/ghc-${GHC_VERSION}${GHC_STORE_TAG}/package.db
+	PACKAGE_DB = ${HOME}/.local/state/cabal/store/ghc-${GHC_VERSION}${GHC_STORE_TAG_PREFIXED}/package.db
 else
-	PACKAGE_DB = ${HOME}/.cabal/store/ghc-${GHC_VERSION}${GHC_STORE_TAG}/package.db
+	PACKAGE_DB = ${HOME}/.cabal/store/ghc-${GHC_VERSION}${GHC_STORE_TAG_PREFIXED}/package.db
 endif
 
 # this avoids changing the default environment:
