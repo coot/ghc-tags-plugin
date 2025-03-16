@@ -7,14 +7,14 @@ license:             MPL-2.0
 license-file:        LICENSE
 author:              Marcin Szamotulski
 maintainer:          coot@coot.me
-copyright:           (c) 2020-2024, Marcin Szamotulski
+copyright:           (c) 2020-2025, Marcin Szamotulski
 category:            Development
 stability:           experimental
 extra-source-files:  CHANGELOG.md
                      README.md
 homepage:            https://github.com/coot/ghc-tags-plugin#readme
 bug-reports:         https://github.com/coot/ghc-tags-plugin/issues
-tested-with:         GHC == { 9.6, 9.8, 9.10 }
+tested-with:         GHC == { 9.6, 9.8, 9.10, 9.12 }
 
 flag ghc-lib
   default: False
