@@ -2,15 +2,16 @@ documentation: True
 tests: True
 benchmarks: True
 flags: +gtp-check
+jobs: 2
 
 package ghc-tags-core
-  ghc-options: -j2 -Werror
+  ghc-options: -Werror
 
 package ghc-tags-plugin
-  ghc-options: -j2 -Werror
+  ghc-options: -Werror
 
 package ghc-tags-pipes
-  ghc-options: -j2 -Werror
+  ghc-options: -Werror
 
 package ghc-tags-test
-  ghc-options: -j2 -Werror
+  ghc-options: -Werror
