@@ -14,7 +14,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ghc: ["9.6", "9.8", "9.10", "9.12"]
+        # GHC-9.6.7 fails in the linker phase on Linux.
+        # GHC-9.6.6 fails to compile ghc-lib-parser on Windows. 
+        ghc: ["9.6.6", "9.8", "9.10", "9.12"]
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
