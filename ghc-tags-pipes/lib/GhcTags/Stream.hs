@@ -14,7 +14,7 @@ module GhcTags.Stream
     , runCombineTagsPipe
     ) where
 
-#if __GLASGOW_HASKELL__ >= 906
+#if MIN_VERSION_GLASGOW_HASKELL(9,6,0,0)
 import           Control.Monad.State.Strict
 #else
 import           Control.Monad.State.Strict hiding (void)

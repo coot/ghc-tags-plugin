@@ -12,7 +12,7 @@ module Plugin.GhcTags ( plugin, Options (..) ) where
 
 import           Control.Exception
 import           Control.Monad (when)
-#if __GLASGOW_HASKELL__ >= 906
+#if MIN_VERSION_GLASGOW_HASKELL(9,6,0,0)
 import           Control.Monad.State.Strict
 #else
 import           Control.Monad.State.Strict hiding (when, void)
@@ -92,7 +92,7 @@ import           Plugin.GhcTags.FileLock
 import qualified Plugin.GhcTags.CTag as CTag
 
 
-#if   __GLASGOW_HASKELL__ >= 906
+#if MIN_VERSION_GLASGOW_HASKELL(9,6,0,0)
 type GhcPsModule = HsModule GhcPs
 #else
 type GhcPsModule = HsModule
