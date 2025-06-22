@@ -34,10 +34,6 @@ common warnings
   ghc-options:         -Wall
                        -Wno-unticked-promoted-constructors
                        -Wcompat
-                       -- the following three warnings are enabled by -Wall in
-                       -- ghc-9.2
-                       -Wno-incomplete-uni-patterns
-                       -Wno-incomplete-record-updates
                        -Wpartial-fields
                        -Widentities
                        -Wredundant-constraints
