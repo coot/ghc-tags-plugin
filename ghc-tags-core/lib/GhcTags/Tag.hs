@@ -110,40 +110,40 @@ import qualified Outputable as Out
 #endif
 
 
-#if __GLASGOW_HASKELL__ >= 906
+#if MIN_VERSION_GHC(9,6)
 type RawFilePath = OsPath
 #endif
 
 rawFilePathToBS :: RawFilePath -> BS.ByteString
-#if   __GLASGOW_HASKELL__ >= 906
+#if MIN_VERSION_GHC(9,6)
 rawFilePathToBS = \a -> unsafePerformIO $ BS.Char8.pack <$> OsPath.decodeFS a 
 #else
 rawFilePathToBS = id
 #endif
 
 rawFilePathFromBS :: BS.ByteString -> RawFilePath
-#if    __GLASGOW_HASKELL__ >= 906
+#if MIN_VERSION_GHC(9,6)
 rawFilePathFromBS = unsafePerformIO . OsPath.encodeFS . BS.Char8.unpack
 #else
 rawFilePathFromBS = id
 #endif
 
 normaliseRawFilePath :: RawFilePath -> RawFilePath
-#if __GLASGOW_HASKELL__ >= 906
+#if MIN_VERSION_GHC(9,6)
 normaliseRawFilePath = OsPath.normalise
 #else
 normaliseRawFilePath = FilePath.BS.normalise
 #endif
 
 makeRelativeRawFilePath :: RawFilePath -> RawFilePath -> RawFilePath
-#if __GLASGOW_HASKELL__ >= 906
+#if MIN_VERSION_GHC(9,6)
 makeRelativeRawFilePath = OsPath.makeRelative
 #else
 makeRelativeRawFilePath = FilePath.BS.makeRelative
 #endif
 
 (</>) :: RawFilePath -> RawFilePath -> RawFilePath
-#if __GLASGOW_HASKELL__ >= 906
+#if MIN_VERSION_GHC(9,6)
 (</>) = (OsPath.</>)
 #else
 (</>) = (FilePath.BS.</>)

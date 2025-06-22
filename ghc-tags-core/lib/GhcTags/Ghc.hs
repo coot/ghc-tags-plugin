@@ -22,10 +22,10 @@ module GhcTags.Ghc
 
 import           Data.Maybe    (mapMaybe)
 import           Data.Maybe    (maybeToList)
-#if MIN_VERSION_base(4,18,0)
+#if MIN_VERSION_GHC(9,6)
 import qualified Data.List.NonEmpty as NonEmpty
 #endif
-#if MIN_VERSION_base(4,20,0)
+#if MIN_VERSION_GHC(9,10)
 import           Data.Foldable (toList)
 #else
 import           Data.Foldable (foldl', toList)

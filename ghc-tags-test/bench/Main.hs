@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP           #-}
 {-# LANGUAGE RankNTypes    #-}
 {-# OPTIONS -Wno-orphans   #-}
-#if __GLASGOW_HASKELL__ >= 908
+#if MIN_VERSION_GLASGOW_HASKELL(9,8,0,0)
 {-# OPTIONS -Wno-x-partial #-}
 #endif
 
@@ -9,7 +9,7 @@ module Main (main) where
 
 import           Control.Exception
 import           Control.DeepSeq
-#if __GLASGOW_HASKELL__ >= 906
+#if MIN_VERSION_GLASGOW_HASKELL(9,6,0,0)
 import           Control.Monad.State.Strict
 #else
 import           Control.Monad.State.Strict hiding (void)
