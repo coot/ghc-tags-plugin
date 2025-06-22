@@ -22,14 +22,7 @@ module GhcTags.Ghc
 
 import           Data.Maybe    (mapMaybe)
 import           Data.Maybe    (maybeToList)
-#if MIN_VERSION_GHC(9,6)
-import qualified Data.List.NonEmpty as NonEmpty
-#endif
-#if MIN_VERSION_GHC(9,10)
-import           Data.Foldable (toList)
-#else
-import           Data.Foldable (foldl', toList)
-#endif
+import qualified Data.Foldable as Foldable
 import           Data.ByteString (ByteString)
 
 -- Ghc imports
@@ -351,7 +344,7 @@ hsDeclsToGhcTags :: Maybe [IE GhcPs]
                  -> [LHsDecl GhcPs]
                  -> GhcTags
 hsDeclsToGhcTags mies =
-    reverse . foldl' go []
+    reverse . Foldable.foldl' go []
   where
     fixLoc :: SrcSpan -> GhcTag -> GhcTag
     fixLoc loc gt@GhcTag { gtSrcSpan = UnhelpfulSpan {} } = gt { gtSrcSpan = loc }
@@ -424,14 +417,14 @@ hsDeclsToGhcTags mies =
                -- class methods
              : (mkClsMemberTags decLoc (unSpanAnn tcdLName) . unLoc) `concatMap` tcdSigs
                -- default methods
-            ++ foldl' (\tags' hsBind -> mkHsBindLRTags decLoc (unLoc hsBind) ++ tags')
-                     []
-                     tcdMeths
+            ++ Foldable.foldl' (\tags' hsBind -> mkHsBindLRTags decLoc (unLoc hsBind) ++ tags')
+                               []
+                               tcdMeths
             -- associated types
             ++ ((\a -> mkFamilyDeclTags decLoc a (Just $ unSpanAnn tcdLName)) . unLoc) `mapMaybe` tcdATs
             -- associated type defaults (data type families, type families
             -- (open or closed)
-            ++ foldl'
+            ++ Foldable.foldl'
                 (\tags' (L _ decl'@(TyFamInstDecl { tfid_eqn = tyFamDeflEqn })) ->
                   let decl = Just decl' in
                     case tyFamDeflEqn of
@@ -552,11 +545,7 @@ hsDeclsToGhcTags mies =
          `map` con_names'
       ++ mkHsConDeclGADTDetails decLoc tyName con_args
       where
-#if MIN_VERSION_GHC(9,6)
-        con_names' = NonEmpty.toList con_names
-#else
-        con_names' = con_names
-#endif
+        con_names' = Foldable.toList con_names
 
     mkConsTags decLoc tyName con@ConDeclH98  { con_name, con_args } =
         mkGhcTagForMember decLoc (unSpanAnn con_name) tyName
@@ -566,7 +555,7 @@ hsDeclsToGhcTags mies =
     mkHsLocalBindsTags :: SrcSpan -> HsLocalBinds GhcPs -> [GhcTag]
     mkHsLocalBindsTags decLoc (HsValBinds _ (ValBinds _ hsBindsLR sigs)) =
          -- where clause bindings
-         concatMap (mkHsBindLRTags decLoc . unLoc) (toList hsBindsLR)
+         concatMap (mkHsBindLRTags decLoc . unLoc) (Foldable.toList hsBindsLR)
       ++ concatMap (mkSigTags decLoc . unLoc) sigs
 
     mkHsLocalBindsTags _ _ = []
@@ -576,10 +565,10 @@ hsDeclsToGhcTags mies =
                           -> HsConDeclH98Details GhcPs
                           -> GhcTags
     mkHsConDeclH98Details decLoc tyName (RecCon (L _ fields)) =
-        foldl' f [] fields
+        Foldable.foldl' f [] fields
       where
         f :: GhcTags -> LConDeclField GhcPs -> GhcTags
-        f ts (L _ ConDeclField { cd_fld_names }) = foldl' g ts cd_fld_names
+        f ts (L _ ConDeclField { cd_fld_names }) = Foldable.foldl' g ts cd_fld_names
 
         g :: GhcTags -> LFieldOcc GhcPs -> GhcTags
         g ts (L _ fo@FieldOcc {}) =
@@ -597,10 +586,10 @@ hsDeclsToGhcTags mies =
 #else
     mkHsConDeclGADTDetails decLoc tyName (RecConGADT (L _ fields) _) =
 #endif
-        foldl' f [] fields
+        Foldable.foldl' f [] fields
       where
         f :: GhcTags -> LConDeclField GhcPs -> GhcTags
-        f ts (L _ ConDeclField { cd_fld_names }) = foldl' g ts cd_fld_names
+        f ts (L _ ConDeclField { cd_fld_names }) = Foldable.foldl' g ts cd_fld_names
 
         g :: GhcTags -> LFieldOcc GhcPs -> GhcTags
         g ts (L _ fo) =
