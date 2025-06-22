@@ -7,15 +7,12 @@ module GhcTags.Utils
 
 -- | Platform dependent eol:
 --
--- * Windows      "CRNL"
--- * MacOS        "CR"
--- * Linux (unit) "NL"
+-- * Windows        "CRNL"
+-- * Linux & Darwin "NL"
 --
 endOfLine :: String
 #if defined(mingw32_HOST_OS)
 endOfLine = "\r\n"
-#elif defined(darwin_HIST_OS)
-endOfLine = "\r"
 #else
 endOfLine = "\n"
 #endif
