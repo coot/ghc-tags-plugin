@@ -655,23 +655,7 @@ ghcTagToTag sing  dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFF
         Text.intercalate " " -- remove all line breaks, tabs and multiple spaces
       . Text.words
       . Text.pack
-#if   MIN_VERSION_GHC(9,2)
       . Out.renderWithContext
           Out.defaultSDocContext { Out.sdocStyle = Out.mkErrStyle Out.neverQualify }
       . Out.ppr
       $ hsType
-#elif MIN_VERSION_GHC(9,0)
-      $ Out.renderWithStyle
-          (Out.initSDocContext
-            dynFlags
-            (Out.setStyleColoured False
-              $ Out.mkErrStyle Out.neverQualify))
-          (Out.ppr hsType)
-          
-#else
-      $ Out.renderWithStyle
-          (dynFlags { pprUserLength = 1 })
-          (Out.ppr hsType)
-          (Out.setStyleColoured False
-            $ Out.mkErrStyle dynFlags Out.neverQualify)
-#endif
