@@ -1,5 +1,3 @@
-{-# LANGUAGE CPP #-}
-
 module Plugin.GhcTags.FileLock
   ( withFileLock
   , LockMode (..)
@@ -8,11 +6,7 @@ module Plugin.GhcTags.FileLock
 import           Control.Exception
 import           Control.Monad (when)
 
-#if !defined(mingw32_HOST_OS)
-import           Lukko.FLock
-#else
-import           Lukko.Windows
-#endif
+import           Lukko
 
 -- | 'flock' base lock (on posix) or `LockFileEx` on Windows.
 --
