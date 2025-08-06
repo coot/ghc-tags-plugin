@@ -26,18 +26,6 @@ endif
 # THIS FILE WILL BE REMOVED!
 ENV=.ghc-tags-plugin.env
 
-uninstall:
-	${GHC_PKG} unregister \
-	  --package-db=${PACKAGE_DB} \
-	  --force \
-	  ghc-tags-plugin
-
-uninstall-core:
-	${GHC_PKG} unregister \
-	  --package-db=${PACKAGE_DB} \
-	  --force \
-	  ghc-tags-core
-
 install:
 	# avoid changing the default environment
 	cabal install --package-db=${PACKAGE_DB} \
@@ -61,6 +49,18 @@ prof-install:
 		      ghc-tags-plugin
 	rm ${ENV}
 	${GHC_PKG} describe --package-db=${PACKAGE_DB} ghc-tags-plugin | grep -A1 ^id
+
+uninstall:
+	${GHC_PKG} unregister \
+	  --package-db=${PACKAGE_DB} \
+	  --force \
+	  ghc-tags-plugin
+
+uninstall-core:
+	${GHC_PKG} unregister \
+	  --package-db=${PACKAGE_DB} \
+	  --force \
+	  ghc-tags-core
 
 # reinstall ghc-tags-core and ghc-tags-plugin
 reinstall-core: uninstall uninstall-core install
