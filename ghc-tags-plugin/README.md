@@ -82,18 +82,19 @@ Install the `ghc-tags-plugin` to cabal store with:
 cabal install --lib ghc-tags-plugin
 ```
 
-In `cabal.project.local` file add `package` stanza for every local package :
+In `cabal.project.local` file add [`program-options`] stanza, which enables the plugin
+for all local packages:
 ```
-project some-project
+program-options
     ghc-options: -package-db=PACKAGE_DB
                  -plugin-package=ghc-tags-plugin
                  -fplugin=Plugin.GhcTags
 ```
 
-`PACKAGE_DB` is likely to be something like (for `ghc-8.6.5`)
+`PACKAGE_DB` is likely to be something like
 (all environment variables must be expanded):
 ```
-${HOME}/.cabal/store/ghc-8.6.5/package.db
+${HOME}/.cabal/store/ghc-9.12.2/package.db
 ```
 or on Windows (note the `""` syntax)
 ```
@@ -213,3 +214,4 @@ latest [`ghc-tags-core`] version.
 [`ghc-tags-fork`]: https://github.com/coot/ghc-tags
 [`ghc-tags-hackage`]: https://hackage.haskell.org/package/ghc-tags
 [`ghc-tags-core`]: https//hackage.haskell.org/package/ghc-tags-core
+[`program-options`]: https://cabal.readthedocs.io/en/stable/cabal-project-description-file.html#program-options
