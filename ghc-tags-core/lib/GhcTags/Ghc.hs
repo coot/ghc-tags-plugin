@@ -65,14 +65,19 @@ import           GHC_IMPORT(Extension)
                               )
 
 import           GHC.Hs.Type
+#if MIN_VERSION_GHC(9,14)
+                              ( HsConDeclRecField (..)
+                              , LHsConDeclRecField
+#else
                               ( ConDeclField (..)
+                              , LConDeclField
+#endif
                               , FieldOcc (..)
                               , HsConDetails (..)
                               , HsKind
                               , HsTyVarBndr (..)
                               , HsType (..)
                               , HsWildCardBndrs
-                              , LConDeclField
                               , LFieldOcc
                               , LHsQTyVars (..)
                               , LHsSigType
@@ -567,8 +572,13 @@ hsDeclsToGhcTags mies =
     mkHsConDeclH98Details decLoc tyName (RecCon (L _ fields)) =
         Foldable.foldl' f [] fields
       where
+#if MIN_VERSION_GHC(9,14)
+        f :: GhcTags -> LHsConDeclRecField GhcPs -> GhcTags
+        f ts (L _ HsConDeclRecField { cdrf_names }) = Foldable.foldl' g ts cdrf_names
+#else
         f :: GhcTags -> LConDeclField GhcPs -> GhcTags
         f ts (L _ ConDeclField { cd_fld_names }) = Foldable.foldl' g ts cd_fld_names
+#endif
 
         g :: GhcTags -> LFieldOcc GhcPs -> GhcTags
         g ts (L _ fo@FieldOcc {}) =
@@ -581,15 +591,22 @@ hsDeclsToGhcTags mies =
                            -> Located RdrName
                            -> HsConDeclGADTDetails GhcPs
                            -> GhcTags
-#if MIN_VERSION_GHC(9,10)
+#if MIN_VERSION_GHC(9,14)
+    mkHsConDeclGADTDetails decLoc tyName (RecConGADT _ (L _ fields)) =
+#elif MIN_VERSION_GHC(9,10)
     mkHsConDeclGADTDetails decLoc tyName (RecConGADT _ (L _ fields)) =
 #else
     mkHsConDeclGADTDetails decLoc tyName (RecConGADT (L _ fields) _) =
 #endif
         Foldable.foldl' f [] fields
       where
+#if MIN_VERSION_GHC(9,14)
+        f :: GhcTags -> LHsConDeclRecField GhcPs -> GhcTags
+        f ts (L _ HsConDeclRecField { cdrf_names }) = Foldable.foldl' g ts cdrf_names
+#else
         f :: GhcTags -> LConDeclField GhcPs -> GhcTags
         f ts (L _ ConDeclField { cd_fld_names }) = Foldable.foldl' g ts cd_fld_names
+#endif
 
         g :: GhcTags -> LFieldOcc GhcPs -> GhcTags
         g ts (L _ fo) =
@@ -670,6 +687,10 @@ hsDeclsToGhcTags mies =
     -- SPECIALISE pragmas
     mkSigTags _ SpecSig {}             = []
     mkSigTags _ SpecInstSig {}         = []
+#if MIN_VERSION_GHC(9,14) && !MIN_VERSION_GHC(9,18)
+    -- DEPRECATED SPECIALISE pragma
+    mkSigTags _ (SpecSigE _ _ _ _) = []
+#endif
     -- MINIMAL pragma
     mkSigTags _ MinimalSig {}          = []
     -- SSC pragma

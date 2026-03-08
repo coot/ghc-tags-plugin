@@ -15,3 +15,5 @@ package ghc-tags-pipes
 
 package ghc-tags-test
   ghc-options: -Werror
+
+allow-newer: scientific:base
