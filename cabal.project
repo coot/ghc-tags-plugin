@@ -1,4 +1,4 @@
-index-state: 2025-03-16T13:55:03Z
+index-state: 2026-01-02T00:00:00Z
 
 packages: ghc-tags-plugin
           ghc-tags-core
@@ -9,3 +9,6 @@ allow-newer: pipes-safe:base
 
 package ghc-tags-core
   tests: True
+
+if impl (ghc >= 9.14)
+  allow-newer: *:base, *:template-haskell, *:containers, *:ghc-bignum, *:time
