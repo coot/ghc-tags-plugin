@@ -1,5 +1,10 @@
 # Revision history for ghc-tags-core
 
+## 0.6.2.0 -- 2026-03-08
+
+- `GHC-9.14` support.
+- `GHC-9.12` support.
+
 ## 0.6.1.1 -- 2024-07-21
 
 - `GHC-9.10` support.
