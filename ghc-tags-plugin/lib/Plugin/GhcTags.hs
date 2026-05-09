@@ -495,10 +495,12 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                     combined :: [CTag]
                     combined = combineTags CTag.compareTags modulePath tags parsedTags
 
-                BB.hPutBuilder writeHandle
-                          (    foldMap CTag.formatHeader CTag.headers
-                            <> foldMap CTag.formatTag combined
-                          ) 
+                -- Overwrite the tags file.  We do that in uninterruptible mode.
+                uninterruptibleMask_ $
+                  BB.hPutBuilder writeHandle
+                    (    foldMap CTag.formatHeader CTag.headers
+                      <> foldMap CTag.formatTag combined
+                    ) 
 
                 when debug $ do
 #if MIN_VERSION_filepath(1,4,100)
