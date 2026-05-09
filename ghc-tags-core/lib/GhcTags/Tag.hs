@@ -54,11 +54,12 @@ module GhcTags.Tag
   ) where
 
 import           Control.DeepSeq
-import           Data.Function (on)
 import qualified Data.ByteString as BS
 #if __GLASGOW_HASKELL__ >= 906
 import qualified Data.ByteString.Char8 as BS.Char8
 #endif
+import           Data.Function (on)
+import           Data.List (nub)
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import           Data.Text   (Text)
@@ -458,16 +459,17 @@ compareTags t0 t1 = on compare tagName t0 t1
 combineTags :: (Tag tk -> Tag tk -> Ordering)
             -> RawFilePath
             -> [Tag tk] -> [Tag tk] -> [Tag tk]
-combineTags compareFn modPath = go
+combineTags compareFn modPath = (nub .) . go
   where
     modPath' = rawFilePathToBS modPath
     go as@(a : as') bs@(b : bs')
       | modPath' `BS.isSuffixOf` Text.encodeUtf8 (getRawFilePath (tagFilePath b))
       = go as bs'
-      | otherwise = case a `compareFn` b of
-          LT -> a : go as' bs
-          EQ -> a : go as' bs'
-          GT -> b : go as  bs'
+      | otherwise
+      = case a `compareFn` b of
+        LT -> a : go as' bs
+        EQ -> a : go as' bs'
+        GT -> b : go as  bs'
     go [] bs = filter (\b -> not (modPath' `BS.isSuffixOf` Text.encodeUtf8 (getRawFilePath (tagFilePath b)))) bs
     go as [] = as
     {-# INLINE go #-}
