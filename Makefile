@@ -33,6 +33,7 @@ install:
 		      --with-compiler=${GHC} \
 		      --disable-documentation \
 		      --reinstall \
+		      --overwrite-policy=always \
 		      --lib \
 	              ghc-tags-plugin
 	rm ${ENV}
