@@ -46,7 +46,8 @@ library
   exposed-modules:     Plugin.GhcTags
                        Plugin.GhcTags.Options
                        Plugin.GhcTags.FileLock
-  other-modules:       Plugin.GhcTags.CTag
+  other-modules:       Plugin.GhcTags.AtomicFile
+                       Plugin.GhcTags.CTag
                        Paths_ghc_tags_plugin
   autogen-modules:     Paths_ghc_tags_plugin
   build-depends:       base              >=4.12 && < 4.23,
@@ -82,3 +83,17 @@ executable gtp-check
                      , filepath
 
                      , ghc-tags-plugin
+
+
+test-suite atomic-file
+  import:              warnings
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test lib
+  main-is:             AtomicFile.hs
+  other-modules:       Plugin.GhcTags.AtomicFile
+  build-depends:       base,
+                       directory,
+                       filepath,
+                       tasty,
+                       tasty-hunit
+  default-language:    Haskell2010

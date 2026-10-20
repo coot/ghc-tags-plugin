@@ -88,6 +88,7 @@ import qualified GhcTags.CTag as CTag
 import qualified GhcTags.ETag as ETag
 
 import           Plugin.GhcTags.Options
+import           Plugin.GhcTags.AtomicFile
 import           Plugin.GhcTags.FileLock
 import qualified Plugin.GhcTags.CTag as CTag
 
@@ -274,8 +275,6 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
 #else
                           tagsFile
 #endif
-      let destFile = case FilePath.splitFileName tagsFile of
-            (dir, name) -> dir FilePath.</> "." ++ name
 
       mbInSize <-
         if debug
@@ -291,8 +290,11 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
               else pure (Just 0)
           else pure Nothing
 
-      withFile destFile WriteMode  $ \writeHandle ->
-        withFile tagsFile ReadWriteMode $ \readHandle -> do
+      withAtomicFile tagsFile $ \writeHandle ->
+        let withInput k
+              | tagsFileExists = withFile tagsFile ReadMode (k . Just)
+              | otherwise = k Nothing
+        in withInput $ \readHandle -> do
 #if MIN_VERSION_filepath(1,4,100)
           cwd <- getCurrentDirectory
 #else
@@ -306,7 +308,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
           tagsDir <- rawFilePathFromBS . BSC.pack <$> canonicalizePath (fst $ FilePath.splitFileName tagsFile)
 #endif
           case ml_hs_file ms_location of
-            Nothing         -> pure ()
+            Nothing         -> pure False
             Just sourcePath -> do
               let sourcePathBS = rawFilePathFromBS $ Text.encodeUtf8 (Text.pack sourcePath)
                   -- path of the compiled module; it is relative to the cabal file,
@@ -322,15 +324,14 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                         fixFilePath cwd tagsDir sourcePathBS
                   -- text parser
                   producer :: Pipes.Producer ByteString (SafeT IO) ()
-                  producer
-                    | tagsFileExists =
-                        void (Pipes.BS.fromHandle readHandle)
+                  producer = case readHandle of
+                    Just inputHandle ->
+                        void (Pipes.BS.fromHandle inputHandle)
                         `Pipes.Safe.catchP` \(e :: IOException) ->
                           Pipes.lift $ Pipes.liftIO $
-                            -- don't re-throw; this would kill `ghc`, error
-                            -- loudly and continue.
-                            putDocLn dynFlags (messageDoc ReadException (Just ms_mod) (displayException e))
-                    | otherwise      = pure ()
+                            -- Abort the replacement rather than publish partial tags.
+                            putDocLn dynFlags (messageDoc ReadException (Just ms_mod) (displayException e)) >> throwIO e
+                    Nothing -> pure ()
 
                   -- tags pipe
                   pipe :: Pipes.Effect (StateT Int (StateT [CTag] (SafeT IO))) ()
@@ -339,9 +340,8 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                       (Pipes.hoist Pipes.lift $ Pipes.hoist Pipes.lift (tagParser (either (const Nothing) Just <$> CTag.parseTagLine) producer)
                         `Pipes.Safe.catchP` \(e :: IOException) ->
                           Pipes.lift $ Pipes.liftIO $
-                            -- don't re-throw; this would kill `ghc`, error
-                            -- loudly and continue.
-                            putDocLn dynFlags $ messageDoc ParserException (Just ms_mod) (displayException e)
+                            -- Abort the replacement rather than publish partial tags.
+                            putDocLn dynFlags (messageDoc ParserException (Just ms_mod) (displayException e)) >> throwIO e
                       )
                       -- merge tags
                       (\tag -> do
@@ -355,9 +355,8 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                               tag
                           `Pipes.Safe.catchP` \(e :: IOException) ->
                             Pipes.lift $ Pipes.liftIO $
-                              -- don't re-throw; this would kill `ghc`, error
-                              -- loudly and continue.
-                              putDocLn dynFlags $ messageDoc WriteException (Just ms_mod) (displayException e)
+                              -- Abort the replacement rather than publish partial tags.
+                              putDocLn dynFlags (messageDoc WriteException (Just ms_mod) (displayException e)) >> throwIO e
                       )
 
               let tags :: [CTag]
@@ -380,12 +379,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
               hFlush writeHandle
 
               when debug $ do
-                outSize <- getFileSize
-#if MIN_VERSION_filepath(1,4,100)
-                          tagsPath
-#else
-                          tagsFile
-#endif
+                outSize <- hFileSize writeHandle
                 let Just inSize = mbInSize
                 printMessageDoc dynFlags DebugMessage (Just ms_mod)
                   (concat [ "path: "
@@ -399,19 +393,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                           , " out-size: "
                           , show outSize
                           ])
-      
-#if MIN_VERSION_filepath(1,4,100)
-      destPath <- OsPath.encodeUtf destFile
-      destFileExists <- doesFileExist destPath
-#else
-      destFileExists <- doesFileExist destFile
-#endif
-      when destFileExists $
-#if MIN_VERSION_filepath(1,4,100)
-        renameFile destPath tagsPath
-#else
-        renameFile destFile tagsFile
-#endif
+              pure True
 
 
     --
@@ -442,7 +424,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
       !tagsContent <- if tagsFileExists
                         then BS.readFile tagsFile
                         else return mempty
-      withFile tagsFile WriteMode $ \writeHandle -> do
+      withAtomicFile tagsFile $ \writeHandle -> do
 #if MIN_VERSION_filepath(1,4,100)
         cwd <- getCurrentDirectory
 #else
@@ -456,7 +438,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
         tagsDir <- rawFilePathFromBS . BSC.pack <$> canonicalizePath (fst $ FilePath.splitFileName tagsFile)
 #endif
         case ml_hs_file ms_location of
-          Nothing         -> pure ()
+          Nothing         -> pure False
           Just sourcePath -> do
             let sourcePathBS = rawFilePathFromBS $ Text.encodeUtf8 (Text.pack sourcePath)
                 -- path of the compiled module; it is relative to the cabal file,
@@ -474,10 +456,10 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
             pres <- try @IOException $ CTag.parseTagsFile tagsContent
             case pres of
               Left err   ->
-                putDocLn dynFlags $ messageDoc ParserException (Just ms_mod) (displayException err)
+                putDocLn dynFlags (messageDoc ParserException (Just ms_mod) (displayException err)) >> pure False
 
               Right (Left err) ->
-                printMessageDoc dynFlags ParserException (Just ms_mod) err
+                printMessageDoc dynFlags ParserException (Just ms_mod) err >> pure False
 
               Right (Right parsed) -> do
                 let parsedTags = rights parsed 
@@ -501,11 +483,8 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                           ) 
 
                 when debug $ do
-#if MIN_VERSION_filepath(1,4,100)
-                  outSize <- getFileSize tagsPath
-#else
-                  outSize <- getFileSize tagsFile
-#endif
+                  hFlush writeHandle
+                  outSize <- hFileSize writeHandle
                   let Just inSize = mbInSize
                   printMessageDoc dynFlags DebugMessage (Just ms_mod)
                     (concat [ "parsed: "
@@ -517,6 +496,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                             , " out-size: "
                             , show outSize
                             ])
+                pure True
 
 
     --
@@ -547,7 +527,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
       !tagsContent <- if tagsFileExists
                         then BS.readFile tagsFile
                         else return mempty
-      withFile tagsFile WriteMode $ \writeHandle -> do
+      withAtomicFile tagsFile $ \writeHandle -> do
 #if MIN_VERSION_filepath(1,4,100)
           cwd <- getCurrentDirectory
 #else
@@ -562,15 +542,15 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
 #endif
 
           case ml_hs_file ms_location of
-            Nothing         -> pure ()
+            Nothing         -> pure False
             Just sourcePath -> do
               pres <- try @IOException $ ETag.parseTagsFile tagsContent
               case pres of
-                Left err   ->
-                  putDocLn dynFlags $ messageDoc ParserException (Just ms_mod) (displayException err)
+                Left err ->
+                  False <$ putDocLn dynFlags (messageDoc ParserException (Just ms_mod) (displayException err))
 
-                Right (Left err) ->
-                  printMessageDoc dynFlags ParserException (Just ms_mod) err
+                Right (Left err) -> do
+                  False <$ printMessageDoc dynFlags ParserException (Just ms_mod) err
 
                 Right (Right parsedTags) -> do
                   let sourcePathBS = rawFilePathFromBS
@@ -599,11 +579,8 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                   BB.hPutBuilder writeHandle (ETag.formatETagsFile combined)
 
                   when debug $ do
-#if MIN_VERSION_filepath(1,4,100)
-                    outSize <- getFileSize tagsPath
-#else
-                    outSize <- getFileSize tagsFile
-#endif
+                    hFlush writeHandle
+                    outSize <- hFileSize writeHandle
                     let Just inSize = mbInSize
                     printMessageDoc dynFlags DebugMessage (Just ms_mod)
                       (concat [ "parsed: "
@@ -615,6 +592,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                               , " out-size: "
                               , show outSize
                               ])
+                  pure True
 
 
 -- | Filter adjacent tags.
@@ -713,7 +691,8 @@ ghcTagsMetaHook options dynFlags request expr =
                                   . ghcTagToTag SingETag dynFlags)
                                     `mapMaybe`
                                      hsDeclsToGhcTags Nothing decls
-                    BSL.writeFile tagsFile (BB.toLazyByteString $ ETag.formatTagsFile tags')
+                    withAtomicFile tagsFile $ \h ->
+                      True <$ BSL.hPut h (BB.toLazyByteString $ ETag.formatTagsFile tags')
               else do
                 pr <- fmap partitionEithers <$> CTag.parseTagsFile tagsContent
                 case pr of
@@ -732,7 +711,8 @@ ghcTagsMetaHook options dynFlags request expr =
                                     `mapMaybe`
                                     hsDeclsToGhcTags Nothing decls
                                 )
-                    BSL.writeFile tagsFile (BB.toLazyByteString $ CTag.formatTagsFile tags')
+                    withAtomicFile tagsFile $ \h ->
+                      True <$ BSL.hPut h (BB.toLazyByteString $ CTag.formatTagsFile tags')
 
       Failure (ParserFailure f)  ->
         withMetaD defaultRunMeta request expr $ \_ ->

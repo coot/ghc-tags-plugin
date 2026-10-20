@@ -101,6 +101,9 @@ jobs:
     - name: Build projects [build]
       run: cabal --builddir="$CABAL_BUILDDIR" build all
 
+    - name: ghc-tags-plugin [atomic-file]
+      run: cabal --builddir="$CABAL_BUILDDIR" run ghc-tags-plugin:atomic-file
+
     - name: ghc-tags-test [test]
       run: cabal --builddir="$CABAL_BUILDDIR" run ghc-tags-test:test
 
