@@ -178,6 +178,12 @@ ghc: panic! (the 'impossible' happened)
   will create synchronisation between threads / process which are using
   the same `tags` file.
 
+- Tag updates are written to a temporary file and renamed over the destination
+  only after a successful write. Interrupted compilation (including editor
+  cancellation) leaves the previous tags file intact. If tags were lost with an
+  older plugin version, rebuild the affected modules with `-fforce-recomp` to
+  regenerate them; an incremental build may skip those modules.
+
 - If you are working on a larger project, it might be better to not collect all
   tags in a single `tags` file, since at every compilation step one will need
   to parse a large `tags` file.  Working with tag files of size 10000 tags (or

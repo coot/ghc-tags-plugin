@@ -1,5 +1,11 @@
 # Revision history for ghctags
 
+## Unreleased
+
+- Write tag updates atomically, preserving existing tags on cancellation, write
+  failure, or a reported parse error (ctags, etags, and Template Haskell).
+- Use unique temporary files for streaming updates and abort on I/O errors.
+
 ## 0.6.2.0 -- 2026-03-08
 
 - `GHC-9.14` support.
