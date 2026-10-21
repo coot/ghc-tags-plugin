@@ -3,21 +3,11 @@
 #
 
 GHC_VERSION ?= 9.14.1
-GHC_STORE_TAG ?=
 
 GHC_PKG=ghc-pkg-${GHC_VERSION}
 GHC=ghc-${GHC_VERSION}
-ifdef GHC_STORE_TAG
-	GHC_STORE_TAG_PREFIXED = -${GHC_STORE_TAG}
-else
-	GHC_STORE_TAG_PREFIXED =
-endif
 
-ifneq (,$(wildcard ${HOME}/.local/state/cabal/store))
-	PACKAGE_DB = ${HOME}/.local/state/cabal/store/ghc-${GHC_VERSION}${GHC_STORE_TAG_PREFIXED}/package.db
-else
-	PACKAGE_DB = ${HOME}/.cabal/store/ghc-${GHC_VERSION}${GHC_STORE_TAG_PREFIXED}/package.db
-endif
+PACKAGE_DB := $(shell cabal path --with-compiler="${GHC}" --compiler-info | sed -n 's/^compiler-store-path: //p')/package.db
 
 # this avoids changing the default environment:
 # ~/.ghc/x86_64-linux-8.6.5/environments/default
@@ -86,4 +76,5 @@ describe:
 describe-core:
 	${GHC_PKG} describe --package-db=${PACKAGE_DB} ghc-tags-core
 
-.PHONY: install, uninstall, uninstall-core, reinstall, reinstall-core, latest, check
+.PHONY: install prof-install uninstall uninstall-core reinstall reinstall-core \
+        list latest recache check describe describe-core
