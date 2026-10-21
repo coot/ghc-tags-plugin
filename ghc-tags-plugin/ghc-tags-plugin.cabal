@@ -58,7 +58,7 @@ library
                        lukko            ^>=0.1,
                        mtl               >=2.2 && <2.4,
                        optparse-applicative
-                                         >=0.15.1 && < 0.19,
+                                         >=0.15.1 && < 0.20,
                        pipes            ^>=4.3,
                        pipes-bytestring ^>=2.1,
                        pipes-safe       ^>=2.3,
