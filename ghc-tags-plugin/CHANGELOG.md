@@ -1,6 +1,6 @@
 # Revision history for ghctags
 
-## Unreleased
+## 0.7.0.5 -- 2026-10.24
 
 - Extend `gtp-check` with `--etags`/`-e`, parsed tag counts, ctags program/version
   metadata, parser diagnostics and warnings for unsorted ctags files.

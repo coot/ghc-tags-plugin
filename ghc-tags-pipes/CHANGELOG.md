@@ -1,6 +1,8 @@
 # Revision history for ghc-tags-pipes
 
-## Unreleased
+## 0.2.0.1 -- 2026-10-23
+
+## 0.2.0.0 -- 2026-10-22
 
 - Recover streamed tags after malformed lines. Add `tagParserWithWarnings` to
   report skipped records without stopping tag updates.

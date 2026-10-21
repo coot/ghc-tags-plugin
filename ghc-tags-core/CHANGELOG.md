@@ -1,6 +1,6 @@
 # Revision history for ghc-tags-core
 
-## Unreleased
+## 0.7.0.5 -- 2026-10-24
 
 - Reconcile signatures and definitions within their AST binding groups, keeping
   unsigned bindings with the same name in other scopes and visiting nested bindings
