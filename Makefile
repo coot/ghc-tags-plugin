@@ -3,20 +3,18 @@
 #
 
 GHC_VERSION ?= 9.14.1
-GHC_STORE_TAG ?=
 
 GHC_PKG=ghc-pkg-${GHC_VERSION}
 GHC=ghc-${GHC_VERSION}
-ifdef GHC_STORE_TAG
-	GHC_STORE_TAG_PREFIXED = -${GHC_STORE_TAG}
-else
-	GHC_STORE_TAG_PREFIXED =
-endif
 
-ifneq (,$(wildcard ${HOME}/.local/state/cabal/store))
-	PACKAGE_DB = ${HOME}/.local/state/cabal/store/ghc-${GHC_VERSION}${GHC_STORE_TAG_PREFIXED}/package.db
+# cabal path --compiler-info requires cabal >= 3.12.  Capture the output once
+# and defer a clear error to the point where PACKAGE_DB is actually used, so
+# unrelated targets (e.g. help) still work with older cabal.
+_COMPILER_STORE := $(shell cabal path --with-compiler="${GHC}" --compiler-info 2>/dev/null | sed -n 's/^compiler-store-path: //p')
+ifeq ($(_COMPILER_STORE),)
+PACKAGE_DB = $(error 'cabal path --compiler-info' failed -- cabal >= 3.12 is required. Upgrade with: cabal install cabal-install)
 else
-	PACKAGE_DB = ${HOME}/.cabal/store/ghc-${GHC_VERSION}${GHC_STORE_TAG_PREFIXED}/package.db
+PACKAGE_DB := $(_COMPILER_STORE)/package.db
 endif
 
 # this avoids changing the default environment:
@@ -86,4 +84,5 @@ describe:
 describe-core:
 	${GHC_PKG} describe --package-db=${PACKAGE_DB} ghc-tags-core
 
-.PHONY: install, uninstall, uninstall-core, reinstall, reinstall-core, latest, check
+.PHONY: install prof-install uninstall uninstall-core reinstall reinstall-core \
+        list latest recache check describe describe-core
