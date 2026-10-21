@@ -17,6 +17,7 @@ withAtomicFile path write =
       (\(tmp, h) -> hClose h `finally` removeTemp tmp)
       (\(tmp, h) -> do
           commit <- write h
+          hClose h
           when commit (renameFile tmp path))
   where
     removeTemp tmp = removeFile tmp `catchIOError` \err ->
