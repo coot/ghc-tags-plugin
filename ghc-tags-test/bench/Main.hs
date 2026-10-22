@@ -9,17 +9,11 @@ module Main (main) where
 
 import           Control.Exception
 import           Control.DeepSeq
-#if MIN_VERSION_GLASGOW_HASKELL(9,6,0,0)
-import           Control.Monad.State.Strict
-#else
-import           Control.Monad.State.Strict hiding (void)
-#endif
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString         as BS
 import qualified Data.ByteString.Lazy    as BSL
 import qualified Data.ByteString.Builder as BB
 import           Data.Either (rights)
-import           Data.Foldable (traverse_)
 import           Data.Functor (void)
 import           Data.Maybe (mapMaybe)
 import qualified Data.Text.Encoding as Text
@@ -158,17 +152,12 @@ benchStreamTags filePath modPath tags =
         let producer :: Pipes.Producer ByteString IO ()
             producer = void (Pipes.BS.fromHandle readHandle)
 
-            -- gags pipe
-            pipe :: Pipes.Effect (StateT [CTag] IO) ()
-            pipe =
-              Pipes.for
-                (Pipes.hoist Pipes.lift
-                  $ tagParser
-                      (either (const Nothing) Just <$> CTag.parseTagLine)
-                      producer)
-                (runCombineTagsPipe writeHandle CTag.compareTags CTag.formatTag modPath)
-        tags' <- execStateT (Pipes.runEffect pipe) tags
-        traverse_ (BSL.hPut writeHandle . BB.toLazyByteString . CTag.formatTag) tags'
+            pipe :: Pipes.Effect IO ()
+            pipe = Pipes.for
+              (combineTagsStream CTag.compareTags modPath tags $
+                tagParser (either (const Nothing) Just <$> CTag.parseTagLine) producer)
+              (\tag -> Pipes.liftIO $ BB.hPutBuilder writeHandle (CTag.formatTag tag))
+        Pipes.runEffect pipe
 
 
 benchReadTags :: FilePath -> RawFilePath -> [CTag] -> IO ()

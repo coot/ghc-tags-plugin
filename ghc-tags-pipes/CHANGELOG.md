@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add a complete streaming merge that removes duplicates from old and new tags,
+  retaining distinct tags with equal sorting keys.
+
 - Match complete module paths when merging streamed tags, preserving files with
   matching filename or directory suffixes.
 

@@ -44,7 +44,6 @@ test-suite test
                        directory,
                        filepath,
                        lattices,
-                       mtl,
                        pipes,
                        QuickCheck,
                        quickcheck-instances,
@@ -67,7 +66,6 @@ benchmark benchmark
                      , deepseq
                      , ghc-tags-core
                      , ghc-tags-pipes
-                     , mtl
                      , pipes
                      , pipes-attoparsec
                      , pipes-bytestring

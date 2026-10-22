@@ -10,7 +10,6 @@
 
 module Test.Tag (tests) where
 
-import           Control.Monad.State.Strict
 import           Data.Function (on)
 import           Data.Functor.Identity
 import           Data.Foldable (traverse_)
@@ -25,7 +24,6 @@ import           Test.QuickCheck.Instances.Text ()
 
 import qualified Pipes
 import qualified Pipes.Prelude as Pipes
-import qualified Pipes.Lift as Pipes
 
 import           GhcTags.Tag
 import           GhcTags.Stream
@@ -56,8 +54,8 @@ tests = testGroup "Tag"
     , testProperty "substitution" combineTags_substitution
     , testProperty "order"        combineTags_order
     ]
-  , testGroup "combineTagsPipe"
-    [ testProperty "model test"   combineTagsPipeProp
+  , testGroup "combineTagsStream"
+    [ testProperty "model test"   combineTagsStreamProp
     ]
   ]
 
@@ -374,25 +372,14 @@ instance Arbitrary ArbTagsFromFileAndTagList where
       ]
 
 
--- | Check, that the `combineTagsPipe` and agree with it's non-stream version
--- 'combineTags'
---
--- This is an example of a model test (where `combineTags` is regarded a model
--- of `combeinTagsPipe`).
---
-combineTagsPipeProp :: ArbTagsFromFileAndTagList -> Property
-combineTagsPipeProp (ArbTagsFromFileAndTagList modPath as bs) =
-        combineTags CTag.compareTags modPath' as bs
-    ===
-        case
-          runStateT
-            (Pipes.toListM @(StateT [CTag] Identity)
-              (Pipes.for
-                 -- yield all `bs`
-                (traverse_ Pipes.yield bs)
-                (\tag -> Pipes.stateP $ fmap ((),) . combineTagsPipe CTag.compareTags modPath' tag)))
-            -- take 'as' a state
-            as of
-        Identity (tags, rest) -> tags ++ rest
+-- | Compare the complete streaming merge with the non-streaming merge.
+-- Sort both inputs after generation/shrinking, retaining duplicates.
+combineTagsStreamProp :: ArbTagsFromFileAndTagList -> Property
+combineTagsStreamProp (ArbTagsFromFileAndTagList modPath as bs) =
+    combineTags CTag.compareTags modPath' new old
+      === runIdentity (Pipes.toListM $
+            combineTagsStream CTag.compareTags modPath' new (traverse_ Pipes.yield old))
   where
     modPath' = encodeTagFilePath modPath
+    new = sortBy CTag.compareTags as
+    old = sortBy CTag.compareTags bs
