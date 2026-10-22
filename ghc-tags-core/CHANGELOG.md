@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Filter redundant functions at a signature's source location, retaining its
+  metadata and keeping declarations from different files separate.
+
 - Deduplicate non-streaming tag updates within equal comparison groups using
   ordered sets, avoiding a quadratic scan across the entire tags file while
   preserving distinct metadata and tag order.

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Apply signature filtering to Template Haskell updates, removing redundant
+  function tags even when generated declarations share the same source location.
+
 - Preserve source filenames when Template Haskell updates an etags file
   containing tags from multiple modules.
 

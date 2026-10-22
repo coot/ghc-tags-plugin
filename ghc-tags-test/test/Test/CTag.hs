@@ -8,6 +8,7 @@ import qualified Data.Attoparsec.ByteString.Char8 as AChar
 import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Char8 as BS.Char8
 import qualified Data.ByteString.Lazy as BL
+import           Data.List (sortBy)
 import           Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
@@ -33,6 +34,7 @@ tests = testGroup "CTag"
     [ testProperty "tagKindToChar . charToTagKind" tagKindCharToCharProp
     , testProperty "charToTagKind . tagKindToChar" tagKindTagKindToTagKindProp
     ]
+  , testProperty "same-location signature filtering matches model" filterSameLocationSignaturesProp
   ]
 
 --
@@ -61,6 +63,66 @@ instance Arbitrary ArbCTag where
       <*> pure NoTagDefinition
       <*> (TagFields <$> listOf genField)
     shrink = map ArbCTag . shrinkTag . getArbCTag
+
+
+newtype SignatureExample = SignatureExample
+    { signatureInput    :: [CTag]
+    }
+  deriving Show
+
+instance Arbitrary SignatureExample where
+    arbitrary = do
+      ArbCTag base <- arbitrary
+      functions <- getNonEmpty <$> arbitrary
+      Positive line <- arbitrary
+      kind <- elements [TkTerm, TkFunction]
+      let location = 1 + line `mod` 10000
+          address n = case tagAddr base of
+            TagLineCol _ col -> TagLineCol n col
+            _ -> TagLine n
+          signature = base { tagKind = TkTypeSignature
+                           , tagFilePath = TagFilePath "A.hs"
+                           , tagAddr = address (location + 1)
+                           }
+          -- All of these share the signature's name, file and position, but
+          -- can carry distinct metadata and can include repeated copies.
+          redundant =
+            [ signature { tagKind = kind, tagFields = tagFields fnTag }
+            | ArbCTag fnTag <- functions
+            ]
+          -- Keep other positions (eg local scopes, already parsed from disk),
+          -- another file with the same name, and another name at this position.
+          unrelated =
+            [ signature { tagKind = kind, tagAddr = TagLine location }
+            , signature { tagKind = kind, tagAddr = TagLine (location + 2) }
+            , signature { tagKind = kind, tagFilePath = TagFilePath "B.hs" }
+            , signature { tagKind = kind
+                        , tagName = TagName (getTagName (tagName base) <> "_other")
+                        }
+            ]
+      pure SignatureExample
+        { signatureInput = sortBy CTag.compareTags (signature : redundant ++ redundant ++ unrelated)
+        }
+
+    shrink SignatureExample {signatureInput} =
+      [ SignatureExample (sortBy CTag.compareTags smaller)
+      | smaller <- shrinkList shrinkTag signatureInput
+      ]
+
+
+filterSameLocationSignaturesProp :: SignatureExample -> Property
+filterSameLocationSignaturesProp SignatureExample {signatureInput} =
+    let -- Independent model: inspect the entire input for a matching signature,
+        -- without relying on sorted groups or adjacency.
+        isRedundant tag =
+          tagKind tag `elem` [TkTerm, TkFunction]
+          && any (\sig -> tagKind sig == TkTypeSignature
+                       && tagName sig == tagName tag
+                       && tagFilePath sig == tagFilePath tag
+                       && tagAddr sig == tagAddr tag)
+                 signatureInput
+        expected = filter (not . isRedundant) signatureInput
+    in filterSameLocationTags signatureInput === expected
 
 
 roundTripCTagProp :: ArbCTag -> Property
