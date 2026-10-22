@@ -94,7 +94,7 @@ parseTag =
 
     parseTagName :: Parser TagName
     parseTagName = TagName . Text.decodeUtf8
-                    <$> AChar.takeWhile (/= '\t')
+                    <$> AChar.takeWhile notTabOrNewLine
                     <?> "parsing tag name failed"
 
     parseTagFileName :: Parser TagFilePath
@@ -103,7 +103,7 @@ parseTag =
                       . rawFilePathToBS
                       . normaliseRawFilePath
                       . rawFilePathFromBS
-      <$> AChar.takeWhile (/= '\t')
+      <$> AChar.takeWhile notTabOrNewLine
 
     parseExCommand :: Parser ExCommand
     parseExCommand = (\x -> ExCommand $ Text.decodeUtf8 $ BS.take (BS.length x - 1) x)
@@ -155,7 +155,7 @@ parseField =
 -- | A vim-style tag file parser.
 --
 parseTags :: Parser [Either Header CTag]
-parseTags = many parseTagLine
+parseTags = many parseTagLine <* AB.endOfInput
 
 
 -- | Parse either a header line ot a 'CTag'.
@@ -163,8 +163,8 @@ parseTags = many parseTagLine
 parseTagLine :: Parser (Either Header CTag)
 parseTagLine =
     AChar.eitherP
-      (parseHeader <?> "failed parsing tag")
-      (parseTag    <?> "failed parsing header")
+      (parseHeader <?> "failed parsing header")
+      (parseTag    <?> "failed parsing tag")
 
 
 parseHeader :: Parser Header
