@@ -229,7 +229,7 @@ isMemberExported (Just ies) memberName  className  = any go ies
 
     go (IEThingAll _ (L _ n) _) = ieWrappedName n == unLoc className
 
-    go (IEThingWith _ _ IEWildcard{} _ _) = True
+    go (IEThingWith _ (L _ n) IEWildcard{} _ _) = ieWrappedName n == unLoc className
 
     go (IEThingWith _ (L _ n) NoIEWildcard ns _) =
             ieWrappedName n == unLoc className
@@ -246,7 +246,7 @@ isMemberExported (Just ies) memberName  className  = any go ies
 
     go (IEThingAll _ (L _ n)) = ieWrappedName n == unLoc className
 
-    go (IEThingWith _ _ IEWildcard{} _)   = True
+    go (IEThingWith _ (L _ n) IEWildcard{} _) = ieWrappedName n == unLoc className
 
     go (IEThingWith _ (L _ n) NoIEWildcard ns) =
             ieWrappedName n == unLoc className
