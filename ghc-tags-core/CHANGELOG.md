@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Require ctags and etags file parsers to consume all input, rejecting malformed
+  suffixes and preventing ctags fields from spanning multiple lines.
+
 - Match complete module paths when replacing tags, preserving files with matching
   filename or directory suffixes.
 

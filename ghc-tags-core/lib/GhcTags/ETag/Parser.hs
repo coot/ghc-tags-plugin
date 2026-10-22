@@ -38,7 +38,7 @@ parseTagsFile :: ByteString
 parseTagsFile =
       fmap AB.eitherResult
     . AB.parseWith (pure mempty)
-                   (concat . map snd <$> many parseTagFileSection)
+                   ((concat . map snd <$> many parseTagFileSection) <* AB.endOfInput)
 
 -- | Parse whole etags file
 --
@@ -47,7 +47,7 @@ parseTagsFileMap :: ByteString
 parseTagsFileMap =
       fmap AB.eitherResult
     . AB.parseWith (pure mempty)
-                   (Map.fromList <$> many parseTagFileSection)
+                   ((Map.fromList <$> many parseTagFileSection) <* AB.endOfInput)
 
 -- | Parse tags from a single file (a single section in etags file).
 --

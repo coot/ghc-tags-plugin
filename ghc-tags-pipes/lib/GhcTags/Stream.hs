@@ -10,6 +10,7 @@
 --
 module GhcTags.Stream
     ( tagParser
+    , ParsingError (..)
     , combineTagsStream
     , combineTagsPipe
     , runCombineTagsPipe
@@ -20,12 +21,13 @@ import           Control.Monad.State.Strict
 #else
 import           Control.Monad.State.Strict hiding (void)
 #endif
+import           Control.Exception (throwIO)
 import           Data.ByteString (ByteString)
 import           Data.Attoparsec.ByteString (Parser)
 import           Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as BS
 import           Data.Foldable (traverse_)
-import           Data.Functor (void, ($>))
+import           Data.Functor (($>))
 import qualified Data.Text.Encoding as Text
 import           System.IO
 
@@ -33,12 +35,15 @@ import           Pipes ((>->), (~>))
 import qualified Pipes as Pipes
 import qualified Pipes.Lift as Pipes
 import qualified Pipes.Attoparsec as Pipes.AP
+import           Pipes.Attoparsec (ParsingError (..))
 import qualified Pipes.ByteString as Pipes.BS
 
 import           GhcTags.Tag
 
 
 -- | Parse a stream of tags, coming from a 'Text' producer.
+-- Throws 'ParsingError' if any input cannot be parsed, including a truncated
+-- final tag. Consumers must exhaust the producer to validate the whole input.
 --
 tagParser :: MonadIO m
           => Parser (Maybe (Tag tk))
@@ -46,13 +51,16 @@ tagParser :: MonadIO m
           -- line and return the tag, e.g  'parseTagLine'.
           -> Pipes.Producer ByteString m ()
           -> Pipes.Producer (Tag tk) m ()
-tagParser parser producer = void $
-  Pipes.for
-    (Pipes.AP.parsed parser producer)
-    $ \case
-      -- ignore header lines
-      Just tag -> Pipes.yield tag
-      Nothing  -> pure ()
+tagParser parser producer = do
+      Pipes.for
+        (Pipes.AP.parsed parser producer)
+        (\case
+          -- ignore header lines
+          Just tag -> Pipes.yield tag
+          Nothing  -> pure ())
+  >>= \case
+        Left (err, _) -> liftIO (throwIO err)
+        Right ()      -> pure ()
 
 
 -- | Merge a sorted stream of old tags with sorted new tags from one module.
