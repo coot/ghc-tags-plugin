@@ -54,12 +54,13 @@ module GhcTags.Tag
   ) where
 
 import           Control.DeepSeq
+import           Data.Containers.ListUtils (nubOrd)
 import qualified Data.ByteString as BS
 #if __GLASGOW_HASKELL__ >= 906
 import qualified Data.ByteString.Char8 as BS.Char8
 #endif
 import           Data.Function (on)
-import           Data.List (nub)
+import           Data.List (groupBy)
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import           Data.Text   (Text)
@@ -454,13 +455,17 @@ compareTags t0 t1 = on compare tagName t0 t1
 -- This is performance critical function.  Tags from the first list are
 -- assumed to be from the same file. The module path and tag file paths must
 -- be normalised and relative to the tags file directory.
+-- Both lists must be sorted by the supplied comparison, which must compare
+-- equal tags as 'EQ'.
 --
--- complexity: /O(max n m)/
+-- Complexity: /O((n + m) log(k + 1))/, where /k/ is the largest group of tags
+-- with equal comparison keys. Linear when comparison keys are unique.
 --
 combineTags :: (Tag tk -> Tag tk -> Ordering)
             -> RawFilePath
             -> [Tag tk] -> [Tag tk] -> [Tag tk]
-combineTags compareFn modPath = (nub .) . go
+combineTags compareFn modPath new old =
+    concatMap nubOrd . groupBy (\a b -> compareFn a b == EQ) $ go new old
   where
     modPath' = rawFilePathToBS modPath
     go as@(a : as') bs@(b : bs')

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Deduplicate non-streaming tag updates within equal comparison groups using
+  ordered sets, avoiding a quadratic scan across the entire tags file while
+  preserving distinct metadata and tag order.
+
 - Check the parent type or class when marking members as exported through a
   wildcard export, keeping unrelated constructors, fields and methods private.
 
