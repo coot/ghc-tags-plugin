@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Remove duplicate tags consistently in streaming and non-streaming updates,
+  including when the existing tags file is empty.
+
 - Identify compiled modules relative to the tags directory, keeping modules with
   the same source path in different packages separate in shared tags files.
 
