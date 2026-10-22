@@ -42,6 +42,7 @@ module GhcTags.Tag
     -- ** Ordering and combining tags
   , compareTags
   , combineTags
+  , filterSameLocationTags
     -- ** File paths
   , RawFilePath
   , rawFilePathToBS
@@ -479,6 +480,23 @@ combineTags compareFn modPath new old =
     go [] bs = filter (\b -> modPath' /= Text.encodeUtf8 (getRawFilePath (tagFilePath b))) bs
     go as [] = as
     {-# INLINE go #-}
+
+
+-- | Keep a type signature in preference to term/function tags at the same
+-- name, file and address. The input must be sorted by 'compareTags'. Other
+-- locations and the signature's metadata are preserved.
+filterSameLocationTags :: [Tag tk] -> [Tag tk]
+filterSameLocationTags = concatMap preferSignature . groupBy sameLocation
+  where
+    sameLocation a b = on (==) tagName a b
+                    && on (==) tagFilePath a b
+                    && on (==) tagAddr a b
+
+    preferSignature group
+      | any ((== TkTypeSignature) . tagKind) group
+      = filter (\tag -> tagKind tag /= TkTerm && tagKind tag /= TkFunction) group
+      | otherwise
+      = group
 
 
 -- | A left biased semigroup for 'Tag', which allows to merge 'TagFields' using
