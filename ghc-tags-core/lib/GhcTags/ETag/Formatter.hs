@@ -81,7 +81,7 @@ formatTag Tag {tagName, tagAddr, tagDefinition} =
       + length endOfLine
 
 
--- | The precondition is that all the tags come frome the same file.
+-- | The precondition is that all the tags come from the same file.
 --
 formatTagsFile :: [ETag] -> Builder
 formatTagsFile [] = mempty

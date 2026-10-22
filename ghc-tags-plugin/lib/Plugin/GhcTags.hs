@@ -696,7 +696,7 @@ ghcTagsMetaHook options dynFlags request expr =
                                     `mapMaybe`
                                      hsDeclsToGhcTags Nothing decls
                     withAtomicFile tagsFile $ \h ->
-                      True <$ BSL.hPut h (BB.toLazyByteString $ ETag.formatTagsFile tags')
+                      True <$ BSL.hPut h (BB.toLazyByteString $ ETag.formatETagsFile tags')
               else do
                 pr <- CTag.parseTagsFileRecovering tagsContent
                 case pr of
