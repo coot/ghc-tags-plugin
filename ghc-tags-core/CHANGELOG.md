@@ -1,5 +1,10 @@
 # Revision history for ghc-tags-core
 
+## Unreleased
+
+- Match complete module paths when replacing tags, preserving files with matching
+  filename or directory suffixes.
+
 ## 0.6.2.0 -- 2026-03-08
 
 - `GHC-9.14` support.

@@ -277,15 +277,10 @@ combineTags_identity (ArbTagsFromFile fp as) =
 --
 combineTags_preserve :: ArbTagsFromFile -> ArbTagList -> Bool
 combineTags_preserve (ArbTagsFromFile fp as) (ArbTagList bs) =
-       filter (\t -> not $ (getRawFilePath fp)
-                           `Text.isSuffixOf`
-                           (getRawFilePath $ tagFilePath t))
+       filter ((/= fp) . tagFilePath)
               (combineTags CTag.compareTags (encodeTagFilePath fp) as bs)
     ==
-       filter (\t -> not $ (getRawFilePath fp)
-                           `Text.isSuffixOf`
-                           (getRawFilePath $ tagFilePath t))
-              bs
+       filter ((/= fp) . tagFilePath) bs
 
 
 -- | Substitutes all tags of the current file.

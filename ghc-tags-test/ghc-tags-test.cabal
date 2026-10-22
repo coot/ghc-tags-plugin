@@ -34,6 +34,7 @@ test-suite test
   other-modules:       Test.Golden.Parser
                        Test.Tag
                        Test.Tag.Generators
+                       Test.Tag.Paths
                        Test.CTag
                        Test.ETag
   default-language:    Haskell2010      
