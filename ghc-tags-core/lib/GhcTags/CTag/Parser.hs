@@ -9,6 +9,7 @@
 --
 module GhcTags.CTag.Parser
   ( parseTagsFile
+  , parseTagsFileRecovering
   , parseTagsFileMap
   , parseTagLine
   -- * parse a ctag
@@ -23,6 +24,7 @@ import           Control.DeepSeq (NFData)
 import           Control.Monad (guard)
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BSC
 import           Data.Attoparsec.ByteString  (Parser, (<?>))
 import qualified Data.Attoparsec.ByteString  as AB
 import qualified Data.Attoparsec.ByteString.Char8  as AChar
@@ -233,10 +235,12 @@ parseHeader = do
           <*> (AChar.char '\t' *> parseComment)
 
     parseComment :: Parser Text
-    parseComment =
-         AChar.char '/'
-      *> (Text.init . Text.decodeUtf8 <$> AChar.takeWhile Utils.notNewLine)
-      <* endOfLine
+    parseComment = do
+      _ <- AChar.char '/'
+      comment <- AChar.takeWhile Utils.notNewLine
+      case BSC.unsnoc comment of
+        Just (body, '/') -> Text.decodeUtf8 body <$ endOfLine
+        _ -> fail "missing closing slash in header comment"
 
 
 
@@ -247,6 +251,17 @@ parseTagsFile :: ByteString
 parseTagsFile =
       fmap AChar.eitherResult
     . AChar.parseWith (pure mempty) parseTags
+
+
+-- | Recover all valid headers and tags, reporting malformed lines separately.
+-- Unlike 'parseTagsFile', a damaged record does not discard later records.
+parseTagsFileRecovering :: ByteString
+                        -> IO (Either String ([String], [Either Header CTag]))
+parseTagsFileRecovering =
+      fmap (fmap partitionEithers . AB.eitherResult)
+    . AB.parseWith
+        (pure mempty)
+        (many (Utils.parseLine parseTagLine) <* AB.endOfInput)
 
 
 

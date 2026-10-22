@@ -12,6 +12,7 @@
 --
 module GhcTags.ETag.Parser
   ( parseTagsFile
+  , parseTagsFileRecovering
   , parseTagsFileMap
   , parseTagFileSection
   , parseTag
@@ -23,6 +24,7 @@ import           Data.Attoparsec.ByteString  (Parser, (<?>))
 import qualified Data.Attoparsec.ByteString  as AB
 import qualified Data.Attoparsec.ByteString.Char8  as AChar
 import           Data.Functor (($>))
+import           Data.Either (partitionEithers)
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
@@ -49,13 +51,58 @@ parseTagsFileMap =
     . AB.parseWith (pure mempty)
                    ((Map.fromList <$> many parseTagFileSection) <* AB.endOfInput)
 
+
+data Section = OutsideSection | FileHeader | InSection TagFilePath
+
+sectionMarker :: Char
+sectionMarker = '\f'
+
+-- | Recover valid tags within and after damaged sections. If a section header
+-- is damaged, skip its tags until a new section supplies a trustworthy filename.
+parseTagsFileRecovering :: ByteString
+                        -> IO (Either String ([String], [ETag]))
+parseTagsFileRecovering =
+      fmap (fmap partitionEithers . AB.eitherResult)
+    . AB.parseWith (pure mempty) (go OutsideSection <* AB.endOfInput)
+  where
+    go :: Section -> Parser [Either String ETag]
+    go section = do
+      done <- AB.atEnd
+      if done
+        then pure $ case section of
+          FileHeader -> [Left "skipped incomplete etags section header"]
+          _ -> []
+        else do
+          next <- AChar.peekChar'
+          if next == sectionMarker
+            then do
+              marker <- Utils.parseLine (AChar.char sectionMarker *> endOfLine)
+              case marker of
+                Left err -> (Left err :) <$> go OutsideSection
+                Right () -> case section of
+                  FileHeader -> (Left "skipped incomplete etags section header" :) <$> go FileHeader
+                  _ -> go FileHeader
+            else case section of
+              FileHeader -> do
+                header <- Utils.parseLine parseTagFilePath
+                case header of
+                  Left err -> (Left err :) <$> go OutsideSection
+                  Right path -> go (InSection path)
+              InSection path -> do
+                tag <- Utils.parseLine (parseTag path)
+                (tag :) <$> go section
+              OutsideSection -> do
+                line <- Utils.parseLine (fail "tag outside an etags section")
+                (line :) <$> go OutsideSection
+
 -- | Parse tags from a single file (a single section in etags file).
 --
 parseTagFileSection :: Parser (TagFilePath, [ETag])
 parseTagFileSection = do
       tagFilePath <-
-        AChar.char '\x0c' *> endOfLine
-                          *> parseTagFilePath
+        AChar.char sectionMarker
+          *> endOfLine
+          *> parseTagFilePath
       (tagFilePath,) <$> many (parseTag tagFilePath)
 
 parseTagFilePath :: Parser TagFilePath

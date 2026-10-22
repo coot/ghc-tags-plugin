@@ -143,12 +143,13 @@ parseGoldenCTagsFile
     -> IO ()
 parseGoldenCTagsFile input output = do
     res <- withBinaryFile input ReadMode
-      (BS.hGetContents >=> CTag.parseTagsFile)
+      (BS.hGetContents >=> CTag.parseTagsFileRecovering)
     case res of
       Left  err  -> throwIO (userError err)
-      Right tags ->
+      Right ([], tags) ->
         withBinaryFile output WriteMode
           $ flip BS.hPutBuilder (foldMap (CTag.formatHeader ||| CTag.formatTag) tags)
+      Right (warnings, _) -> throwIO (userError (unlines warnings))
 
 
 parseGoldenETagsFile
@@ -157,12 +158,13 @@ parseGoldenETagsFile
     -> IO ()
 parseGoldenETagsFile input output = do
     res <- withBinaryFile input ReadMode
-      (BS.hGetContents >=> ETag.parseTagsFile)
+      (BS.hGetContents >=> ETag.parseTagsFileRecovering)
     case res of
       Left  err  -> throwIO (userError err)
-      Right tags ->
+      Right ([], tags) ->
         withBinaryFile output WriteMode
           $ flip BS.hPutBuilder (ETag.formatETagsFile tags)
+      Right (warnings, _) -> throwIO (userError (unlines warnings))
 
 
 #if MIN_VERSION_tasty_golden(2,3,4)

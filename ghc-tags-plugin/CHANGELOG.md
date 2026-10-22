@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-- Reject malformed or truncated tags files instead of publishing a partial
-  update, including in streaming mode.
+- Recover valid tags before and after malformed records, report skipped input,
+  and continue updating damaged tags files, including streaming and TH updates.
 
 - Remove duplicate tags consistently in streaming and non-streaming updates,
   including when the existing tags file is empty.
