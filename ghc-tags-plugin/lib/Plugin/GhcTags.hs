@@ -224,6 +224,7 @@ ghcTagsParserPlugin options
 data MessageType =
       ReadException
     | ParserException
+    | ParseWarning
     | WriteException
     | UnhandledException
     | OptionParserFailure
@@ -234,6 +235,7 @@ data MessageType =
 instance Show MessageType where
     show ReadException       = "read error"
     show ParserException     = "tags parser error"
+    show ParseWarning        = "tags recovered after parse errors"
     show WriteException      = "write error"
     show UnhandledException  = "unhandled error"
     show OptionParserFailure = "plugin options parser error"
@@ -339,7 +341,9 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                   parsed :: Pipes.Producer CTag (StateT Int (SafeT IO)) ()
                   parsed = Pipes.for
                     (Pipes.hoist Pipes.lift
-                      (tagParser (either (const Nothing) Just <$> CTag.parseTagLine) producer)
+                      (tagParserWithWarnings
+                        (Pipes.liftIO . printMessageDoc dynFlags ParseWarning (Just ms_mod))
+                        (either (const Nothing) Just <$> CTag.parseTagLine) producer)
                       `Pipes.Safe.catchP` \(e :: IOException) ->
                         Pipes.liftIO $ do
                           putDocLn dynFlags (messageDoc ParserException (Just ms_mod) (displayException e))
@@ -449,7 +453,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                     GHC.UnhelpfulSpan {} ->
                       sourcePathBS
 
-            pres <- try @IOException $ CTag.parseTagsFile tagsContent
+            pres <- try @IOException $ CTag.parseTagsFileRecovering tagsContent
             case pres of
               Left err   ->
                 putDocLn dynFlags (messageDoc ParserException (Just ms_mod) (displayException err)) >> pure False
@@ -457,7 +461,8 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
               Right (Left err) ->
                 printMessageDoc dynFlags ParserException (Just ms_mod) err >> pure False
 
-              Right (Right parsed) -> do
+              Right (Right (warnings, parsed)) -> do
+                mapM_ (printMessageDoc dynFlags ParseWarning (Just ms_mod)) warnings
                 let parsedTags = rights parsed 
 
                     tags :: [CTag]
@@ -540,7 +545,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
           case ml_hs_file ms_location of
             Nothing         -> pure False
             Just sourcePath -> do
-              pres <- try @IOException $ ETag.parseTagsFile tagsContent
+              pres <- try @IOException $ ETag.parseTagsFileRecovering tagsContent
               case pres of
                 Left err ->
                   False <$ putDocLn dynFlags (messageDoc ParserException (Just ms_mod) (displayException err))
@@ -548,7 +553,8 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                 Right (Left err) -> do
                   False <$ printMessageDoc dynFlags ParserException (Just ms_mod) err
 
-                Right (Right parsedTags) -> do
+                Right (Right (warnings, parsedTags)) -> do
+                  mapM_ (printMessageDoc dynFlags ParseWarning (Just ms_mod)) warnings
                   let sourcePathBS = rawFilePathFromBS
                                    $ Text.encodeUtf8 (Text.pack sourcePath)
                       modulePath =
@@ -674,12 +680,13 @@ ghcTagsMetaHook options dynFlags request expr =
             tagsContent <- BSC.readFile tagsFile
             if etags
               then do
-                pr <- ETag.parseTagsFile tagsContent
+                pr <- ETag.parseTagsFileRecovering tagsContent
                 case pr of
                   Left err ->
                     printMessageDoc dynFlags ParserException Nothing err
 
-                  Right tags -> do
+                  Right (warnings, tags) -> do
+                    mapM_ (printMessageDoc dynFlags ParseWarning Nothing) warnings
                     let tags' :: [ETag]
                         tags' = sortBy ETag.compareTags $
                                   tags
@@ -691,13 +698,15 @@ ghcTagsMetaHook options dynFlags request expr =
                     withAtomicFile tagsFile $ \h ->
                       True <$ BSL.hPut h (BB.toLazyByteString $ ETag.formatTagsFile tags')
               else do
-                pr <- fmap partitionEithers <$> CTag.parseTagsFile tagsContent
+                pr <- CTag.parseTagsFileRecovering tagsContent
                 case pr of
                   Left err ->
                     printMessageDoc dynFlags ParserException Nothing err
 
-                  Right (headers, tags) -> do
-                    let tags' :: [Either CTag.Header CTag]
+                  Right (warnings, parsed) -> do
+                    mapM_ (printMessageDoc dynFlags ParseWarning Nothing) warnings
+                    let (headers, tags) = partitionEithers parsed
+                        tags' :: [Either CTag.Header CTag]
                         tags' = Left `map` headers
                              ++ Right `map`
                                 sortBy CTag.compareTags
@@ -810,6 +819,7 @@ messageDoc errorType mb_mod errorMessage =
     severity = case errorType of
       ReadException       -> Error
       ParserException     -> Error
+      ParseWarning        -> Warning
       WriteException      -> Error
       UnhandledException  -> Error
       OptionParserFailure -> Warning
