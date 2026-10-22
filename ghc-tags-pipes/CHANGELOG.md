@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Make `tagParser` throw `ParsingError` on invalid input instead of silently
+  ending the stream. Re-export the exception so callers can handle it.
+
 - Add a complete streaming merge that removes duplicates from old and new tags,
   retaining distinct tags with equal sorting keys.
 

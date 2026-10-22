@@ -12,6 +12,7 @@ import qualified Test.Tag           (tests)
 import qualified Test.Tag.Paths     (tests)
 import qualified Test.CTag          (tests)
 import qualified Test.ETag          (tests)
+import qualified Test.Parser        (tests)
 
 import           System.Directory
 
@@ -45,4 +46,5 @@ tests goldenTestDir =
     , Test.Tag.Paths.tests
     , Test.CTag.tests
     , Test.ETag.tests
+    , Test.Parser.tests
     ]

@@ -290,6 +290,9 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
           else pure Nothing
 
       withAtomicFile tagsFile $ \writeHandle ->
+        handle (\(err :: ParsingError) -> do
+          printMessageDoc dynFlags ParserException (Just ms_mod) (displayException err)
+          pure False) $
         let withInput k
               | tagsFileExists = withFile tagsFile ReadMode (k . Just)
               | otherwise = k Nothing
