@@ -10,6 +10,7 @@
 --
 module GhcTags.Stream
     ( tagParser
+    , tagParserWithWarnings
     , ParsingError (..)
     , combineTagsStream
     , combineTagsPipe
@@ -39,11 +40,12 @@ import           Pipes.Attoparsec (ParsingError (..))
 import qualified Pipes.ByteString as Pipes.BS
 
 import           GhcTags.Tag
+import qualified GhcTags.Utils as Utils
 
 
 -- | Parse a stream of tags, coming from a 'Text' producer.
--- Throws 'ParsingError' if any input cannot be parsed, including a truncated
--- final tag. Consumers must exhaust the producer to validate the whole input.
+-- Skips malformed lines and continues parsing. Use 'tagParserWithWarnings' to
+-- report skipped records. I/O exceptions still propagate to the consumer.
 --
 tagParser :: MonadIO m
           => Parser (Maybe (Tag tk))
@@ -51,13 +53,23 @@ tagParser :: MonadIO m
           -- line and return the tag, e.g  'parseTagLine'.
           -> Pipes.Producer ByteString m ()
           -> Pipes.Producer (Tag tk) m ()
-tagParser parser producer = do
+tagParser = tagParserWithWarnings (const (pure ()))
+
+
+-- | Recover a stream of tags and report every skipped line.
+tagParserWithWarnings :: MonadIO m
+                      => (String -> m ())
+                      -> Parser (Maybe (Tag tk))
+                      -> Pipes.Producer ByteString m ()
+                      -> Pipes.Producer (Tag tk) m ()
+tagParserWithWarnings report parser producer = do
       Pipes.for
-        (Pipes.AP.parsed parser producer)
+        (Pipes.AP.parsed (Utils.parseLine parser) producer)
         (\case
+          Left err -> Pipes.lift (report err)
           -- ignore header lines
-          Just tag -> Pipes.yield tag
-          Nothing  -> pure ())
+          Right (Just tag) -> Pipes.yield tag
+          Right Nothing   -> pure ())
   >>= \case
         Left (err, _) -> liftIO (throwIO err)
         Right ()      -> pure ()

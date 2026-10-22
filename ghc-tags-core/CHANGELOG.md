@@ -2,8 +2,9 @@
 
 ## Unreleased
 
-- Require ctags and etags file parsers to consume all input, rejecting malformed
-  suffixes and preventing ctags fields from spanning multiple lines.
+- Add recovering ctags and etags parsers that return skipped-line diagnostics
+  alongside valid records, including records after damaged lines or sections.
+  Keep strict file parsers and prevent ctags names and paths spanning lines.
 
 - Match complete module paths when replacing tags, preserving files with matching
   filename or directory suffixes.

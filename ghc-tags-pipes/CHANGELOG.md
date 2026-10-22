@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-- Make `tagParser` throw `ParsingError` on invalid input instead of silently
-  ending the stream. Re-export the exception so callers can handle it.
+- Recover streamed tags after malformed lines. Add `tagParserWithWarnings` to
+  report skipped records without stopping tag updates.
 
 - Add a complete streaming merge that removes duplicates from old and new tags,
   retaining distinct tags with equal sorting keys.
