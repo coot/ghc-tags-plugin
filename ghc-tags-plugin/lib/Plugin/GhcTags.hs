@@ -794,27 +794,21 @@ data MessageSeverity
 
 messageDoc :: MessageType -> Maybe Module -> String -> Out.SDoc
 messageDoc errorType mb_mod errorMessage =
-    Out.blankLine
-      $+$
         Out.coloured PprColour.colBold
           (Out.text "GhcTagsPlugin: "
             Out.<> Out.coloured messageColour (Out.text $ show errorType))
-      $$
-        case mb_mod of
-          Just mod_ ->
-            Out.coloured PprColour.colBold (Out.nest 4 $ Out.ppr mod_)
-          Nothing -> Out.empty
-      $$
-        (Out.nest 8 $ Out.coloured messageColour (Out.text errorMessage))
-      $+$
-        Out.blankLine
+      $$ case mb_mod of
+        Just mod_ ->
+          Out.coloured PprColour.colBold (Out.nest 4 $ Out.ppr mod_)
+        Nothing ->
+          Out.empty
+      $$ (Out.nest 8 $ Out.coloured messageColour (Out.text errorMessage))
       $+$ case severity of
         Error ->
           Out.coloured PprColour.colBold (Out.text "Please report this bug to: ")
             Out.<> Out.text "https://github.com/coot/ghc-tags-plugin/issues"
-          $+$ Out.blankLine
-        Warning -> Out.blankLine
-        Debug -> Out.blankLine
+        Warning -> Out.empty
+        Debug   -> Out.empty
   where
     severity = case errorType of
       ReadException       -> Error
