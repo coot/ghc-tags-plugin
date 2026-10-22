@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Preserve source filenames when Template Haskell updates an etags file
+  containing tags from multiple modules.
+
 - Recover valid tags before and after malformed records, report skipped input,
   and continue updating damaged tags files, including streaming and TH updates.
 
