@@ -311,9 +311,10 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
             Nothing         -> pure False
             Just sourcePath -> do
               let sourcePathBS = rawFilePathFromBS $ Text.encodeUtf8 (Text.pack sourcePath)
-                  -- path of the compiled module; it is relative to the cabal file,
-                  -- not the project.
+                  -- Identify the module relative to the tags file, just like
+                  -- the generated tags.
                   modulePath =
+                    fixFilePath cwd tagsDir $
                     case GHC.getLoc lmodule of
                       GHC.RealSrcSpan rss _ ->
                           rawFilePathFromBS
@@ -321,7 +322,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                         . GHC.srcSpanFile
                         $ rss
                       GHC.UnhelpfulSpan {} ->
-                        fixFilePath cwd tagsDir sourcePathBS
+                        sourcePathBS
                   -- text parser
                   producer :: Pipes.Producer ByteString (SafeT IO) ()
                   producer = case readHandle of
@@ -441,9 +442,10 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
           Nothing         -> pure False
           Just sourcePath -> do
             let sourcePathBS = rawFilePathFromBS $ Text.encodeUtf8 (Text.pack sourcePath)
-                -- path of the compiled module; it is relative to the cabal file,
-                -- not the project.
+                -- Identify the module relative to the tags file, just like
+                -- the generated tags.
                 modulePath =
+                  fixFilePath cwd tagsDir $
                   case GHC.getLoc lmodule of
                     GHC.RealSrcSpan rss _ ->
                         rawFilePathFromBS
@@ -451,7 +453,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                       . GHC.srcSpanFile
                       $ rss
                     GHC.UnhelpfulSpan {} ->
-                      fixFilePath cwd tagsDir sourcePathBS
+                      sourcePathBS
 
             pres <- try @IOException $ CTag.parseTagsFile tagsContent
             case pres of
@@ -556,6 +558,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                   let sourcePathBS = rawFilePathFromBS
                                    $ Text.encodeUtf8 (Text.pack sourcePath)
                       modulePath =
+                        fixFilePath cwd tagsDir $
                         case GHC.getLoc lmodule of
                           GHC.RealSrcSpan rss _ ->
                               rawFilePathFromBS
@@ -563,7 +566,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                             . GHC.srcSpanFile
                             $ rss
                           GHC.UnhelpfulSpan {} ->
-                            fixFilePath cwd tagsDir sourcePathBS
+                            sourcePathBS
 
                       tags :: [ETag]
                       tags = filterAdjacentTags

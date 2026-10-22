@@ -452,7 +452,8 @@ compareTags t0 t1 = on compare tagName t0 t1
 -- or 'GhcTags.ETags.orderTags'.
 --
 -- This is performance critical function.  Tags from the first list are
--- assumed to be from the same file.
+-- assumed to be from the same file. The module path and tag file paths must
+-- be normalised and relative to the tags file directory.
 --
 -- complexity: /O(max n m)/
 --
@@ -463,14 +464,14 @@ combineTags compareFn modPath = (nub .) . go
   where
     modPath' = rawFilePathToBS modPath
     go as@(a : as') bs@(b : bs')
-      | modPath' `BS.isSuffixOf` Text.encodeUtf8 (getRawFilePath (tagFilePath b))
+      | modPath' == Text.encodeUtf8 (getRawFilePath (tagFilePath b))
       = go as bs'
       | otherwise
       = case a `compareFn` b of
         LT -> a : go as' bs
         EQ -> a : go as' bs'
         GT -> b : go as  bs'
-    go [] bs = filter (\b -> not (modPath' `BS.isSuffixOf` Text.encodeUtf8 (getRawFilePath (tagFilePath b)))) bs
+    go [] bs = filter (\b -> modPath' /= Text.encodeUtf8 (getRawFilePath (tagFilePath b))) bs
     go as [] = as
     {-# INLINE go #-}
 
