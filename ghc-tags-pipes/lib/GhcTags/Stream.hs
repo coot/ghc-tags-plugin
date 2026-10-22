@@ -10,6 +10,7 @@
 --
 module GhcTags.Stream
     ( tagParser
+    , combineTagsStream
     , combineTagsPipe
     , runCombineTagsPipe
     ) where
@@ -23,6 +24,7 @@ import           Data.ByteString (ByteString)
 import           Data.Attoparsec.ByteString (Parser)
 import           Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as BS
+import           Data.Foldable (traverse_)
 import           Data.Functor (void, ($>))
 import qualified Data.Text.Encoding as Text
 import           System.IO
@@ -53,7 +55,49 @@ tagParser parser producer = void $
       Nothing  -> pure ()
 
 
--- | Streaming version of 'GhcTags.Tag.combineTags'.
+-- | Merge a sorted stream of old tags with sorted new tags from one module.
+-- Replaces that module's old tags and removes duplicate output tags, including
+-- when the old stream is empty. The comparison must be consistent with equality.
+combineTagsStream
+    :: forall m (tk :: TAG_KIND). Monad m
+    => (Tag tk -> Tag tk -> Ordering)
+    -> RawFilePath -- ^ normalised module path, relative to the tags file directory
+    -> [Tag tk]   -- ^ new tags, sorted by the supplied comparison
+    -> Pipes.Producer (Tag tk) m () -- ^ sorted old tags
+    -> Pipes.Producer (Tag tk) m ()
+combineTagsStream compareFn modPath new old =
+    merged >-> deduplicateTags compareFn
+  where
+    merged :: Pipes.Producer (Tag tk) m ()
+    merged = do
+      ((), remaining) <- Pipes.runStateP new $
+        Pipes.for (Pipes.hoist Pipes.lift old)
+          (\tag -> Pipes.stateP $ fmap ((),) . combineTagsPipe compareFn modPath tag)
+      traverse_ Pipes.yield remaining
+
+
+-- Equal tags have equal sorting keys, so only the current comparison group
+-- needs to be remembered. Keep distinct tags with equal keys: compareTags
+-- does not compare fields or definitions.
+deduplicateTags :: Monad m
+                => (Tag tk -> Tag tk -> Ordering)
+                -> Pipes.Pipe (Tag tk) (Tag tk) m r
+deduplicateTags compareFn = go []
+  where
+    go seen = do
+      tag <- Pipes.await
+      let group = case seen of
+            previous : _
+              | compareFn previous tag == EQ
+              -> seen
+            _ -> []
+      if tag `elem` group
+        then go group
+        else Pipes.yield tag >> go (tag : group)
+
+
+-- | One merge step for an old tag. This does not deduplicate the complete
+-- output; use 'combineTagsStream' for a complete merge.
 --
 combineTagsPipe
     :: forall m (tk :: TAG_KIND).  Applicative m

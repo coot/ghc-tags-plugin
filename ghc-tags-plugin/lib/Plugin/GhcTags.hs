@@ -28,7 +28,6 @@ import qualified Data.Text.Encoding as Text
 import           Data.Functor.Identity (Identity (..))
 import           Data.List (sortBy)
 import           Data.Either (partitionEithers, rights)
-import           Data.Foldable (traverse_)
 import           Data.Maybe (mapMaybe)
 #if MIN_VERSION_filepath(1,4,100)
 import qualified System.OsPath as OsPath
@@ -334,31 +333,25 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                             putDocLn dynFlags (messageDoc ReadException (Just ms_mod) (displayException e)) >> throwIO e
                     Nothing -> pure ()
 
-                  -- tags pipe
-                  pipe :: Pipes.Effect (StateT Int (StateT [CTag] (SafeT IO))) ()
-                  pipe =
-                    Pipes.for
-                      (Pipes.hoist Pipes.lift $ Pipes.hoist Pipes.lift (tagParser (either (const Nothing) Just <$> CTag.parseTagLine) producer)
+                  parsed :: Pipes.Producer CTag (StateT Int (SafeT IO)) ()
+                  parsed = Pipes.for
+                    (Pipes.hoist Pipes.lift
+                      (tagParser (either (const Nothing) Just <$> CTag.parseTagLine) producer)
+                      `Pipes.Safe.catchP` \(e :: IOException) ->
+                        Pipes.liftIO $ do
+                          putDocLn dynFlags (messageDoc ParserException (Just ms_mod) (displayException e))
+                          throwIO e)
+                    (\tag -> modify' succ >> Pipes.yield tag)
+
+                  pipe :: [CTag] -> Pipes.Effect (StateT Int (SafeT IO)) ()
+                  pipe newTags = Pipes.for
+                    (combineTagsStream CTag.compareTags modulePath newTags parsed)
+                    (\tag ->
+                      Pipes.liftIO (BB.hPutBuilder writeHandle (CTag.formatTag tag))
                         `Pipes.Safe.catchP` \(e :: IOException) ->
-                          Pipes.lift $ Pipes.liftIO $
-                            -- Abort the replacement rather than publish partial tags.
-                            putDocLn dynFlags (messageDoc ParserException (Just ms_mod) (displayException e)) >> throwIO e
-                      )
-                      -- merge tags
-                      (\tag -> do
-                        -- update tags counter
-                        modify' succ
-                        Pipes.hoist Pipes.lift $
-                            runCombineTagsPipe writeHandle
-                              CTag.compareTags
-                              CTag.formatTag
-                              modulePath
-                              tag
-                          `Pipes.Safe.catchP` \(e :: IOException) ->
-                            Pipes.lift $ Pipes.liftIO $
-                              -- Abort the replacement rather than publish partial tags.
-                              putDocLn dynFlags (messageDoc WriteException (Just ms_mod) (displayException e)) >> throwIO e
-                      )
+                          Pipes.liftIO $ do
+                            putDocLn dynFlags (messageDoc WriteException (Just ms_mod) (displayException e))
+                            throwIO e)
 
               let tags :: [CTag]
                   tags = map (fixTagFilePath cwd tagsDir)
@@ -373,9 +366,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
               -- Write header
               BSL.hPut writeHandle (BB.toLazyByteString (foldMap CTag.formatHeader CTag.headers))
               -- update tags file / run 'pipe'
-              (parsedTags, tags') <- Pipes.Safe.runSafeT $ runStateT (execStateT (Pipes.runEffect pipe) 0) tags
-              -- write the remaining tags'
-              traverse_ (BSL.hPut writeHandle . BB.toLazyByteString . CTag.formatTag) tags'
+              parsedTags <- Pipes.Safe.runSafeT $ execStateT (Pipes.runEffect (pipe tags)) 0
 
               hFlush writeHandle
 
@@ -388,7 +379,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                           , " parsed: "
                           , show parsedTags
                           , " found: "
-                          , show (length tags + length tags')
+                          , show (length tags)
                           , " in-size: "
                           , show inSize
                           , " out-size: "
