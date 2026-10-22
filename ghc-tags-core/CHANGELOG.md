@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Check the parent type or class when marking members as exported through a
+  wildcard export, keeping unrelated constructors, fields and methods private.
+
 - Add recovering ctags and etags parsers that return skipped-line diagnostics
   alongside valid records, including records after damaged lines or sections.
   Keep strict file parsers and prevent ctags names and paths spanning lines.
