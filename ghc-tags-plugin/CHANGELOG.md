@@ -2,9 +2,8 @@
 
 ## Unreleased
 
-- Write tag updates atomically, preserving existing tags on cancellation, write
-  failure, or a reported parse error (ctags, etags, and Template Haskell).
-- Use unique temporary files for streaming updates and abort on I/O errors.
+- Identify compiled modules relative to the tags directory, keeping modules with
+  the same source path in different packages separate in shared tags files.
 
 ## 0.6.2.0 -- 2026-03-08
 

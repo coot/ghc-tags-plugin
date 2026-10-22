@@ -21,7 +21,6 @@ import           Control.Monad.State.Strict hiding (void)
 #endif
 import           Data.ByteString (ByteString)
 import           Data.Attoparsec.ByteString (Parser)
-import qualified Data.ByteString as BS
 import           Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as BS
 import           Data.Functor (void, ($>))
@@ -59,7 +58,7 @@ tagParser parser producer = void $
 combineTagsPipe
     :: forall m (tk :: TAG_KIND).  Applicative m
     => (Tag tk -> Tag tk -> Ordering)
-    -> RawFilePath -- ^ file path from which the new tags were obtained, it should be normalised
+    -> RawFilePath -- ^ normalised module path, relative to the tags file directory
     -> Tag tk      -- ^ tag read from disc
     -> [Tag tk]    -- ^ new tags
     -> Pipes.Producer (Tag tk) m [Tag tk]
@@ -69,12 +68,10 @@ combineTagsPipe compareFn modPath = go
     go :: Tag tk -> [Tag tk]
        -> Pipes.Producer (Tag tk) m [Tag tk]
 
-    -- omitt all the tags which point to 'modPath'
-    --
-    -- note: we check that 'tagFilePath' ends with 'modPath', which is
-    -- a relative path from the corresponding cabal file.
+    -- Omit only tags pointing to the exact module path. Both paths are
+    -- normalised and relative to the tags file directory.
     go tag as
-      | modPath' `BS.isSuffixOf` Text.encodeUtf8 (getRawFilePath (tagFilePath tag))
+      | modPath' == Text.encodeUtf8 (getRawFilePath (tagFilePath tag))
       = pure as
 
     go tag as@(a : as')
