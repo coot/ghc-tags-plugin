@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-- Prepare generated tags in name-first order for declaration filtering, then
-  arrange the surviving tags in the requested output order.
+- Filter redundant generated declarations by name and source file, independently
+  of adjacency, then stably sort the surviving tags in the requested output order.
 
 - Filter redundant functions at a signature's source location, retaining its
   metadata and keeping declarations from different files separate.
