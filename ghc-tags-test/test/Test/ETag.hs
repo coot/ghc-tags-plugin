@@ -26,7 +26,7 @@ tests :: TestTree
 tests = testGroup "ETag"
   [ testProperty "etag size" eTagsBuilderSizeProp
   , testProperty "declaration preparation matches model" prepareETagsProp
-  , testProperty "declaration filtering is independent of adjacency" prepareETagsAdjacencyProp
+  , testProperty "constructor filtering is independent of adjacency" prepareETagsAdjacencyProp
   , testProperty "preparation preserves input order for equal output keys" prepareETagsStableOrderProp
   ]
 
@@ -62,38 +62,34 @@ instance Arbitrary ArbETag where
     shrink = map ArbETag . shrinkTag . getArbETag
 
 
-data RelatedETags = RelatedETags TagKind [ETag]
+newtype RelatedETags = RelatedETags [ETag]
   deriving Show
 
 instance Arbitrary RelatedETags where
     arbitrary = do
       ArbETag base <- arbitrary
-      candidateKind <- elements [TkTerm, TkFunction, TkTypeConstructor]
       tags <- listOf arbitrary
-      pure $ RelatedETags candidateKind
+      pure $ RelatedETags
         [ tag { tagName = tagName base, tagFilePath = tagFilePath base }
         | ArbETag tag <- tags
         ]
 
-    shrink (RelatedETags kind tags) =
-      RelatedETags kind <$> shrinkList shrinkTag tags
+    shrink (RelatedETags tags) = RelatedETags <$> shrinkList shrinkTag tags
 
 
 prepareETagsAdjacencyProp :: RelatedETags -> Property
-prepareETagsAdjacencyProp (RelatedETags candidateKind tags) =
+prepareETagsAdjacencyProp (RelatedETags tags) =
     checkCoverage
     $ cover 10 mixed "candidates, preferred declarations and unrelated kinds"
     $ candidates (prepareTags ETag.compareTags tags)
       ===
       candidates (prepareTags ETag.compareTags relevant)
   where
-    preferredKinds = case candidateKind of
-      TkTypeConstructor -> [TkDataConstructor, TkGADTConstructor]
-      _                 -> [TkTypeSignature]
-    candidates = filter ((== candidateKind) . tagKind)
-    isRelevant tag = tagKind tag `elem` (candidateKind : preferredKinds)
+    preferredKinds = [TkDataConstructor, TkGADTConstructor]
+    candidates = filter ((== TkTypeConstructor) . tagKind)
+    isRelevant tag = tagKind tag `elem` (TkTypeConstructor : preferredKinds)
     relevant = filter isRelevant tags
-    mixed = any ((== candidateKind) . tagKind) tags
+    mixed = any ((== TkTypeConstructor) . tagKind) tags
          && any ((`elem` preferredKinds) . tagKind) tags
          && any (not . isRelevant) tags
 
@@ -148,14 +144,11 @@ prepareETagsProp tags0 =
 
     sameIdentifier a b = on (==) tagName a b
                       && on (==) tagFilePath a b
-    -- Model the preferred declaration independently of sorting/adjacency.
-    redundant tag = any (\other -> sameIdentifier tag other && preferred tag other) tags
-
-    preferred tag other
-      | tagKind tag `elem` [TkTerm, TkFunction] = tagKind other == TkTypeSignature
-      | tagKind tag == TkTypeConstructor =
-          tagKind other `elem` [TkDataConstructor, TkGADTConstructor]
-      | otherwise = False
+    -- Signatures are reconciled in AST binding groups before preparation.
+    -- Model constructor preference independently of sorting/adjacency.
+    redundant tag = tagKind tag == TkTypeConstructor
+                 && any (\other -> sameIdentifier tag other
+                                && tagKind other `elem` [TkDataConstructor, TkGADTConstructor]) tags
     expected = sortBy ETag.compareTags (filter (not . redundant) tags)
 
 

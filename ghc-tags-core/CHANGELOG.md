@@ -2,8 +2,12 @@
 
 ## Unreleased
 
-- Filter redundant generated declarations by name and source file, independently
-  of adjacency, then stably sort the surviving tags in the requested output order.
+- Reconcile signatures and definitions within their AST binding groups, keeping
+  unsigned bindings with the same name in other scopes and visiting nested bindings
+  even when the enclosing definition is replaced by its signature.
+
+- Filter redundant type constructors by name and source file, independently of
+  adjacency, then stably sort the surviving tags in the requested output order.
 
 - Filter redundant functions at a signature's source location, retaining its
   metadata and keeping declarations from different files separate.

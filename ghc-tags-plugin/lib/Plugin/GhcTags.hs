@@ -667,8 +667,10 @@ ghcTagsMetaHook options dynFlags request expr =
                         tags' :: [Either CTag.Header CTag]
                         tags' = Left `map` headers
                              ++ Right `map`
-                                (filterSameLocationTags $
-                                  sortBy CTag.compareTags
+                                -- Signatures were reconciled in AST binding
+                                -- groups. Distinct generated scopes can share
+                                -- a source location, so do not filter here.
+                                (sortBy CTag.compareTags
                                   ( tags
                                     ++
                                     (fmap (fixTagFilePath cwd tagsDir)
