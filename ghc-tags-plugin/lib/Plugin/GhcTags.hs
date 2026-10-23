@@ -22,7 +22,6 @@ import qualified Data.ByteString         as BS
 import qualified Data.ByteString.Char8   as BSC
 import qualified Data.ByteString.Lazy    as BSL
 import qualified Data.ByteString.Builder as BB
-import           Data.Function (on)
 import           Data.Functor (void)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
@@ -364,8 +363,8 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
               let tags :: [CTag]
                   tags = map (fixTagFilePath cwd tagsDir)
                                               -- fix file names
-                       . filterAdjacentTags
-                       . sortBy compareTags   -- sort
+                       . prepareTags CTag.compareTags
+                                              -- filter and sort
                        . mapMaybe (ghcTagToTag SingCTag dynFlags)
                                               -- translate 'GhcTag' to 'Tag'
                        . getGhcTags           -- generate 'GhcTag's
@@ -469,8 +468,8 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                     tags :: [CTag]
                     tags = map (fixTagFilePath cwd tagsDir)
                                                 -- fix file names
-                         . filterAdjacentTags
-                         . sortBy compareTags   -- sort
+                         . prepareTags CTag.compareTags
+                                                -- filter and sort
                          . mapMaybe (ghcTagToTag SingCTag dynFlags)
                                                 -- translate 'GhcTag' to 'Tag'
                          . getGhcTags           -- generate 'GhcTag's
@@ -570,8 +569,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                             sourcePathBS
 
                       tags :: [ETag]
-                      tags = filterAdjacentTags
-                           . sortBy ETag.compareTags
+                      tags = prepareTags ETag.compareTags
                            . map (fixTagFilePath cwd tagsDir)
                            . mapMaybe (ghcTagToTag SingETag dynFlags)
                            . getGhcTags
@@ -597,52 +595,6 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                               , show outSize
                               ])
                   pure True
-
-
--- | Prefer signatures to redundant term/function tags, and data constructors
--- to same-named type constructors. The input must be sorted by 'compareTags'.
--- Declarations from different source files are kept separate.
---
-filterAdjacentTags :: [Tag tk] -> [Tag tk]
-filterAdjacentTags tags0 =
-    foldr
-      (\(mprev, c, mnext) acc ->
-          case (mprev, mnext) of
-            -- filter out terms preceded by a type signature
-            (Just p, _)  | on (==) tagName p c
-                         , on (==) tagFilePath p c
-                         , TkTypeSignature <- tagKind p
-                         , k <- tagKind c
-                         , k == TkTerm
-                        || k == TkFunction
-                        ->     acc
-
-            -- filter out type constructors followed by a data constructor
-            (_, Just n)  | on (==) tagName c n
-                         , on (==) tagFilePath c n
-                         , TkTypeConstructor <- tagKind c
-                         , k <- tagKind n
-                         , k == TkDataConstructor
-                        || k == TkGADTConstructor
-                        ->     acc
-
-            _           -> c : acc
-
-      )
-      []
-      (zip3 tags' tags tags'')
-  where
-    tags = filterSameLocationTags tags0
-
-    -- previous
-    tags' = case tags of
-      [] -> []
-      _  -> Nothing : map Just (init tags)
-
-    -- next
-    tags'' = case tags of
-      []   -> []
-      _:ts -> map Just ts ++ [Nothing]
 
 
 --

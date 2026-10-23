@@ -43,6 +43,7 @@ module GhcTags.Tag
   , compareTags
   , combineTags
   , filterSameLocationTags
+  , prepareTags
     -- ** File paths
   , RawFilePath
   , rawFilePathToBS
@@ -61,7 +62,7 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BS.Char8
 #endif
 import           Data.Function (on)
-import           Data.List (groupBy)
+import           Data.List (groupBy, sortBy)
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import           Data.Text   (Text)
@@ -497,6 +498,59 @@ filterSameLocationTags = concatMap preferSignature . groupBy sameLocation
       = filter (\tag -> tagKind tag /= TkTerm && tagKind tag /= TkFunction) group
       | otherwise
       = group
+
+
+-- | Prepare freshly generated tags for one module. Remove redundant
+-- declarations and arrange the survivors in the requested output order.
+-- Filtering needs name-first ordering, independently of the output format.
+prepareTags :: (Tag tk -> Tag tk -> Ordering) -> [Tag tk] -> [Tag tk]
+prepareTags compareFn = sortBy compareFn . filterAdjacentTags . sortBy compareTags
+
+
+-- | Prefer signatures to redundant term/function tags, and data constructors
+-- to same-named type constructors. The input must be sorted by 'compareTags'.
+-- Declarations from different source files are kept separate.
+--
+filterAdjacentTags :: [Tag tk] -> [Tag tk]
+filterAdjacentTags tags0 =
+    foldr
+      (\(mprev, c, mnext) acc ->
+          case (mprev, mnext) of
+            -- filter out terms preceded by a type signature
+            (Just p, _)  | on (==) tagName p c
+                         , on (==) tagFilePath p c
+                         , TkTypeSignature <- tagKind p
+                         , k <- tagKind c
+                         , k == TkTerm
+                        || k == TkFunction
+                        ->     acc
+
+            -- filter out type constructors followed by a data constructor
+            (_, Just n)  | on (==) tagName c n
+                         , on (==) tagFilePath c n
+                         , TkTypeConstructor <- tagKind c
+                         , k <- tagKind n
+                         , k == TkDataConstructor
+                        || k == TkGADTConstructor
+                        ->     acc
+
+            _           -> c : acc
+
+      )
+      []
+      (zip3 tags' tags tags'')
+  where
+    tags = filterSameLocationTags tags0
+
+    -- previous
+    tags' = case tags of
+      [] -> []
+      _  -> Nothing : map Just (init tags)
+
+    -- next
+    tags'' = case tags of
+      []   -> []
+      _:ts -> map Just ts ++ [Nothing]
 
 
 -- | A left biased semigroup for 'Tag', which allows to merge 'TagFields' using
