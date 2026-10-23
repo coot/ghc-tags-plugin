@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Refresh ctags metadata during Template Haskell updates, replacing stale or
+  missing headers. Correct signature and type/data-family kind descriptions.
+
 - Keep local bindings when an unrelated binding with the same name has a signature.
 
 - Filter etags declarations before applying file/line ordering, consistently
