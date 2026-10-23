@@ -180,7 +180,7 @@ ghcTagsParserPlugin options
                 -- file.  This is needed when `cabal` compiles in parallel.
                 -- We take the lock on the copy, otherwise the lock would be removed when
                 -- we move the file.
-                withFileLock_ debug (lockFilePath tagsFile) ExclusiveLock $ do
+                withFileLock_ (lockFilePath tagsFile) ExclusiveLock $ do
                     mbInSize <-
                       if debug
                         then Just <$> getFileSize
@@ -662,7 +662,6 @@ ghcTagsMetaHook options dynFlags request expr =
     case runOptionParser options of
       Success Options { filePath = Identity tagsFile
                       , etags
-                      , debug
                       } -> do
 
         withMetaD defaultRunMeta request expr $ \decls ->
@@ -672,7 +671,7 @@ ghcTagsMetaHook options dynFlags request expr =
                              (messageDoc UnhandledException Nothing
                                (displayException ioerr))
                      throwIO (GhcTagsDynFlagsPluginIOException ioerr)) $
-            withFileLock_ debug (lockFilePath tagsFile) ExclusiveLock $ do
+            withFileLock_ (lockFilePath tagsFile) ExclusiveLock $ do
 #if MIN_VERSION_filepath(1,4,100)
             cwd <- getCurrentDirectory
 #else
