@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Extend `gtp-check` with `--etags`/`-e`, parsed tag counts, ctags program/version
+  metadata, parser diagnostics and warnings for unsorted ctags files.
+
 - Refresh ctags metadata during Template Haskell updates, replacing stale or
   missing headers. Correct signature and type/data-family kind descriptions.
 
