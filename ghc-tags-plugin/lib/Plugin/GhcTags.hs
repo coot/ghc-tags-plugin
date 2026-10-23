@@ -27,7 +27,7 @@ import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import           Data.Functor.Identity (Identity (..))
 import           Data.List (sortBy)
-import           Data.Either (partitionEithers, rights)
+import           Data.Either (rights)
 import           Data.Maybe (mapMaybe)
 #if MIN_VERSION_filepath(1,4,100)
 import qualified System.OsPath as OsPath
@@ -663,9 +663,9 @@ ghcTagsMetaHook options dynFlags request expr =
 
                   Right (warnings, parsed) -> do
                     mapM_ (printMessageDoc dynFlags ParseWarning Nothing) warnings
-                    let (headers, tags) = partitionEithers parsed
+                    let tags = rights parsed
                         tags' :: [Either CTag.Header CTag]
-                        tags' = Left `map` headers
+                        tags' = Left `map` CTag.headers
                              ++ Right `map`
                                 -- Signatures were reconciled in AST binding
                                 -- groups. Distinct generated scopes can share
