@@ -503,15 +503,14 @@ filterSameLocationTags = concatMap preferSignature . groupBy sameLocation
 
 -- | Prepare freshly generated tags for one module. Remove redundant
 -- declarations and arrange the survivors in the requested output order.
--- Prefer signatures to term/function tags, and data constructors to
--- same-named type constructors, within each source file. Preserve the input
--- order of surviving tags that compare equal in the requested output order.
+-- Prefer data constructors to same-named type constructors within each source
+-- file. Signatures and definitions are reconciled in their AST binding groups
+-- before reaching this step. Preserve the input order of surviving tags that
+-- compare equal in the requested output order.
 prepareTags :: (Tag tk -> Tag tk -> Ordering) -> [Tag tk] -> [Tag tk]
 prepareTags compareFn tags = sortBy compareFn (filter (not . redundant) tags)
   where
     identifier tag = (tagName tag, tagFilePath tag)
-    signatures = Set.fromList
-      [ identifier tag | tag <- tags, tagKind tag == TkTypeSignature ]
     constructors = Set.fromList
       [ identifier tag
       | tag <- tags
@@ -519,8 +518,6 @@ prepareTags compareFn tags = sortBy compareFn (filter (not . redundant) tags)
       ]
 
     redundant tag = case tagKind tag of
-      TkTerm            -> identifier tag `Set.member` signatures
-      TkFunction        -> identifier tag `Set.member` signatures
       TkTypeConstructor -> identifier tag `Set.member` constructors
       _                 -> False
 

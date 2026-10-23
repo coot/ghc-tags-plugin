@@ -24,6 +24,8 @@ import           Data.Maybe    (mapMaybe)
 import           Data.Maybe    (maybeToList)
 import qualified Data.Foldable as Foldable
 import           Data.ByteString (ByteString)
+import           Data.Set (Set)
+import qualified Data.Set as Set
 
 -- Ghc imports
 import           GHC.Types.SourceText (SourceText (..))
@@ -348,9 +350,16 @@ getGhcTags (L _ HsModule { hsmodName, hsmodDecls, hsmodExports }) =
 hsDeclsToGhcTags :: Maybe [IE GhcPs]
                  -> [LHsDecl GhcPs]
                  -> GhcTags
-hsDeclsToGhcTags mies =
-    reverse . Foldable.foldl' go []
+hsDeclsToGhcTags mies decls =
+    reverse (Foldable.foldl' go [] decls)
   where
+    signatures = signatureNames [ sig | L _ (SigD _ sig) <- decls ]
+
+    -- Only signatures in the current binding group can replace a definition.
+    signatureNames :: [Sig GhcPs] -> Set RdrName
+    signatureNames sigs = Set.fromList
+      [ unLoc name | TypeSig _ names _ <- sigs, name <- names ]
+
     fixLoc :: SrcSpan -> GhcTag -> GhcTag
     fixLoc loc gt@GhcTag { gtSrcSpan = UnhelpfulSpan {} } = gt { gtSrcSpan = loc }
     fixLoc _   gt                                         = gt
@@ -417,12 +426,14 @@ hsDeclsToGhcTags mies =
           --   default data type instance
           --
           ClassDecl { tcdLName, tcdSigs, tcdMeths, tcdATs, tcdATDefs } ->
+            let signedMethods = signatureNames (map unLoc tcdSigs)
+            in
                -- class name
                mkGhcTag' decLoc (unSpanAnn tcdLName) GtkTypeClass
                -- class methods
              : (mkClsMemberTags decLoc (unSpanAnn tcdLName) . unLoc) `concatMap` tcdSigs
                -- default methods
-            ++ Foldable.foldl' (\tags' hsBind -> mkHsBindLRTags decLoc (unLoc hsBind) ++ tags')
+            ++ Foldable.foldl' (\tags' hsBind -> mkHsBindLRTags signedMethods decLoc (unLoc hsBind) ++ tags')
                                []
                                tcdMeths
             -- associated types
@@ -465,7 +476,8 @@ hsDeclsToGhcTags mies =
                   -- associated type and data type family instances
                   dataFamTags = (mkDataFamInstDeclTag decLoc . unLoc) `concatMap` cid_datafam_insts
                   tyFamTags   = (mkTyFamInstDeclTag   decLoc . unLoc) `mapMaybe`  cid_tyfam_insts
-                  bindsTags   = (mkHsBindLRTags decLoc . unLoc) `concatMap` cid_binds
+                  bindsTags   = (mkHsBindLRTags (signatureNames (map unLoc cid_sigs)) decLoc . unLoc)
+                                `concatMap` cid_binds
                   sigsTags    = (mkSigTags decLoc . unLoc) `concatMap` cid_sigs
 
                   fixTagKind body a = a { gtKind = GtkTypeClassInstanceMember body }
@@ -485,7 +497,7 @@ hsDeclsToGhcTags mies =
       DerivD {} -> tags
 
       -- value declaration
-      ValD _ hsBind  -> mkHsBindLRTags decLoc hsBind ++ tags
+      ValD _ hsBind  -> mkHsBindLRTags signatures decLoc hsBind ++ tags
 
       -- signature declaration
       SigD _ sig -> mkSigTags decLoc sig ++ tags
@@ -560,7 +572,8 @@ hsDeclsToGhcTags mies =
     mkHsLocalBindsTags :: SrcSpan -> HsLocalBinds GhcPs -> [GhcTag]
     mkHsLocalBindsTags decLoc (HsValBinds _ (ValBinds _ hsBindsLR sigs)) =
          -- where clause bindings
-         concatMap (mkHsBindLRTags decLoc . unLoc) (Foldable.toList hsBindsLR)
+         concatMap (mkHsBindLRTags (signatureNames (map unLoc sigs)) decLoc . unLoc)
+                   (Foldable.toList hsBindsLR)
       ++ concatMap (mkSigTags decLoc . unLoc) sigs
 
     mkHsLocalBindsTags _ _ = []
@@ -615,19 +628,21 @@ hsDeclsToGhcTags mies =
     mkHsConDeclGADTDetails _ _ _ = []
 
 
-    mkHsBindLRTags :: SrcSpan
+    mkHsBindLRTags :: Set RdrName
+                   -- ^ names with signatures in this binding group
+                   -> SrcSpan
                    -- ^ declaration's 'SrcSpan'
                    -> HsBindLR GhcPs GhcPs
                    -> GhcTags
-    mkHsBindLRTags decLoc hsBind =
+    mkHsBindLRTags signedNames decLoc hsBind =
       case hsBind of
         FunBind { fun_id, fun_matches } ->
           let binds = map (grhssLocalBinds . m_grhss . unLoc)
                     . unLoc
                     . mg_alts
                     $ fun_matches
-          in   mkGhcTag' decLoc (unSpanAnn fun_id) GtkFunction
-             : concatMap
+          in   bindingTag (unSpanAnn fun_id) GtkFunction
+            ++ concatMap
                  (mkHsLocalBindsTags decLoc)
                  binds
 
@@ -639,9 +654,13 @@ hsDeclsToGhcTags mies =
         PatBind {} -> []
 
         VarBind { var_id, var_rhs = L srcSpan _ } ->
-          [mkGhcTag' decLoc (unSpanAnn $ L srcSpan var_id) GtkTerm]
+          bindingTag (unSpanAnn $ L srcSpan var_id) GtkTerm
 
         PatSynBind _ PSB { psb_id } -> [mkGhcTag' decLoc (unSpanAnn psb_id) GtkPatternSynonym]
+      where
+        bindingTag name kind
+          | unLoc name `Set.member` signedNames = []
+          | otherwise = [mkGhcTag' decLoc name kind]
 
 
     mkClsMemberTags :: SrcSpan -> Located RdrName -> Sig GhcPs -> GhcTags

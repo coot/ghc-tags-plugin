@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Keep local bindings when an unrelated binding with the same name has a signature.
+
 - Filter etags declarations before applying file/line ordering, consistently
   removing redundant definitions and type constructors in both output formats.
 
