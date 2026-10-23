@@ -70,30 +70,42 @@ wrap c = Text.cons c . flip Text.snoc c
 
 genTagKind :: SingTagKind tk -> Gen TagKind
 genTagKind SingETag = pure NoKind
-genTagKind SingCTag = oneof
-    [ pure TkModule
-    , pure TkTerm
-    , pure TkFunction
-    , pure TkTypeConstructor
-    , pure TkDataConstructor
-    , pure TkGADTConstructor
-    , pure TkRecordField
-    , pure TkTypeSynonym
-    , pure TkTypeSignature
-    , pure TkPatternSynonym
-    , pure TkTypeClass
-    , pure TkTypeClassMember
-    , pure TkTypeClassInstance
-    , pure TkTypeClassInstanceMember
-    , pure TkTypeFamily
-    , pure TkTypeFamilyInstance
-    , pure TkDataTypeFamily
-    , pure TkDataTypeFamilyInstance
-    , pure TkForeignImport
-    , pure TkForeignExport
-    , CharKind <$> genChar
-    , pure NoKind
-    ]
+genTagKind SingCTag =
+    -- make sure signature/function, type/declaration pairs are common.
+    frequency
+      [ (3, elements
+            [ TkTypeSignature
+            , TkTerm
+            , TkFunction
+            , TkTypeConstructor
+            , TkDataConstructor
+            , TkGADTConstructor
+            ])
+      , (1, oneof
+            [ pure TkModule
+            , pure TkTerm
+            , pure TkFunction
+            , pure TkTypeConstructor
+            , pure TkDataConstructor
+            , pure TkGADTConstructor
+            , pure TkRecordField
+            , pure TkTypeSynonym
+            , pure TkTypeSignature
+            , pure TkPatternSynonym
+            , pure TkTypeClass
+            , pure TkTypeClassMember
+            , pure TkTypeClassInstance
+            , pure TkTypeClassInstanceMember
+            , pure TkTypeFamily
+            , pure TkTypeFamilyInstance
+            , pure TkDataTypeFamily
+            , pure TkDataTypeFamilyInstance
+            , pure TkForeignImport
+            , pure TkForeignExport
+            , CharKind <$> genChar
+            , pure NoKind
+            ])
+      ]
   where
     genChar = suchThat arbitrary
                        ( ((/= Char.Control) . Char.generalCategory)
