@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Filter etags declarations before applying file/line ordering, consistently
+  removing redundant definitions and type constructors in both output formats.
+
 - Apply signature filtering to Template Haskell updates, removing redundant
   function tags even when generated declarations share the same source location.
 
