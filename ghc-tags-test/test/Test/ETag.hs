@@ -6,7 +6,7 @@ module Test.ETag (tests) where
 import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Lazy as BL
 import           Data.Function (on)
-import           Data.List (sortBy)
+import           Data.List (isSubsequenceOf, sortBy)
 -- import qualified Data.Text as Text
 -- import qualified Data.Text.Encoding as Text
 
@@ -26,6 +26,8 @@ tests :: TestTree
 tests = testGroup "ETag"
   [ testProperty "etag size" eTagsBuilderSizeProp
   , testProperty "declaration preparation matches model" prepareETagsProp
+  , testProperty "declaration filtering is independent of adjacency" prepareETagsAdjacencyProp
+  , testProperty "preparation preserves input order for equal output keys" prepareETagsStableOrderProp
   ]
 
 
@@ -44,7 +46,8 @@ instance Arbitrary ArbETag where
             [ (3, TagName <$> elements ["alpha", "beta", "gamma"])
             , (1, TagName <$> genTextNonEmpty)
             ]
-      <*> genTagKind SingETag
+      -- Generated etags carry declaration kinds until formatting.
+      <*> genTagKind SingCTag
       <*> frequency
             [ (3, TagFilePath <$> elements ["A.hs", "B.hs", "C.hs"])
             , (1, genTagFilePath)
@@ -57,6 +60,81 @@ instance Arbitrary ArbETag where
       <*> (TagDefinition <$> genTextNonEmpty)
       <*> pure NoTagFields
     shrink = map ArbETag . shrinkTag . getArbETag
+
+
+data RelatedETags = RelatedETags TagKind [ETag]
+  deriving Show
+
+instance Arbitrary RelatedETags where
+    arbitrary = do
+      ArbETag base <- arbitrary
+      candidateKind <- elements [TkTerm, TkFunction, TkTypeConstructor]
+      tags <- listOf arbitrary
+      pure $ RelatedETags candidateKind
+        [ tag { tagName = tagName base, tagFilePath = tagFilePath base }
+        | ArbETag tag <- tags
+        ]
+
+    shrink (RelatedETags kind tags) =
+      RelatedETags kind <$> shrinkList shrinkTag tags
+
+
+prepareETagsAdjacencyProp :: RelatedETags -> Property
+prepareETagsAdjacencyProp (RelatedETags candidateKind tags) =
+    checkCoverage
+    $ cover 10 mixed "candidates, preferred declarations and unrelated kinds"
+    $ candidates (prepareTags ETag.compareTags tags)
+      ===
+      candidates (prepareTags ETag.compareTags relevant)
+  where
+    preferredKinds = case candidateKind of
+      TkTypeConstructor -> [TkDataConstructor, TkGADTConstructor]
+      _                 -> [TkTypeSignature]
+    candidates = filter ((== candidateKind) . tagKind)
+    isRelevant tag = tagKind tag `elem` (candidateKind : preferredKinds)
+    relevant = filter isRelevant tags
+    mixed = any ((== candidateKind) . tagKind) tags
+         && any ((`elem` preferredKinds) . tagKind) tags
+         && any (not . isRelevant) tags
+
+
+newtype EqualKeyETags = EqualKeyETags [ETag]
+  deriving Show
+
+instance Arbitrary EqualKeyETags where
+    arbitrary = do
+      ArbETag base <- arbitrary
+      Positive line <- arbitrary
+      tags <- listOf $ do
+        ArbETag tag <- arbitrary
+        address <- oneof
+          [ pure (TagLine line)
+          , TagLineCol line . getNonNegative <$> arbitrary
+          ]
+        pure tag { tagName = tagName base
+                 , tagFilePath = tagFilePath base
+                 , tagAddr = address
+                 }
+      pure (EqualKeyETags tags)
+
+    shrink (EqualKeyETags tags) =
+      EqualKeyETags <$> shrinkList shrinkEqualKey tags
+      where
+        shrinkEqualKey tag =
+          [ smaller
+          | smaller <- shrinkTag tag
+          , ETag.compareTags tag smaller == EQ
+          ]
+
+
+prepareETagsStableOrderProp :: EqualKeyETags -> Property
+prepareETagsStableOrderProp (EqualKeyETags tags) =
+    checkCoverage
+    $ cover 10 (length prepared > 1) "multiple survivors with equal output keys"
+    $ counterexample ("Prepared tags: " ++ show prepared)
+    $ prepared `isSubsequenceOf` tags === True
+  where
+    prepared = prepareTags ETag.compareTags tags
 
 
 
