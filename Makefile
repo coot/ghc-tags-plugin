@@ -36,6 +36,20 @@ install:
 	rm ${ENV}
 	${GHC_PKG} describe --package-db=${PACKAGE_DB} ghc-tags-plugin | grep -A1 ^id
 
+# Install for every native GHC version installed with GHCup.
+install-all:
+	@set -eu; \
+	installed=$$(ghcup --offline list --tool ghc --show-criteria installed --raw-format); \
+	versions=$$(printf '%s\n' "$$installed" | awk '$$1 == "ghc" && $$2 !~ /javascript|wasm32/ { print $$2 }'); \
+	if [ -z "$$versions" ]; then \
+	    echo "No GHC versions are installed with ghcup." >&2; \
+	    exit 1; \
+	fi; \
+	for version in $$versions; do \
+	    printf 'Installing ghc-tags-plugin for GHC %s\n' "$$version"; \
+	    $(MAKE) install GHC_VERSION="$$version"; \
+	done
+
 prof-install:
 	# avoid changing the default environment
 	cabal install --package-db=${PACKAGE_DB} \
@@ -84,5 +98,5 @@ describe:
 describe-core:
 	${GHC_PKG} describe --package-db=${PACKAGE_DB} ghc-tags-core
 
-.PHONY: install prof-install uninstall uninstall-core reinstall reinstall-core \
+.PHONY: install install-all prof-install uninstall uninstall-core reinstall reinstall-core \
         list latest recache check describe describe-core
