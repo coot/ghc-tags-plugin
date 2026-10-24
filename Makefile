@@ -80,6 +80,9 @@ reinstall-core: uninstall uninstall-core install
 # reinstall only ghc-tags-plugin
 reinstall: uninstall install
 
+gtp-check:
+	cabal install -f+gtp-check -w ${GHC} ghc-tags-plugin:gtp-check
+
 list:
 	${GHC_PKG} list --package-db=${PACKAGE_DB} | grep ghc-tags
 
