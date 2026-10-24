@@ -58,7 +58,7 @@ reinstall-core: uninstall uninstall-core install
 # reinstall only ghc-tags-plugin
 reinstall: uninstall install
 
-gpt-check:
+gtp-check:
 	cabal install -f+gtp-check -w ${GHC} ghc-tags-plugin:gtp-check
 
 list:
