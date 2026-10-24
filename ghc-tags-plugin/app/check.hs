@@ -65,11 +65,27 @@ checkFile Options { etags, filePath } = do
 
 
 reportHeader :: CTag.Header -> IO ()
-reportHeader (CTag.Header CTag.ProgramName _ name _) =
-    putStrLn ("Program: " ++ Text.unpack name)
-reportHeader (CTag.Header CTag.ProgramVersion _ version _) =
-    putStrLn ("Version: " ++ Text.unpack version)
-reportHeader _ = pure ()
+reportHeader CTag.Header { CTag.headerType,
+                           CTag.headerArg,
+                           CTag.headerComment } =
+    case headerType of
+      CTag.ProgramName ->
+        putStrLn (withComment $ "Program: " ++ Text.unpack headerArg)
+      CTag.ProgramVersion ->
+        putStrLn (withComment $ "Version: " ++ Text.unpack headerArg)
+      CTag.FileFormat ->
+        putStrLn (withComment $ "FileFormat: " ++ show headerArg)
+      CTag.FileSorted ->
+        putStrLn (withComment $ "FileSorted: " ++ show headerArg)
+      _ -> pure ()
+
+  where
+    withComment :: String -> String
+    withComment a
+      | not (Text.null headerComment)
+      = a ++ " (" ++  Text.unpack headerComment ++ ")"
+      | otherwise
+      = a
 
 
 reportParseResult :: Either String ([String], a) -> IO a
