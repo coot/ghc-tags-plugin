@@ -29,6 +29,7 @@ tests = testGroup "CTag"
   [ testGroup "CTag ByteString codec"
     [ testProperty "parseTag . formatTag" roundTripCTagProp
     , testProperty "parseHeader . formatHeader" roundTripHeaderProp
+    , testProperty "formatting preserves comparison" roundTripOrderingProp
     ]
   , testGroup "TagKind to Char converstion"
     [ testProperty "tagKindToChar . charToTagKind" tagKindCharToCharProp
@@ -63,6 +64,39 @@ instance Arbitrary ArbCTag where
       <*> pure NoTagDefinition
       <*> (TagFields <$> listOf genField)
     shrink = map ArbCTag . shrinkTag . getArbCTag
+
+
+data CTagOrderingExample = CTagOrderingExample CTag CTag
+  deriving Show
+
+instance Arbitrary CTagOrderingExample where
+    arbitrary = do
+      ArbCTag a <- arbitrary
+      ArbCTag b <- arbitrary
+      kind <- frequency [(3, pure (tagKind a)), (1, pure (tagKind b))]
+      pure $ fixCTagOrderingExample (CTagOrderingExample a b { tagKind = kind })
+
+    shrink (CTagOrderingExample a b) =
+      map fixCTagOrderingExample $
+           [ CTagOrderingExample a' b | a' <- shrinkTag a ]
+        ++ [ CTagOrderingExample a b' | b' <- shrinkTag b ]
+
+
+-- Share a name and path so comparisons exercise addresses and kinds.
+fixCTagOrderingExample :: CTagOrderingExample -> CTagOrderingExample
+fixCTagOrderingExample (CTagOrderingExample a b) =
+    CTagOrderingExample a b { tagName = tagName a, tagFilePath = tagFilePath a }
+
+
+roundTripOrderingProp :: CTagOrderingExample -> Property
+roundTripOrderingProp (CTagOrderingExample a b) =
+    let bytes = BL.toStrict . BB.toLazyByteString $
+          CTag.formatTag a <> CTag.formatTag b
+        parsed = AChar.parseOnly
+          ((,) <$> CTag.parseTag <*> CTag.parseTag <* AChar.endOfInput) bytes
+    in case parsed of
+      Left err -> counterexample err (property False)
+      Right (a', b') -> CTag.compareTags a b === CTag.compareTags a' b'
 
 
 newtype SignatureExample = SignatureExample
