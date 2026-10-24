@@ -24,17 +24,29 @@ Usage: <program> [-e|--etags] [--stream] [--debug] [file_path]
 Available options:
   -e,--etags               produce emacs etags file
   --stream                 stream existing tags (ctags only)
-  file_path                tags file: default tags or TAGS (when --etags is
-                           specified)
+  file_path                tags file relative to cabal.project or stack.yaml:
+                           default tags or TAGS (with --etags)
   --debug                  debugging output
 ```
 
-It can be an absolute path or relative (to the `*.cabal` package file rather
-than `cabal.project` file), for example:
+The tags path can be absolute or relative to the nearest directory containing
+`cabal.project`, `cabal.project.local`, or `stack.yaml`, searching upward from
+the compiled package. Packages using the same project root can share one tags
+file:
 ```
--fplugin-opt=Plugin.GhcTags:../tags
+-fplugin-opt=Plugin.GhcTags:tags
 ```
-This is useful if for *cabal packages* which are located in subdirectories.
+A `cabal.project.local` file is a project-root marker even without a
+`cabal.project` beside it. A nearer marker takes precedence over configurations
+in parent directories. For example, with `/repo/cabal.project` and
+`/repo/package/cabal.project.local`, compiling that package writes to
+`/repo/package/tags`.
+
+If `STACK_YAML` points to an existing configuration file, its directory is used
+instead. If no project configuration is found, the plugin prints a warning and
+resolves the path relative to the nearest `*.cabal` package file. When no package
+file is found either, it uses the compiler's working directory. Absolute output
+paths are used unchanged.
 
 ## ● Emacs support
 
@@ -45,14 +57,14 @@ To produce `etags` file you will need to pass the following option
 
 ## ● Editor configuration
 
-By default each generated tags file is put next to the corresponding `*.cabal`
-package file.  If you just have a repo with a cabal file in the main directory
-`vim` default `tags` setting will work, if you have some modules in
-subdirectories you will either need to set:
+By default the generated `tags` file is put in the nearest directory containing
+`cabal.project`, `cabal.project.local`, or `stack.yaml`. To let Vim or Neovim find
+it while editing files in package subdirectories, enable searching parent
+directories:
 ```
-:set tags+=*/tags
+:set tags+=./tags;
 ```
-or pass an option to modify where tags are written, see below.
+You can also pass an option to change where tags are written, see below.
 
 ● Configuration: Ghc / Cabal / Stack
 ------------------------------------
@@ -66,7 +78,7 @@ editing any `.cabal` files, run:
 cabal repl TARGET \
   --build-depends=ghc-tags-plugin \
   --repl-options=-fplugin=Plugin.GhcTags \
-  --repl-options=-fplugin-opt=Plugin.GhcTags:../tags
+  --repl-options=-fplugin-opt=Plugin.GhcTags:tags
 ```
 
 Replace `TARGET` with a component such as `lib:my-package` or `exe:my-program`.
@@ -133,7 +145,7 @@ program-options
     ghc-options: -package-db=PACKAGE_DB
                  -plugin-package=ghc-tags-plugin
                  -fplugin=Plugin.GhcTags
-                 -fplugin-opt=Plugin.GhcTags:../tags
+                 -fplugin-opt=Plugin.GhcTags:tags
 ```
 
 Replace `PACKAGE_DB` with the absolute path found above. Environment variables
@@ -144,15 +156,16 @@ The stanza applies to all local packages. You can now run `cabal build` or
 `cabal repl` normally. When HLS uses a Cabal cradle, restart it after changing
 the configuration so it reloads the compiler options.
 
-For a shared tags file, add an option such as:
+The default relative path shares a tags file across packages that resolve to the
+same project root. To choose an absolute destination, use:
 
 ```text
 -fplugin-opt=Plugin.GhcTags:/absolute/path/to/tags
 ```
 
-Note that the relative path of tags file as in the examples above with
-`-fplugin-opt=Plugin.GhcTags:../tags` is relative to the `*.cabal` file, not
-`cabal.project` file.
+Relative paths in the examples above are resolved from the project configuration
+directory. For example, `../tags` writes one directory above the selected
+`cabal.project`, `cabal.project.local`, or `stack.yaml`.
 
 To apply the plugin to dependencies as well, use a `package *` stanza instead
 of `program-options`. This can rebuild dependencies and applies the options to
@@ -193,7 +206,7 @@ Configure the target package in `stack.yaml` under `ghc-options`:
 ghc-options:
   my-package: -plugin-package=ghc-tags-plugin
               -fplugin=Plugin.GhcTags
-              -fplugin-opt=Plugin.GhcTags:../tags
+              -fplugin-opt=Plugin.GhcTags:tags
 ```
 
 Replace `my-package` with your package name. This Stack setup uses a declared
@@ -204,7 +217,7 @@ build dependency; the Cabal setups above avoid changing `.cabal` files.
 For automatic tag updates while editing, use the REPL quick start with ghcid:
 
 ```sh
-ghcid --command="cabal repl TARGET --build-depends=ghc-tags-plugin --repl-options=-fplugin=Plugin.GhcTags --repl-options=-fplugin-opt=Plugin.GhcTags:../tags"
+ghcid --command="cabal repl TARGET --build-depends=ghc-tags-plugin --repl-options=-fplugin=Plugin.GhcTags --repl-options=-fplugin-opt=Plugin.GhcTags:tags"
 ```
 
 If you have already enabled the plugin in `cabal.project.local`, use:

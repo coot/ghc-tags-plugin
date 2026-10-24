@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE GADTs               #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -28,7 +29,9 @@ import qualified Data.Text.Encoding as Text
 import           Data.Functor.Identity (Identity (..))
 import           Data.List (sortBy)
 import           Data.Either (rights)
-import           Data.Maybe (mapMaybe)
+import           Data.Maybe (fromMaybe, mapMaybe)
+import qualified System.Directory as Directory
+import           System.Environment (lookupEnv)
 #if MIN_VERSION_filepath(1,4,100)
 import qualified System.OsPath as OsPath
 import           System.Directory.OsPath
@@ -73,6 +76,7 @@ import           GHC.Tc.Gen.Splice (defaultRunMeta)
 import           GHC.Types.SrcLoc (Located)
 import qualified GHC.Types.SrcLoc as GHC (SrcSpan (..), getLoc, srcSpanFile)
 import           GHC.Driver.Session (DynFlags)
+import           GHC.Driver.Session as GHC (workingDirectory)
 
 import           GHC.Hs (GhcPs, GhcTc, HsModule (..), LHsDecl, LHsExpr)
 import           GHC.Utils.Outputable (($+$), ($$))
@@ -89,6 +93,7 @@ import qualified GhcTags.ETag as ETag
 import           Plugin.GhcTags.Options
 import           Plugin.GhcTags.AtomicFile
 import           Plugin.GhcTags.FileLock
+import           Plugin.GhcTags.Project (TagsAtRoot (..), resolveTagsFile)
 import qualified Plugin.GhcTags.CTag as CTag
 
 
@@ -160,11 +165,9 @@ ghcTagsParserPlugin options
 
     hsParsedModule <$
       case runOptionParser options of
-        Success opts@Options { filePath = Identity tagsFile
-                             , debug
-                             } ->
-
-           liftIO $ do
+        Success parsedOptions ->
+           liftIO $ withResolvedOptions dynFlags (Just ms_mod) parsedOptions $ \opts@Options
+             { filePath = Identity tagsFile, debug } -> do
 #if MIN_VERSION_filepath(1,4,100)
             tagsPath <- OsPath.encodeUtf tagsFile
 #endif
@@ -230,6 +233,7 @@ data MessageType =
     | OptionParserFailure
     | DebugMessage
     | SizeWarning
+    | ProjectRootWarning
 
 
 instance Show MessageType where
@@ -240,6 +244,7 @@ instance Show MessageType where
     show UnhandledException  = "unhandled error"
     show OptionParserFailure = "plugin options parser error"
     show SizeWarning         = "tags file shrinked"
+    show ProjectRootWarning  = "project configuration not found"
     show DebugMessage        = ""
 
 
@@ -612,12 +617,11 @@ ghcTagsDriverPlugin opts env@HscEnv{ hsc_hooks } = do
 ghcTagsMetaHook :: [CommandLineOption] -> DynFlags -> MetaHook TcM
 ghcTagsMetaHook options dynFlags request expr =
     case runOptionParser options of
-      Success opts@Options { filePath = Identity tagsFile
-                           , etags
-                           } -> do
+      Success parsedOptions -> do
 
         withMetaD defaultRunMeta request expr $ \decls ->
-          liftIO $
+          liftIO $ withResolvedOptions dynFlags Nothing parsedOptions $ \opts@Options
+            { filePath = Identity tagsFile, etags } ->
             handle (\ioerr -> do
                      putDocLn dynFlags
                              (messageDoc UnhandledException Nothing
@@ -712,6 +716,39 @@ ghcTagsMetaHook options dynFlags request expr =
 -- File path utils
 --
 
+-- GHC source filenames already include the component's -working-dir prefix.
+-- Use this directory for project discovery, while resolving source filenames
+-- against the process working directory as before.
+compilerWorkingDirectory :: DynFlags -> IO FilePath
+compilerWorkingDirectory dynFlags =
+    Directory.makeAbsolute (fromMaybe "." (GHC.workingDirectory dynFlags))
+
+
+-- | Resolve tags file path relative to `cabal.project`, `cabal.project.local`,
+-- `stack.yaml` or if none of them is found relative to last found `*.cabal`
+-- file.
+withResolvedOptions :: DynFlags
+                    -- ^ GHC configuration
+                    -> Maybe Module
+                    -- ^ module being inspected
+                    -> Options Identity
+                    -- ^ user options
+                    -> (Options Identity -> IO a)
+                    -- ^ continuation
+                    -> IO a
+withResolvedOptions dynFlags mod_ opts@Options {filePath = Identity path} action = do
+    cwd <- compilerWorkingDirectory dynFlags
+    stackYaml <- traverse Directory.makeAbsolute =<< lookupEnv "STACK_YAML"
+    resolveTagsFile cwd stackYaml path >>= \case
+      TagsAtProjectRoot tagsFile ->
+        action opts { filePath = Identity tagsFile }
+
+      TagsAtPackageRoot tagsFile -> do
+        printMessageDoc dynFlags ProjectRootWarning mod_ $
+          ("No cabal.project or stack.yaml found; using " ++ tagsFile)
+        action opts { filePath = Identity tagsFile }
+
+
 fixFilePath :: RawFilePath
             -- ^ current directory
             -> RawFilePath
@@ -779,6 +816,7 @@ messageDoc errorType mb_mod errorMessage =
       UnhandledException  -> Error
       OptionParserFailure -> Warning
       SizeWarning         -> Warning
+      ProjectRootWarning  -> Warning
       DebugMessage        -> Debug
 
     messageColour = case severity of

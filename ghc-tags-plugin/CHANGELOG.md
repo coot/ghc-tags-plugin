@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Resolve relative tags paths from the nearest `cabal.project` or `stack.yaml`,
+  honoring `STACK_YAML`. Warn and fall back to the package directory when no
+  project configuration is found.
+
 - Extend `gtp-check` with `--etags`/`-e`, parsed tag counts, ctags program/version
   metadata, parser diagnostics and warnings for unsorted ctags files.
 
