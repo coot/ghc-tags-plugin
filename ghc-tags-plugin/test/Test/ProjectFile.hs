@@ -1,6 +1,6 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module Main (main) where
+module Test.ProjectFile (tests) where
 
 import Control.Exception (bracket)
 import Control.Monad (filterM, forM_, when)
@@ -10,14 +10,15 @@ import System.Directory
 import System.FilePath ((</>), normalise, splitDirectories, takeDirectory, takeExtension)
 import System.IO (hClose, openTempFile)
 
-import Test.Tasty (defaultMain)
+import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.QuickCheck
 
 import Plugin.GhcTags.Project
 
 
-main :: IO ()
-main = defaultMain $ testProperty "project-relative tags path matches model" resolutionProp
+tests :: TestTree
+tests = testGroup "ProjectFile"
+    [ testProperty "project-relative tags path matches model" resolutionProp ]
 
 
 data ProjectConfig = CabalProject
