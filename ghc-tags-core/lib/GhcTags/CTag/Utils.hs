@@ -1,11 +1,20 @@
 {-# LANGUAGE GADTs #-}
 
 module GhcTags.CTag.Utils
-  ( tagKindToChar
+  ( stripColumn
+  , tagKindToChar
   , charToTagKind
   ) where
 
 import           GhcTags.Tag
+
+
+-- | Remove the column, which cannot be represented in ctags output.
+stripColumn :: CTag -> CTag
+stripColumn tag = case tagAddr tag of
+    TagLineCol line _ -> tag { tagAddr = TagLine line }
+    _                 -> tag
+
 
 tagKindToChar :: TagKind -> Maybe Char
 tagKindToChar tk = case tk of

@@ -207,8 +207,8 @@ instance NFData TagName where
 --
 data TagKind where
     TkModule                  :: TagKind
-    TkTerm                    :: TagKind
     TkFunction                :: TagKind
+    TkTerm                    :: TagKind
     TkTypeConstructor         :: TagKind
     TkDataConstructor         :: TagKind
     TkGADTConstructor         :: TagKind
@@ -281,7 +281,27 @@ type ETagAddress = TagAddress ETAG
 
 
 deriving instance Eq   (TagAddress tk)
-deriving instance Ord  (TagAddress tk)
+-- We use a custom Ord instance so `TagLineCol` and `TagLine` are sorted based
+-- on line numbers, rather than by constructor.
+instance Ord  (TagAddress tk) where
+    compare (TagLineCol l c) (TagLineCol l' c')
+                                           = l `compare` l'
+                                          <> c `compare` c'
+    compare (TagLineCol l _) (TagLine l')  | l == l'
+                                           = LT
+                                           | otherwise
+                                           = l `compare` l'
+    compare (TagLine l) (TagLineCol l' _)  | l == l'
+                                           = GT
+                                           | otherwise
+                                           = l `compare` l'
+    compare (TagLine l) (TagLine l')       = l `compare` l'
+    compare (TagCommand c) (TagCommand c') = c `compare` c'
+    compare TagCommand{} _                 = LT
+    compare _ TagCommand{}                 = GT
+    compare NoAddress{} NoAddress{}        = EQ
+    compare NoAddress{} _                  = GT
+    compare _ NoAddress{}                  = LT
 deriving instance Show (TagAddress tk)
 instance NFData (TagAddress tt) where
   rnf x = x `seq` ()

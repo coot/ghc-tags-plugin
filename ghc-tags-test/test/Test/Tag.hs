@@ -176,8 +176,8 @@ ordTransitiveProp a b c =
 sortIdempotentProp :: [ArbTag] -> Bool
 sortIdempotentProp ts =
     let ts' = getArbTag `map` ts
-        ts'' = sortBy compareTags ts'
-    in sortBy compareTags ts'' == ts''
+        ts'' = sortBy CTag.compareTags ts'
+    in sortBy CTag.compareTags ts'' == ts''
 
 
 -- | The
@@ -205,7 +205,7 @@ instance Arbitrary ArbTagList where
     arbitrary = (ArbTagList . nub . sortBy CTag.compareTags . map getArbTag)
             <$> listOf arbitrary
     shrink (ArbTagList ts) =
-      (ArbTagList . sortBy compareTags) `map` shrinkList shrinkTag ts
+      (ArbTagList . sortBy CTag.compareTags) `map` shrinkList shrinkTag ts
 
 
 -- | List of tags from the same file
@@ -217,19 +217,26 @@ instance Arbitrary ArbTagsFromFile where
     arbitrary = do
       filePath <- genSmallFilePath
       ArbTagList tags <- arbitrary
-      let tags' = (\t -> t { tagFilePath = filePath, tagFields = mempty }) `map` tags
-      pure $ ArbTagsFromFile filePath (sortBy compareTags tags')
+      pure $ fixTagsFromFile (ArbTagsFromFile filePath tags)
 
     shrink (ArbTagsFromFile fp@(TagFilePath rawPath) tags) =
-      [ ArbTagsFromFile fp (sortBy compareTags tags')
+      [ fixTagsFromFile (ArbTagsFromFile fp tags')
       -- Don't shrink file name!
       | tags' <- shrinkList shrinkTag' tags
       ]
       ++
-      [ ArbTagsFromFile (TagFilePath rawPath') ((\t -> t { tagFilePath = TagFilePath rawPath' }) `map` tags)
+      [ fixTagsFromFile (ArbTagsFromFile (TagFilePath rawPath') tags)
       | rawPath' <- shrink rawPath
       , not (Text.null rawPath')
       ]
+
+
+-- Assigning one path and clearing fields can make previously distinct tags
+-- equal. Both generation and shrinking must restore the duplicate-free input.
+fixTagsFromFile :: ArbTagsFromFile -> ArbTagsFromFile
+fixTagsFromFile (ArbTagsFromFile filePath tags) =
+    ArbTagsFromFile filePath . nub . sortBy CTag.compareTags $
+      map (\tag -> tag { tagFilePath = filePath, tagFields = mempty }) tags
 
 
 --
@@ -294,7 +301,7 @@ combineTags_substitution (ArbTagsFromFile fp as) (ArbTagList bs) =
 combineTags_order :: ArbTagsFromFile -> ArbTagList -> Bool
 combineTags_order (ArbTagsFromFile fp as) (ArbTagList bs) =
     let cs = combineTags CTag.compareTags (encodeTagFilePath fp) as bs
-    in sortBy compareTags cs == cs
+    in sortBy CTag.compareTags cs == cs
 
 
 --
@@ -341,10 +348,10 @@ instance Arbitrary ArbTagsFromFileAndTagList where
                 fixAddresses
               . map (fixFile filePath)
               . nub
-              . sortBy compareTags
+              . sortBy CTag.compareTags
           <$> listOf tagGen
         tags <- nub
-              . sortBy compareTags
+              . sortBy CTag.compareTags
           <$> listOf tagGen
         pure $ ArbTagsFromFileAndTagList filePath tagsFromFile tags
       where

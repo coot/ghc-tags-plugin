@@ -146,4 +146,4 @@ formatTagsFileMap :: [Header] -- ^ Headers
                   -> Builder
 formatTagsFileMap headers tags =
       foldMap formatHeader headers
-   <> foldMap formatTag (sortBy compareTags . concat $ Map.elems tags)
+   <> foldMap formatTag (sortBy compareTags . map stripColumn . concat $ Map.elems tags)
