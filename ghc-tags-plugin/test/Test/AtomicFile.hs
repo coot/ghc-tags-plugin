@@ -1,4 +1,4 @@
-module Main (main) where
+module Test.AtomicFile (tests) where
 
 import Control.Concurrent
 import Control.Exception
@@ -6,13 +6,13 @@ import System.Directory
 import System.FilePath ((</>))
 import System.IO
 
-import Test.Tasty (defaultMain, testGroup)
+import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit
 
 import Plugin.GhcTags.AtomicFile
 
-main :: IO ()
-main = defaultMain $ testGroup "Atomic file updates"
+tests :: TestTree
+tests = testGroup "Atomic file updates"
     [ testCase "aborted initial update leaves no files" testAbortedInitialUpdate
     , testCase "successful update publishes replacement" testSuccessfulUpdate
     , testCase "aborted update preserves existing tags" testAbortedUpdate

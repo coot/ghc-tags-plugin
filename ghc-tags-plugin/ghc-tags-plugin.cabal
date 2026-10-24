@@ -89,29 +89,19 @@ executable gtp-check
                      , ghc-tags-plugin
 
 
-test-suite atomic-file
+test-suite tests
   import:              warnings
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test lib
-  main-is:             AtomicFile.hs
+  main-is:             main.hs
   other-modules:       Plugin.GhcTags.AtomicFile
+                       Plugin.GhcTags.Project
+                       Test.AtomicFile
+                       Test.ProjectFile
   build-depends:       base,
                        directory,
                        filepath,
                        tasty,
-                       tasty-hunit
-  default-language:    Haskell2010
-
-
-test-suite project-path
-  import:              warnings
-  type:                exitcode-stdio-1.0
-  hs-source-dirs:      test lib
-  main-is:             Project.hs
-  other-modules:       Plugin.GhcTags.Project
-  build-depends:       base,
-                       directory,
-                       filepath,
-                       tasty,
+                       tasty-hunit,
                        tasty-quickcheck
   default-language:    Haskell2010
