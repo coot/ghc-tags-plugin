@@ -250,7 +250,7 @@ updateTags :: Options Identity
            -> ModSummary
            -> Located GhcPsModule
            -> IO ()
-updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
+updateTags opts@Options { etags, stream, filePath = Identity tagsFile, debug }
            ModSummary {ms_mod, ms_location, ms_hspp_opts = dynFlags}
            lmodule = do
     case (etags, stream) of
@@ -371,7 +371,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                        $ lmodule
 
               -- Write header
-              BSL.hPut writeHandle (BB.toLazyByteString (foldMap CTag.formatHeader CTag.headers))
+              BSL.hPut writeHandle (BB.toLazyByteString (foldMap CTag.formatHeader (CTag.headers opts)))
               -- update tags file / run 'pipe'
               parsedTags <- Pipes.Safe.runSafeT $ execStateT (Pipes.runEffect (pipe tags)) 0
 
@@ -479,7 +479,7 @@ updateTags Options { etags, stream, filePath = Identity tagsFile, debug }
                     combined = combineTags CTag.compareTags modulePath tags parsedTags
 
                 BB.hPutBuilder writeHandle
-                          (    foldMap CTag.formatHeader CTag.headers
+                          (    foldMap CTag.formatHeader (CTag.headers opts)
                             <> foldMap CTag.formatTag combined
                           ) 
 
@@ -612,9 +612,9 @@ ghcTagsDriverPlugin opts env@HscEnv{ hsc_hooks } = do
 ghcTagsMetaHook :: [CommandLineOption] -> DynFlags -> MetaHook TcM
 ghcTagsMetaHook options dynFlags request expr =
     case runOptionParser options of
-      Success Options { filePath = Identity tagsFile
-                      , etags
-                      } -> do
+      Success opts@Options { filePath = Identity tagsFile
+                           , etags
+                           } -> do
 
         withMetaD defaultRunMeta request expr $ \decls ->
           liftIO $
@@ -665,7 +665,7 @@ ghcTagsMetaHook options dynFlags request expr =
                     mapM_ (printMessageDoc dynFlags ParseWarning Nothing) warnings
                     let tags = rights parsed
                         tags' :: [Either CTag.Header CTag]
-                        tags' = Left `map` CTag.headers
+                        tags' = Left `map` CTag.headers opts
                              ++ Right `map`
                                 -- Signatures were reconciled in AST binding
                                 -- groups. Distinct generated scopes can share

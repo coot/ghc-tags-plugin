@@ -1,22 +1,26 @@
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Plugin.GhcTags.CTag where
 
+import           Data.Functor.Identity
+import           Data.Text (Text)
 import qualified Data.Text as Text
-import Data.Version
+import           Data.Version
 
-import Paths_ghc_tags_plugin
+import           Paths_ghc_tags_plugin
 
+import           Plugin.GhcTags.Options (Options (..))
 import           GhcTags.CTag.Header
 
 
-headers :: [Header]
-headers =
+headers :: Options Identity -> [Header]
+headers options =
     [ Header FileFormat     Nothing 2 ""
     , Header FileSorted     Nothing 1 ""
     , Header FileEncoding   Nothing "utf-8" ""
     , Header ProgramAuthor  Nothing "Marcin Szamotulski" ""
-    , Header ProgramName    Nothing "ghc-tags-plugin" ""
+    , Header ProgramName    Nothing "ghc-tags-plugin" (displayOptions options)
     , Header ProgramUrl     Nothing "https://hackage.haskell.org/package/ghc-tags-plugin" ""
     , Header ProgramVersion Nothing (Text.pack $ showVersion version) ""
 
@@ -49,3 +53,19 @@ headers =
     ]
   where
     haskellLang = Just "Haskell"
+
+
+displayOptions :: Options Identity -> Text
+displayOptions Options { etags,
+                         stream,
+                         filePath = Identity filePath,
+                         debug } =
+    Text.intercalate " " $
+      [ "--etags"  | etags ]
+      ++
+      [ "--stream" | stream ]
+      ++
+      [ "--debug"  | debug ]
+      ++
+      [ Text.pack filePath ]
+
