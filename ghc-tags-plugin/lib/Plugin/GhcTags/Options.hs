@@ -32,7 +32,7 @@ streamParser = switch $
 filePathParser :: Parser FilePath
 filePathParser =
     strArgument $
-         help "tags file: default tags or TAGS (when --etags is specified)"
+         help "tags file relative to cabal.project or stack.yaml: default tags or TAGS (with --etags)"
       <> metavar "file_path"
 
 debugParser :: Parser Bool
@@ -54,7 +54,8 @@ data Options f = Options
     -- file destination.
 
   , filePath :: f FilePath
-    -- ^ file path to the tags file (relative to the @*.cabal@ file).  The
+    -- ^ file path to the tags file, relative to @cabal.project@ or @stack.yaml@.
+    -- If neither is found, use the @*.cabal@ package directory and warn. The
     -- default is either 'tags' (if 'etags' if 'False') or 'TAGS' otherwise.
 
   , debug :: Bool

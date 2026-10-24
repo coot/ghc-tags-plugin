@@ -48,6 +48,7 @@ library
                        Plugin.GhcTags.FileLock
   other-modules:       Plugin.GhcTags.AtomicFile
                        Plugin.GhcTags.CTag
+                       Plugin.GhcTags.Project
                        Paths_ghc_tags_plugin
   autogen-modules:     Paths_ghc_tags_plugin
   build-depends:       base              >=4.12 && < 4.23,
@@ -99,4 +100,18 @@ test-suite atomic-file
                        filepath,
                        tasty,
                        tasty-hunit
+  default-language:    Haskell2010
+
+
+test-suite project-path
+  import:              warnings
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test lib
+  main-is:             Project.hs
+  other-modules:       Plugin.GhcTags.Project
+  build-depends:       base,
+                       directory,
+                       filepath,
+                       tasty,
+                       tasty-quickcheck
   default-language:    Haskell2010
