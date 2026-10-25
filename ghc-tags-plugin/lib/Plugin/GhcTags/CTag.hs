@@ -59,13 +59,16 @@ displayOptions :: Options Identity -> Text
 displayOptions Options { etags,
                          stream,
                          filePath = Identity filePath,
-                         debug } =
+                         debug,
+                         qualified } =
     Text.intercalate " " $
       [ "--etags"  | etags ]
       ++
       [ "--stream" | stream ]
       ++
       [ "--debug"  | debug ]
+      ++
+      [ "--qualified" | qualified ]
       ++
       [ Text.pack filePath ]
 

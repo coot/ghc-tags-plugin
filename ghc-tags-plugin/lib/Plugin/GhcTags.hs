@@ -69,9 +69,15 @@ import           GHC.Types.Meta   ( MetaHook
                                   , metaRequestT
                                   )
 import           GHC.Driver.Hooks (Hooks (..))
-import           GHC.Unit.Types   (Module)
+import           GHC.Unit.Types   (Module, moduleName)
+#if MIN_VERSION_GLASGOW_HASKELL(9,6,0,0)
+import           Language.Haskell.Syntax.Module.Name (moduleNameString)
+#else
+import           GHC.Unit.Module.Name (moduleNameString)
+#endif
 import           GHC.Unit.Module.Location   (ModLocation (..))
-import           GHC.Tc.Types (TcM)
+import           GHC.Tc.Types (TcM, tcg_mod)
+import           GHC.Tc.Utils.Monad (getGblEnv)
 import           GHC.Tc.Gen.Splice (defaultRunMeta)
 import           GHC.Types.SrcLoc (Located)
 import qualified GHC.Types.SrcLoc as GHC (SrcSpan (..), getLoc, srcSpanFile)
@@ -370,6 +376,7 @@ updateTags opts@Options { etags, stream, filePath = Identity tagsFile, debug }
                                               -- fix file names
                        . prepareTags CTag.compareTags
                                               -- filter and sort
+                       . qualifyTags opts ms_mod
                        . mapMaybe (ghcTagToTag SingCTag dynFlags)
                                               -- translate 'GhcTag' to 'Tag'
                        . getGhcTags           -- generate 'GhcTag's
@@ -475,6 +482,7 @@ updateTags opts@Options { etags, stream, filePath = Identity tagsFile, debug }
                                                 -- fix file names
                          . prepareTags CTag.compareTags
                                                 -- filter and sort
+                         . qualifyTags opts ms_mod
                          . mapMaybe (ghcTagToTag SingCTag dynFlags)
                                                 -- translate 'GhcTag' to 'Tag'
                          . getGhcTags           -- generate 'GhcTag's
@@ -576,6 +584,7 @@ updateTags opts@Options { etags, stream, filePath = Identity tagsFile, debug }
                       tags :: [ETag]
                       tags = prepareTags ETag.compareTags
                            . map (fixTagFilePath cwd tagsDir)
+                           . qualifyTags opts ms_mod
                            . mapMaybe (ghcTagToTag SingETag dynFlags)
                            . getGhcTags
                            $ lmodule
@@ -619,7 +628,8 @@ ghcTagsMetaHook options dynFlags request expr =
     case runOptionParser options of
       Success parsedOptions -> do
 
-        withMetaD defaultRunMeta request expr $ \decls ->
+        withMetaD defaultRunMeta request expr $ \decls -> do
+          mod_ <- tcg_mod <$> getGblEnv
           liftIO $ withResolvedOptions dynFlags Nothing parsedOptions $ \opts@Options
             { filePath = Identity tagsFile, etags } ->
             handle (\ioerr -> do
@@ -640,6 +650,11 @@ ghcTagsMetaHook options dynFlags request expr =
             tagsDir <- rawFilePathFromBS . BSC.pack <$> canonicalizePath (fst $ FilePath.splitFileName tagsFile)
 #endif
             tagsContent <- BSC.readFile tagsFile
+            let newTags :: SingTagKind tk -> [Tag tk]
+                newTags sing = qualifyTags opts mod_
+                             $ mapMaybe (fmap (fixTagFilePath cwd tagsDir)
+                                         . ghcTagToTag sing dynFlags)
+                             $ hsDeclsToGhcTags Nothing decls
             if etags
               then do
                 pr <- ETag.parseTagsFileRecovering tagsContent
@@ -653,10 +668,7 @@ ghcTagsMetaHook options dynFlags request expr =
                         tags' = sortBy ETag.compareTags $
                                   tags
                                   ++
-                                  (fmap (fixTagFilePath cwd tagsDir)
-                                  . ghcTagToTag SingETag dynFlags)
-                                    `mapMaybe`
-                                     hsDeclsToGhcTags Nothing decls
+                                  newTags SingETag
                     withAtomicFile tagsFile $ \h ->
                       True <$ BSL.hPut h (BB.toLazyByteString $ ETag.formatETagsFile tags')
               else do
@@ -677,10 +689,7 @@ ghcTagsMetaHook options dynFlags request expr =
                                 (sortBy CTag.compareTags
                                   ( tags
                                     ++
-                                    (fmap (fixTagFilePath cwd tagsDir)
-                                      . ghcTagToTag SingCTag dynFlags)
-                                      `mapMaybe`
-                                      hsDeclsToGhcTags Nothing decls
+                                    newTags SingCTag
                                   ))
                     withAtomicFile tagsFile $ \h ->
                       True <$ BSL.hPut h (BB.toLazyByteString $ CTag.formatTagsFile tags')
@@ -710,6 +719,14 @@ ghcTagsMetaHook options dynFlags request expr =
         res <- metaRequestD h e
         k res <$ f res
       MetaAW k -> k <$> metaRequestAW h e
+
+
+-- | Add aliases only to newly extracted declarations, before sorting and
+-- merging them with tags from other modules.
+qualifyTags :: Options Identity -> Module -> [Tag tk] -> [Tag tk]
+qualifyTags Options {qualified} mod_
+  | qualified = addQualifiedTags (Text.pack $ moduleNameString $ moduleName mod_)
+  | otherwise = id
 
 
 --

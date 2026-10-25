@@ -19,6 +19,30 @@ import           GhcTags.Tag
 -- Generators
 --
 
+newtype ArbModuleName = ArbModuleName Text
+  deriving Show
+
+instance Arbitrary ArbModuleName where
+    arbitrary = ArbModuleName . fixModuleName . Text.intercalate "." <$>
+      resize 5 (listOf1 (Text.pack <$> resize 12
+        (listOf1 (elements (['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9'] ++ "_'")))))
+    shrink (ArbModuleName name) =
+      [ ArbModuleName smaller
+      | smaller <- map fixModuleName (shrink name)
+      , (Text.length smaller, smaller) < (Text.length name, name)
+      ]
+
+
+fixModuleName :: Text -> Text
+fixModuleName = Text.intercalate "." . map fixComponent . Text.splitOn "."
+  where
+    fixComponent component =
+      let valid = Text.filter (\c -> Char.isAscii c && (Char.isAlphaNum c || c `elem` ("_'" :: String))) component
+      in case Text.uncons valid of
+        Just (first, _) | Char.isUpper first -> valid
+        _ -> "M" <> valid
+
+
 -- a quick hack
 genTextNonEmpty :: Gen Text
 genTextNonEmpty =

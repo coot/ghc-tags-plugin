@@ -8,7 +8,7 @@ import qualified Data.Attoparsec.ByteString.Char8 as AChar
 import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Char8 as BS.Char8
 import qualified Data.ByteString.Lazy as BL
-import           Data.List (sortBy)
+import           Data.List (sort, sortBy)
 import           Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
@@ -36,7 +36,20 @@ tests = testGroup "CTag"
     , testProperty "charToTagKind . tagKindToChar" tagKindTagKindToTagKindProp
     ]
   , testProperty "same-location signature filtering matches model" filterSameLocationSignaturesProp
+  , testProperty "qualified names preserve declarations and metadata" qualifiedCTagsProp
   ]
+
+qualifiedCTagsProp :: ArbModuleName -> [ArbCTag] -> Property
+qualifiedCTagsProp (ArbModuleName moduleName) input =
+    let tags = map getArbCTag input
+        expected = concat
+          [ if tagKind tag == TkModule then [tag]
+            else [tag, tag {tagName = TagName (Text.intercalate "." [moduleName, getTagName $ tagName tag])}]
+          | tag <- tags
+          ]
+    in checkCoverage
+       $ cover 10 (any ((== TkModule) . tagKind) tags) "module tags"
+       $ sort (addQualifiedTags moduleName tags) === sort expected
 
 --
 -- CTag generator

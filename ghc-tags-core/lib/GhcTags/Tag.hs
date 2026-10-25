@@ -44,6 +44,7 @@ module GhcTags.Tag
   , combineTags
   , filterSameLocationTags
   , prepareTags
+  , addQualifiedTags
     -- ** File paths
   , RawFilePath
   , rawFilePathToBS
@@ -540,6 +541,18 @@ prepareTags compareFn tags = sortBy compareFn (filter (not . redundant) tags)
     redundant tag = case tagKind tag of
       TkTypeConstructor -> identifier tag `Set.member` constructors
       _                 -> False
+
+
+-- | Append aliases prefixed by the defining module's name. Keep the original
+-- tags and all declaration metadata. Module tags already name the module and
+-- are not qualified again. Call this on freshly generated tags, before sorting;
+-- import aliases and re-exports require information from the importing module.
+addQualifiedTags :: Text -> [Tag tk] -> [Tag tk]
+addQualifiedTags moduleName tags = tags ++
+    [ tag {tagName = TagName (moduleName <> "." <> getTagName (tagName tag))}
+    | tag <- tags
+    , tagKind tag /= TkModule
+    ]
 
 
 -- | A left biased semigroup for 'Tag', which allows to merge 'TagFields' using
