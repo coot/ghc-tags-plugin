@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Correct export flags for associated type/data family instances and type defaults.
+  Tag defaults using the family name rather than the right-hand-side type, and
+  keep data-instance constructors private unless their exports include them.
+
+- Omit `file:` on default and instance methods exported through their class,
+  including instance signatures, while retaining it on nested local bindings.
+
 - Emit pattern synonym signatures with the signature kind (`⊢`) and a `type:`
   field, suppressing the corresponding pattern definition tags. Unsigned pattern
   definitions retain the pattern kind (`p`).

@@ -228,38 +228,36 @@ isMemberExported (Just ies) memberName  className  = any go ies
 #if MIN_VERSION_GHC(9,10)
     go (IEVar _ (L _ n) _) = ieWrappedName n == unLoc memberName
 
-    go (IEThingAbs _ _ _) = False
+    go (IEThingAbs _ (L _ n) _) = ieWrappedName n == unLoc memberName
 
-    go (IEThingAll _ (L _ n) _) = ieWrappedName n == unLoc className
+    go (IEThingAll _ (L _ n) _) = ieWrappedName n `elem` [unLoc memberName, unLoc className]
 
-    go (IEThingWith _ (L _ n) IEWildcard{} _ _) = ieWrappedName n == unLoc className
+    go (IEThingWith _ (L _ n) IEWildcard{} _ _) = ieWrappedName n `elem` [unLoc memberName, unLoc className]
 
     go (IEThingWith _ (L _ n) NoIEWildcard ns _) =
-            ieWrappedName n == unLoc className
-         &&  isInWrappedNames
-      where
-        -- the 'NameSpace' does not agree between things that are in the 'IE'
-        -- list and passed member or type class names (constructor / type
-        -- constructor names, respectively)
-        isInWrappedNames = any ((== occNameFS (rdrNameOcc (unLoc memberName))) . occNameFS . rdrNameOcc . ieWrappedName . unLoc) ns
+            ieWrappedName n == unLoc memberName
+         || (ieWrappedName n == unLoc className && isInWrappedNames)
 #else
     go (IEVar _ (L _ n)) = ieWrappedName n == unLoc memberName
 
-    go (IEThingAbs _ _)  = False
+    go (IEThingAbs _ (L _ n)) = ieWrappedName n == unLoc memberName
 
-    go (IEThingAll _ (L _ n)) = ieWrappedName n == unLoc className
+    go (IEThingAll _ (L _ n)) = ieWrappedName n `elem` [unLoc memberName, unLoc className]
 
-    go (IEThingWith _ (L _ n) IEWildcard{} _) = ieWrappedName n == unLoc className
+    go (IEThingWith _ (L _ n) IEWildcard{} _) = ieWrappedName n `elem` [unLoc memberName, unLoc className]
 
     go (IEThingWith _ (L _ n) NoIEWildcard ns) =
-            ieWrappedName n == unLoc className
-         &&  isInWrappedNames
+            ieWrappedName n == unLoc memberName
+         || (ieWrappedName n == unLoc className && isInWrappedNames)
+#endif
       where
         -- the 'NameSpace' does not agree between things that are in the 'IE'
         -- list and passed member or type class names (constructor / type
         -- constructor names, respectively)
-        isInWrappedNames = any ((== occNameFS (rdrNameOcc (unLoc memberName))) . occNameFS . rdrNameOcc . ieWrappedName . unLoc) ns
-#endif
+        isInWrappedNames =
+            any ((== occNameFS (rdrNameOcc (unLoc memberName))))
+          . map (occNameFS . rdrNameOcc . ieWrappedName . unLoc)
+          $ ns
 
     go _ = False
 
@@ -450,19 +448,10 @@ hsDeclsToGhcTags mies decls =
                                tcdMeths
             -- associated types
             ++ ((\a -> mkFamilyDeclTags decLoc a (Just $ unSpanAnn tcdLName)) . unLoc) `mapMaybe` tcdATs
-            -- associated type defaults (data type families, type families
-            -- (open or closed)
-            ++ Foldable.foldl'
-                (\tags' (L _ decl'@(TyFamInstDecl { tfid_eqn = tyFamDeflEqn })) ->
-                  let decl = Just decl' in
-                    case tyFamDeflEqn of
-                      FamEqn { feqn_rhs = L _ hsType } ->
-                        case hsTypeTagName hsType of
-                          -- TODO: add a `default` field
-                          Just a  -> mkGhcTag' decLoc a (GtkTypeFamilyInstance decl) : tags'
-                          Nothing -> tags'
-                )
-                [] tcdATDefs
+            -- associated type defaults
+            ++ (mkTyFamInstDeclTag
+                  (\name -> isMemberExported mies name (unSpanAnn tcdLName)) decLoc . unLoc)
+               `mapMaybe` tcdATDefs
             ++ tags
 
       -- Instance declarations
@@ -486,8 +475,8 @@ hsDeclsToGhcTags mies decls =
                         Just tag -> tag : map (fixTagKind (unLoc body)) (tyFamTags ++ dataFamTags ++ bindsTags ++ sigsTags) ++ tags
                 where
                   -- associated type and data type family instances
-                  dataFamTags = (mkDataFamInstDeclTag decLoc . unLoc) `concatMap` cid_datafam_insts
-                  tyFamTags   = (mkTyFamInstDeclTag   decLoc . unLoc) `mapMaybe`  cid_tyfam_insts
+                  dataFamTags = (mkDataFamInstDeclTag memberExported decLoc . unLoc) `concatMap` cid_datafam_insts
+                  tyFamTags   = (mkTyFamInstDeclTag memberExported decLoc . unLoc) `mapMaybe`  cid_tyfam_insts
                   className = hsTypeTagName (hsSigTypeToHsType $ unLoc cid_poly_ty)
                   memberExported name =
                     maybe (isExported mies name) (isMemberExported mies name) className
@@ -500,11 +489,11 @@ hsDeclsToGhcTags mies decls =
 
           -- data family instance
           DataFamInstD { dfid_inst } ->
-            mkDataFamInstDeclTag decLoc dfid_inst ++ tags
+            mkDataFamInstDeclTag (isExported mies) decLoc dfid_inst ++ tags
 
           -- type family instance
           TyFamInstD { tfid_inst } ->
-            case mkTyFamInstDeclTag decLoc tfid_inst of
+            case mkTyFamInstDeclTag (isExported mies) decLoc tfid_inst of
               Nothing  ->       tags
               Just tag -> tag : tags
 
@@ -799,29 +788,33 @@ hsDeclsToGhcTags mies decls =
 
     -- data family instance declaration
     --
-    mkDataFamInstDeclTag :: SrcSpan -> DataFamInstDecl GhcPs -> GhcTags
-    mkDataFamInstDeclTag decLoc DataFamInstDecl { dfid_eqn } =
+    mkDataFamInstDeclTag :: (Located RdrName -> Bool) -> SrcSpan -> DataFamInstDecl GhcPs -> GhcTags
+    mkDataFamInstDeclTag exported decLoc DataFamInstDecl { dfid_eqn } =
       case dfid_eqn of
 
         FamEqn { feqn_tycon, feqn_rhs } ->
           case feqn_rhs of
             HsDataDefn { dd_cons, dd_kindSig } ->
-                mkGhcTag' decLoc (unSpanAnn feqn_tycon)
-                          (GtkDataTypeFamilyInstance
-                            (unLoc <$> dd_kindSig))
+                (fixLoc decLoc $
+                  mkGhcTag (unSpanAnn feqn_tycon)
+                           (GtkDataTypeFamilyInstance (unLoc <$> dd_kindSig))
+                           (exported $ unSpanAnn feqn_tycon))
               : (mkConsTags decLoc (unSpanAnn feqn_tycon) . unLoc)
                 `concatMap` dd_cons
 
 
     -- type family instance declaration
     --
-    mkTyFamInstDeclTag :: SrcSpan -> TyFamInstDecl GhcPs -> Maybe GhcTag
-    mkTyFamInstDeclTag decLoc decl@TyFamInstDecl { tfid_eqn } =
+    mkTyFamInstDeclTag :: (Located RdrName -> Bool) -> SrcSpan -> TyFamInstDecl GhcPs -> Maybe GhcTag
+    mkTyFamInstDeclTag exported decLoc decl@TyFamInstDecl { tfid_eqn } =
       case tfid_eqn of
 
         -- TODO: should we check @feqn_rhs :: LHsType GhcPs@ as well?
         FamEqn { feqn_tycon } ->
-          Just $ mkGhcTag' decLoc (unSpanAnn feqn_tycon) (GtkTypeFamilyInstance (Just decl))
+          Just $ fixLoc decLoc $
+            mkGhcTag (unSpanAnn feqn_tycon)
+                     (GtkTypeFamilyInstance (Just decl))
+                     (exported $ unSpanAnn feqn_tycon)
 
 #if MIN_VERSION_GHC(9,10)
 unSpanAnn :: HasLoc a => GenLocated a e -> GenLocated SrcSpan e

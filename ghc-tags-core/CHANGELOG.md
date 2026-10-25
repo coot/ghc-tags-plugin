@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Respect class exports for associated family instances and defaults, and direct
+  exports of associated families. Name default equations after their family,
+  retaining their left-hand-side location, and check data constructors separately.
+
+- Use class member exports for default methods and instance methods, including
+  instance signatures. Keep nested local bindings private, even when their names
+  match exported methods.
+
 - Classify pattern synonym signatures as type signatures, retaining their type
   metadata. Suppress pattern definition tags when a signature exists in the same
   binding group, as for functions, and retain unsigned pattern definitions.
