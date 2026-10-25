@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Emit pattern synonym signatures with the signature kind (`⊢`) and a `type:`
+  field, while retaining the pattern kind (`p`) for their definitions.
+
 - Add `--qualified` to emit defining-module-qualified names alongside ordinary
   names, including Template Haskell declarations, in ctags and etags output.
 

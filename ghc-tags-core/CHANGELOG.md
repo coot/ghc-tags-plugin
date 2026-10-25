@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Classify pattern synonym signatures as type signatures, retaining their type
+  metadata and keeping the separate pattern definition tags.
+
 - Add `addQualifiedTags` to retain ordinary tags and add aliases prefixed by
   their defining module, preserving declaration metadata and module tags.
 
