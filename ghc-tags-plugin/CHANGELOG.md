@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Extend `gtp-check` with duplicate declaration reports, source file and line
+  checks, and comparison of ctags and etags declaration locations, preserving
+  duplicate counts and resolving paths relative to each tags file.
+
+
 - Resolve relative tags paths from the nearest `cabal.project` or `stack.yaml`,
   honoring `STACK_YAML`. Warn and fall back to the package directory when no
   project configuration is found.
