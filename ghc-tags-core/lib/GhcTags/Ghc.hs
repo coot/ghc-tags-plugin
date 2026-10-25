@@ -80,6 +80,7 @@ import           GHC.Hs.Type
                               , HsTyVarBndr (..)
                               , HsType (..)
                               , HsWildCardBndrs
+                              , mkHsWildCardBndrs
                               , LFieldOcc
                               , LHsQTyVars (..)
                               , LHsSigType
@@ -668,8 +669,9 @@ hsDeclsToGhcTags mies decls =
       ( (\n -> mkGhcTagForMember decLoc n clsName (GtkTypeSignature hsSigWcType))
       . unSpanAnn )
       `map` lhs
-    mkClsMemberTags decLoc clsName (PatSynSig _ lhs _) =
-      ( (\n -> mkGhcTagForMember decLoc n clsName GtkPatternSynonym)
+    mkClsMemberTags decLoc clsName (PatSynSig _ lhs hsSigType) =
+      ( (\n -> mkGhcTagForMember decLoc n clsName
+                                (GtkTypeSignature $ mkHsWildCardBndrs hsSigType))
       . unSpanAnn )
       `map` lhs
     mkClsMemberTags decLoc clsName (ClassOpSig _ _ lhs (L _ hsType)) =
@@ -686,8 +688,9 @@ hsDeclsToGhcTags mies decls =
                                                 (GtkTypeSignature hsSigWcType)
                                          . unSpanAnn )
                                          `map` lhs
-    mkSigTags decLoc (PatSynSig _ lhs _)
-                                       = ( flip (mkGhcTag' decLoc) GtkPatternSynonym
+    mkSigTags decLoc (PatSynSig _ lhs hsSigType)
+                                       = ( flip (mkGhcTag' decLoc)
+                                                (GtkTypeSignature $ mkHsWildCardBndrs hsSigType)
                                          . unSpanAnn )
                                          `map` lhs
     mkSigTags decLoc (ClassOpSig _ _ lhs (L _ hsType))

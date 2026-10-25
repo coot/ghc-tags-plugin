@@ -102,12 +102,15 @@ test-suite tests
                        GhcTags.Check
                        Test.AtomicFile
                        Test.Check
+                       Test.Ghc
+                       Test.Ghc.Generators
                        Test.ProjectFile
   build-depends:       base,
                        bytestring,
                        containers,
                        directory,
                        filepath,
+                       ghc,
                        ghc-tags-core,
                        quickcheck-instances,
                        tasty,
