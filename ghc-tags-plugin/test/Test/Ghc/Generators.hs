@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP            #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
-module Test.Ghc.Generators (ArbHsDecl (..), ArbClassModule (..)) where
+module Test.Ghc.Generators (ArbHsDecl (..), ArbClassModule (..), ArbFamilyModule (..)) where
 
 import Data.Char (isUpper)
 import Data.List (intercalate)
@@ -9,12 +9,17 @@ import qualified GHC.Data.EnumSet as EnumSet
 import GHC.Data.FastString (mkFastString)
 import GHC.Data.StringBuffer (stringToStringBuffer)
 import GHC.Hs
+import GHC.LanguageExtensions.Type (Extension (TypeFamilies, ExplicitNamespaces))
 import qualified GHC.Parser as Parser
 import GHC.Parser.Lexer (ParseResult (..), initParserState, mkParserOpts, unP)
 import GHC.Types.Name.Occurrence (mkDataOcc, mkOccName, mkTcOcc, occNameSpace, occNameString)
 import GHC.Types.Name.Reader (RdrName, mkRdrUnqual, rdrNameOcc)
 import GHC.Types.SrcLoc (GenLocated (..), Located, mkRealSrcLoc, unLoc)
+#if MIN_VERSION_GLASGOW_HASKELL(9,8,0,0)
 import GHC.Utils.Error (emptyDiagOpts)
+#else
+import GHC.Utils.Error (DiagOpts (..))
+#endif
 import qualified GHC.Utils.Outputable as Out
 import Test.Tasty.QuickCheck
 
@@ -140,7 +145,7 @@ instance Arbitrary ArbClassModule where
         signature <- elements ["", "  " ++ name ++ " :: Int -> ()\n"]
         binding <- methodBinding name
         pure (signature ++ binding)) methods
-      pure $ parseClassModule $
+      pure $ ArbClassModule $ parseModule $
            "module Example " ++ exports ++ " where\n"
         ++ "class " ++ className ++ " a where\n"
         ++ concat ["  " ++ name ++ " :: a -> ()\n" | name <- methods]
@@ -166,15 +171,82 @@ methodBinding name = do
         ++ "      " ++ helper ++ " _ = ()\n"
 
 
-parseClassModule :: String -> ArbClassModule
-parseClassModule source =
+#if !MIN_VERSION_GLASGOW_HASKELL(9,8,0,0)
+emptyDiagOpts :: DiagOpts
+emptyDiagOpts = DiagOpts
+  { diag_warning_flags       = EnumSet.empty
+  , diag_fatal_warning_flags = EnumSet.empty
+  , diag_warn_is_error       = False
+  , diag_reverse_errors      = False
+  , diag_max_errors          = Nothing
+  , diag_ppr_ctx             = Out.defaultSDocContext
+  }
+#endif
+
+
+parseModule :: String -> Located (HsModule GhcPs)
+parseModule source =
     case unP Parser.parseModule (initParserState options (stringToStringBuffer source) location) of
-      POk _ ast -> ArbClassModule ast
-      PFailed _ -> error ("Invalid generated class module:\n" ++ source)
+      POk _ ast -> ast
+      PFailed _ -> error ("Invalid generated module:\n" ++ source)
   where
     location = mkRealSrcLoc (mkFastString "Example.hs") 1 1
-    options = mkParserOpts EnumSet.empty emptyDiagOpts
+    options = mkParserOpts (EnumSet.fromList [TypeFamilies, ExplicitNamespaces]) emptyDiagOpts
 #if !MIN_VERSION_GLASGOW_HASKELL(9,14,0,0)
                 []
 #endif
                 False False False False
+
+
+newtype ArbFamilyModule = ArbFamilyModule { getArbFamilyModule :: Located (HsModule GhcPs) }
+
+instance Show ArbFamilyModule where
+    show = Out.renderWithContext Out.defaultSDocContext . Out.ppr . getArbFamilyModule
+
+instance Arbitrary ArbFamilyModule where
+    arbitrary = do
+      ConstructorName suffix <- arbitrary
+      familySuffixes <- resize 4 arbitrary
+      let className = "Class" ++ suffix
+      families <- mapM (\(i, ConstructorName name) -> do
+        associated <- arbitrary
+        withDefault <- arbitrary
+        record <- arbitrary
+        rhs <- elements ["Maybe a", "[a]", "(a, a)", "a"]
+        let ty = "Type" ++ name ++ show i
+            dat = "Data" ++ name ++ show i
+            con = "Mk" ++ dat
+            field = "field" ++ dat
+            declaration = ["type " ++ ty ++ " a", "data " ++ dat ++ " a"]
+            def = ["type " ++ ty ++ " a = " ++ rhs | withDefault]
+            equations = [ "type " ++ ty ++ " Int = Bool"
+                        , "data " ++ dat ++ " Int = " ++ con
+                            ++ if record then " { " ++ field ++ " :: Int }" else " Int" ]
+            standalone = ["type family " ++ ty ++ " a", "data family " ++ dat ++ " a",
+                          "type instance " ++ ty ++ " Int = Bool",
+                          "data instance " ++ dat ++ " Int = " ++ con
+                            ++ if record then " { " ++ field ++ " :: Int }" else " Int"]
+            exports = [ty, "type " ++ ty, dat, dat ++ "(..)", dat ++ "(" ++ con ++ ")"]
+                   ++ [field | record]
+                   ++ [dat ++ "(" ++ field ++ ")" | record]
+                   ++ [className ++ "(" ++ member ++ ")" | associated, member <- [ty, dat]]
+        pure (if associated then ([], declaration ++ def, equations, exports)
+                            else (standalone, [], [], exports)))
+        (zip [0 :: Int ..] familySuffixes)
+      exports <- sublistOf ([className, className ++ "(..)", "Eq(..)"]
+                        ++ concat [es | (_, _, _, es) <- families])
+      exportList <- frequency [(1, pure ""), (4, pure $ "(" ++ intercalate "," exports ++ ")")]
+      pure $ ArbFamilyModule $ parseModule $
+           "module Example " ++ exportList ++ " where\n"
+        ++ unlines (concat [ds | (ds, _, _, _) <- families])
+        ++ "class " ++ className ++ " a where\n"
+        ++ unlines ["  " ++ d | (_, ds, _, _) <- families, d <- ds]
+        ++ "instance " ++ className ++ " Int where\n"
+        ++ unlines ["  " ++ d | (_, _, ds, _) <- families, d <- ds]
+    shrink (ArbFamilyModule ast@(L _ HsModule {hsmodExports})) =
+      [ ArbFamilyModule (fmap (\mod_ -> mod_ {hsmodExports = smaller}) ast)
+      | smaller <- case hsmodExports of
+          Nothing -> [Just $ noLocA []]
+          Just exports ->
+            [Just (fmap (const entries) exports) | entries <- shrinkList (const []) (unLoc exports)]
+      ]
