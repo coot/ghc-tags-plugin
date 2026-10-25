@@ -17,7 +17,7 @@ import Test.Ghc.Generators
 
 tests :: TestTree
 tests = testGroup "Ghc"
-    [ testProperty "pattern signatures and definitions have distinct kinds" patternSignatureProp ]
+    [ testProperty "pattern signatures replace definitions in the same binding group" patternSignatureProp ]
 
 
 patternSignatureProp :: [ArbHsDecl] -> Property
@@ -33,7 +33,7 @@ patternSignatureProp input =
                   GtkPatternSynonym -> ("pattern", "")
                   _ -> ("unexpected", "")
           ]
-        expected = concatMap (\decl -> case unLoc decl of
+        declarationsModel = concatMap (\decl -> case unLoc decl of
           SigD _ (PatSynSig _ names signature) ->
             [ (occNameString $ rdrNameOcc $ unLoc name, "signature",
                Out.renderWithContext Out.defaultSDocContext $ Out.ppr signature)
@@ -42,9 +42,13 @@ patternSignatureProp input =
           ValD _ (PatSynBind _ PSB {psb_id}) ->
             [(occNameString $ rdrNameOcc $ unLoc psb_id, "pattern", "")]
           _ -> []) declarations
-        signatures = [name | (name, "signature", _) <- expected]
-        definitions = [name | (name, "pattern", _) <- expected]
+        signatures = [name | (name, "signature", _) <- declarationsModel]
+        definitions = [name | (name, "pattern", _) <- declarationsModel]
+        expected = filter
+          (\(name, kind, _) -> kind /= "pattern" || name `notElem` signatures)
+          declarationsModel
     in checkCoverage
        $ cover 30 (not (null signatures) && not (null definitions)) "signatures and definitions"
        $ cover 20 (any (`elem` definitions) signatures) "matching signature and definition names"
+       $ cover 20 (any (`notElem` signatures) definitions) "unsigned pattern definitions"
        $ actual === expected
