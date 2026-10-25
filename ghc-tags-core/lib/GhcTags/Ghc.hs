@@ -359,7 +359,14 @@ hsDeclsToGhcTags mies decls =
     -- Only signatures in the current binding group can replace a definition.
     signatureNames :: [Sig GhcPs] -> Set RdrName
     signatureNames sigs = Set.fromList
-      [ unLoc name | TypeSig _ names _ <- sigs, name <- names ]
+      [ unLoc name
+      | sig <- sigs
+      , name <- case sig of
+          TypeSig    _ names _   -> names
+          PatSynSig  _ names _   -> names
+          ClassOpSig _ _ names _ -> names
+          _                      -> []
+      ]
 
     fixLoc :: SrcSpan -> GhcTag -> GhcTag
     fixLoc loc gt@GhcTag { gtSrcSpan = UnhelpfulSpan {} } = gt { gtSrcSpan = loc }
@@ -657,7 +664,8 @@ hsDeclsToGhcTags mies decls =
         VarBind { var_id, var_rhs = L srcSpan _ } ->
           bindingTag (unSpanAnn $ L srcSpan var_id) GtkTerm
 
-        PatSynBind _ PSB { psb_id } -> [mkGhcTag' decLoc (unSpanAnn psb_id) GtkPatternSynonym]
+        PatSynBind _ PSB { psb_id } ->
+          bindingTag (unSpanAnn psb_id) GtkPatternSynonym
       where
         bindingTag name kind
           | unLoc name `Set.member` signedNames = []
