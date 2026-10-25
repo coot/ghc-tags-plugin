@@ -441,7 +441,11 @@ hsDeclsToGhcTags mies decls =
                -- class methods
              : (mkClsMemberTags decLoc (unSpanAnn tcdLName) . unLoc) `concatMap` tcdSigs
                -- default methods
-            ++ Foldable.foldl' (\tags' hsBind -> mkHsBindLRTags signedMethods decLoc (unLoc hsBind) ++ tags')
+            ++ Foldable.foldl' (\tags' hsBind ->
+                                    mkHsBindLRTags
+                                      (\name -> isMemberExported mies name (unSpanAnn tcdLName))
+                                      signedMethods decLoc (unLoc hsBind)
+                                 ++ tags')
                                []
                                tcdMeths
             -- associated types
@@ -484,9 +488,13 @@ hsDeclsToGhcTags mies decls =
                   -- associated type and data type family instances
                   dataFamTags = (mkDataFamInstDeclTag decLoc . unLoc) `concatMap` cid_datafam_insts
                   tyFamTags   = (mkTyFamInstDeclTag   decLoc . unLoc) `mapMaybe`  cid_tyfam_insts
-                  bindsTags   = (mkHsBindLRTags (signatureNames (map unLoc cid_sigs)) decLoc . unLoc)
+                  className = hsTypeTagName (hsSigTypeToHsType $ unLoc cid_poly_ty)
+                  memberExported name =
+                    maybe (isExported mies name) (isMemberExported mies name) className
+                  bindsTags   = (mkHsBindLRTags memberExported (signatureNames (map unLoc cid_sigs)) decLoc . unLoc)
                                 `concatMap` cid_binds
-                  sigsTags    = (mkSigTags decLoc . unLoc) `concatMap` cid_sigs
+                  sigsTags    = (maybe (mkSigTags decLoc) (mkClsMemberTags decLoc) className . unLoc)
+                                `concatMap` cid_sigs
 
                   fixTagKind body a = a { gtKind = GtkTypeClassInstanceMember body }
 
@@ -505,7 +513,7 @@ hsDeclsToGhcTags mies decls =
       DerivD {} -> tags
 
       -- value declaration
-      ValD _ hsBind  -> mkHsBindLRTags signatures decLoc hsBind ++ tags
+      ValD _ hsBind  -> mkHsBindLRTags (isExported mies) signatures decLoc hsBind ++ tags
 
       -- signature declaration
       SigD _ sig -> mkSigTags decLoc sig ++ tags
@@ -580,9 +588,9 @@ hsDeclsToGhcTags mies decls =
     mkHsLocalBindsTags :: SrcSpan -> HsLocalBinds GhcPs -> [GhcTag]
     mkHsLocalBindsTags decLoc (HsValBinds _ (ValBinds _ hsBindsLR sigs)) =
          -- where clause bindings
-         concatMap (mkHsBindLRTags (signatureNames (map unLoc sigs)) decLoc . unLoc)
+         concatMap (mkHsBindLRTags (const False) (signatureNames (map unLoc sigs)) decLoc . unLoc)
                    (Foldable.toList hsBindsLR)
-      ++ concatMap (mkSigTags decLoc . unLoc) sigs
+      ++ map (\tag -> tag {gtIsExported = False}) (concatMap (mkSigTags decLoc . unLoc) sigs)
 
     mkHsLocalBindsTags _ _ = []
 
@@ -636,13 +644,15 @@ hsDeclsToGhcTags mies decls =
     mkHsConDeclGADTDetails _ _ _ = []
 
 
-    mkHsBindLRTags :: Set RdrName
+    mkHsBindLRTags :: (Located RdrName -> Bool)
+                   -- ^ visibility of bindings directly in this scope
+                   -> Set RdrName
                    -- ^ names with signatures in this binding group
                    -> SrcSpan
                    -- ^ declaration's 'SrcSpan'
                    -> HsBindLR GhcPs GhcPs
                    -> GhcTags
-    mkHsBindLRTags signedNames decLoc hsBind =
+    mkHsBindLRTags exported signedNames decLoc hsBind =
       case hsBind of
         FunBind { fun_id, fun_matches } ->
           let binds = map (grhssLocalBinds . m_grhss . unLoc)
@@ -669,7 +679,7 @@ hsDeclsToGhcTags mies decls =
       where
         bindingTag name kind
           | unLoc name `Set.member` signedNames = []
-          | otherwise = [mkGhcTag' decLoc name kind]
+          | otherwise = [fixLoc decLoc $ mkGhcTag name kind (exported name)]
 
 
     mkClsMemberTags :: SrcSpan -> Located RdrName -> Sig GhcPs -> GhcTags
