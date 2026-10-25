@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add `addQualifiedTags` to retain ordinary tags and add aliases prefixed by
+  their defining module, preserving declaration metadata and module tags.
+
 - Reconcile signatures and definitions within their AST binding groups, keeping
   unsigned bindings with the same name in other scopes and visiting nested bindings
   even when the enclosing definition is replaced by its signature.

@@ -41,6 +41,12 @@ debugParser = switch $
     <> showDefault
     <> help "debug"
 
+qualifiedParser :: Parser Bool
+qualifiedParser = switch $
+       short 'q'
+    <> long "qualified"
+    <> help "also generate names qualified by the defining module"
+
 -- | /ghc-tags-plugin/ options
 --
 data Options f = Options
@@ -59,6 +65,9 @@ data Options f = Options
     -- default is either 'tags' (if 'etags' if 'False') or 'TAGS' otherwise.
 
   , debug :: Bool
+
+  , qualified :: Bool
+    -- ^ Also generate module-qualified aliases alongside ordinary names.
   }
 
 deriving instance Show (Options Identity)
@@ -71,6 +80,7 @@ parseOtions = Options
          <*> streamParser
          <*> (foldMap (Last . Just) <$> many filePathParser)
          <*> debugParser
+         <*> qualifiedParser
 
 
 parserInfo :: ParserInfo (Options Last)
@@ -84,12 +94,13 @@ runOptionParser :: [String]
 runOptionParser = fmap defaultOptions . execParserPure defaultPrefs parserInfo
   where
     defaultOptions :: Options Last -> Options Identity
-    defaultOptions Options { etags, stream, filePath, debug } =
+    defaultOptions Options { etags, stream, filePath, debug, qualified } =
         Options {
             etags,
             stream,
             filePath = Identity filePath',
-            debug
+            debug,
+            qualified
           }
       where
         filePath' =

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add `--qualified` to emit defining-module-qualified names alongside ordinary
+  names, including Template Haskell declarations, in ctags and etags output.
+
 - Extend `gtp-check` with duplicate declaration reports, source file and line
   checks, and comparison of ctags and etags declaration locations, preserving
   duplicate counts and resolving paths relative to each tags file.

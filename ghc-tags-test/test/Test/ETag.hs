@@ -6,8 +6,8 @@ module Test.ETag (tests) where
 import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Lazy as BL
 import           Data.Function (on)
-import           Data.List (isSubsequenceOf, sortBy)
--- import qualified Data.Text as Text
+import           Data.List (isSubsequenceOf, sort, sortBy)
+import qualified Data.Text as Text
 -- import qualified Data.Text.Encoding as Text
 
 import           Test.Tasty (TestTree, testGroup)
@@ -28,7 +28,20 @@ tests = testGroup "ETag"
   , testProperty "declaration preparation matches model" prepareETagsProp
   , testProperty "constructor filtering is independent of adjacency" prepareETagsAdjacencyProp
   , testProperty "preparation preserves input order for equal output keys" prepareETagsStableOrderProp
+  , testProperty "qualified names preserve declarations and metadata" qualifiedETagsProp
   ]
+
+qualifiedETagsProp :: ArbModuleName -> [ArbETag] -> Property
+qualifiedETagsProp (ArbModuleName moduleName) input =
+    let tags = map getArbETag input
+        expected = concat
+          [ if tagKind tag == TkModule then [tag]
+            else [tag, tag {tagName = TagName (Text.intercalate "." [moduleName, getTagName $ tagName tag])}]
+          | tag <- tags
+          ]
+    in checkCoverage
+       $ cover 10 (any ((== TkModule) . tagKind) tags) "module tags"
+       $ sort (addQualifiedTags moduleName tags) === sort expected
 
 
 --
