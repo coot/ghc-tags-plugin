@@ -236,6 +236,45 @@ contains some useful commands, e.g. `install`,  `uninstall` or `reinstall` the
 package in a `package.db` (by default into `cabal` store).  This is mostly for
 development, but it could be useful in other scenarios as well.
 
+## ● Checking and comparing tags files
+
+The optional `gtp-check` development tool reports tag counts, ctags metadata,
+parser diagnostics, sorting problems, repeated declaration locations, missing
+or unreadable source files, and line numbers outside their source files:
+
+```sh
+cabal run -fgtp-check gtp-check -- tags
+cabal run -fgtp-check gtp-check -- --etags TAGS
+```
+
+Source paths are resolved relative to the directory containing each tags file,
+so the command can be run from another directory. Duplicate locations mean
+entries with the same source file, tag name and line number; kinds and columns
+are not used to distinguish them.
+
+For a tags file copied elsewhere, pass `--source-root /path/to/original/root`
+to resolve source paths from its original directory. This override applies to
+both files when comparing snapshots.
+
+To compare the declarations in two files:
+
+```sh
+cabal run -fgtp-check gtp-check -- tags --compare TAGS
+cabal run -fgtp-check gtp-check -- --etags TAGS --compare tags
+```
+
+The format of the comparison file is detected automatically. Both files can
+also use the same format. Comparison uses canonical source paths, names and
+line numbers, and preserves duplicate counts. Differences are reported with
+concrete declaration locations. Tags without numeric line addresses are
+reported and excluded from line checks and comparison; a ctags `line:` field
+can supply the line number for an entry addressed by a search pattern.
+
+Each diagnostic category shows up to ten examples by default. Use
+`--max-examples N` to change the limit, or `--max-examples 0` to show all.
+Tags-file read or parse errors and unequal comparisons return a nonzero exit
+status. Other findings are warnings.
+
 ● Exceptions
 ------------
 
