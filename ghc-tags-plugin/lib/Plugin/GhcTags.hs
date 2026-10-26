@@ -805,6 +805,8 @@ fixTagFilePath cwd tagsDir tag@Tag { tagFilePath = TagFilePath fp } =
 lockFilePath :: FilePath -> FilePath
 lockFilePath tagsFile =
     case FilePath.splitFileName tagsFile of
+      (dir, name@('.':_))
+                  -> dir FilePath.</>        name ++ ".lock"
       (dir, name) -> dir FilePath.</> "." ++ name ++ ".lock"
 
 --
