@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add `--no-filter` / `-F` to retain signature/definition pairs and same-named
+  type/data constructors. Filtering remains enabled by default.
+
 - Correct export flags for associated type/data family instances and type defaults.
   Tag defaults using the family name rather than the right-hand-side type, and
   keep data-instance constructors private unless their exports include them.

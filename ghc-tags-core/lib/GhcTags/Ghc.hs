@@ -15,6 +15,7 @@ module GhcTags.Ghc
   ( GhcTag (..)
   , GhcTags
   , GhcTagKind (..)
+  , Filter (..)
   , getGhcTags
   , hsDeclsToGhcTags
   ) where
@@ -307,6 +308,15 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
                }
 
 
+-- | How to filter tags.
+--
+data Filter =
+    RemoveTerms
+    -- ^ remove close terms, preserve type signatures
+  | RetainAll
+    -- ^ preserve all types
+  deriving (Eq, Show)
+
 -- | Generate tags for a module - simple walk over the syntax tree.
 --
 -- Supported identifiers:
@@ -327,12 +337,15 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
 --  * /data type families instances/
 --  * /data type family instances constructors/
 --
-getGhcTags :: Located GhcPsModule
+getGhcTags :: Filter
+           -- ^ whether to filter out term/function tags that have a type
+           -- signature in the same binding group
+           -> Located GhcPsModule
            -> GhcTags
-getGhcTags (L _ HsModule { hsmodName, hsmodDecls, hsmodExports }) =
+getGhcTags filterBindings (L _ HsModule { hsmodName, hsmodDecls, hsmodExports }) =
        maybeToList (mkModNameTag <$> hsmodName)
     ++
-       hsDeclsToGhcTags mies hsmodDecls
+       hsDeclsToGhcTags filterBindings mies hsmodDecls
   where
     mies :: Maybe [IE GhcPs]
     mies = map unLoc . unLoc <$> hsmodExports
@@ -346,10 +359,11 @@ getGhcTags (L _ HsModule { hsmodName, hsmodDecls, hsmodExports }) =
              }
 
 
-hsDeclsToGhcTags :: Maybe [IE GhcPs]
+hsDeclsToGhcTags :: Filter
+                 -> Maybe [IE GhcPs]
                  -> [LHsDecl GhcPs]
                  -> GhcTags
-hsDeclsToGhcTags mies decls =
+hsDeclsToGhcTags filterBindings mies decls =
     reverse (Foldable.foldl' go [] decls)
   where
     signatures = signatureNames [ sig | L _ (SigD _ sig) <- decls ]
@@ -667,7 +681,9 @@ hsDeclsToGhcTags mies decls =
           bindingTag (unSpanAnn psb_id) GtkPatternSynonym
       where
         bindingTag name kind
-          | unLoc name `Set.member` signedNames = []
+          | RemoveTerms <- filterBindings
+          , unLoc name `Set.member` signedNames
+          = []
           | otherwise = [fixLoc decLoc $ mkGhcTag name kind (exported name)]
 
 

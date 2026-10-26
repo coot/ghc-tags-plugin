@@ -98,12 +98,14 @@ test-suite tests
   hs-source-dirs:      test lib app
   main-is:             main.hs
   other-modules:       Plugin.GhcTags.AtomicFile
+                       Plugin.GhcTags.Options
                        Plugin.GhcTags.Project
                        GhcTags.Check
                        Test.AtomicFile
                        Test.Check
                        Test.Ghc
                        Test.Ghc.Generators
+                       Test.Options
                        Test.ProjectFile
   build-depends:       base,
                        bytestring,
@@ -113,6 +115,7 @@ test-suite tests
                        ghc,
                        ghc-boot-th,
                        ghc-tags-core,
+                       optparse-applicative,
                        quickcheck-instances,
                        tasty,
                        tasty-hunit,
