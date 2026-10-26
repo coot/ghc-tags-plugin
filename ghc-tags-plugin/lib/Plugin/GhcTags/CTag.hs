@@ -10,7 +10,7 @@ import           Data.Version
 
 import           Paths_ghc_tags_plugin
 
-import           Plugin.GhcTags.Options (Options (..))
+import           Plugin.GhcTags.Options (Options (..), Filter (..))
 import           GhcTags.CTag.Header
 
 
@@ -60,7 +60,8 @@ displayOptions Options { etags,
                          stream,
                          filePath = Identity filePath,
                          debug,
-                         qualified } =
+                         qualified,
+                         filterOption } =
     Text.intercalate " " $
       [ "--etags"  | etags ]
       ++
@@ -69,6 +70,8 @@ displayOptions Options { etags,
       [ "--debug"  | debug ]
       ++
       [ "--qualified" | qualified ]
+      ++
+      [ "--no-filter" | RetainAll <- pure filterOption ]
       ++
       [ Text.pack filePath ]
 

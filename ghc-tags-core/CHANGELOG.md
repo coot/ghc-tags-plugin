@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **Breaking**: `getGhcTags` and `hsDeclsToGhcTags` now require a leading
+  `Filter` argument. Pass `RemoveTerms` for the previous behaviour (suppress
+  term/function tags that have a type signature in the same binding group) or
+  `RetainAll` to keep both.
+
 - Respect class exports for associated family instances and defaults, and direct
   exports of associated families. Name default equations after their family,
   retaining their left-hand-side location, and check data constructors separately.

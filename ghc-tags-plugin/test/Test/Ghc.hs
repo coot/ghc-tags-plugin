@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP            #-}
 {-# LANGUAGE NamedFieldPuns  #-}
 
+{-# OPTIONS_GHC -Wno-orphans #-}
+
 module Test.Ghc (tests) where
 
 import qualified Data.ByteString.Char8 as BSC
@@ -20,16 +22,21 @@ import Test.Ghc.Generators
 
 tests :: TestTree
 tests = testGroup "Ghc"
-    [ testProperty "pattern signatures replace definitions in the same binding group" patternSignatureProp
+    [ testProperty "pattern signature filtering follows the option within each binding group" patternSignatureProp
     , testProperty "method visibility follows class exports and lexical scope" methodExportsProp
     , testProperty "family tags follow declarations and exports" familyExportsProp
     ]
 
+instance Arbitrary Filter where
+  arbitrary = elements [RetainAll, RemoveTerms]
+  shrink RetainAll   = [RemoveTerms]
+  shrink RemoveTerms = []
+  
 
-patternSignatureProp :: [ArbHsDecl] -> Property
-patternSignatureProp input =
+patternSignatureProp :: Filter -> [ArbHsDecl] -> Property
+patternSignatureProp filterBindings input =
     let declarations = map getArbHsDecl input
-        tags = hsDeclsToGhcTags Nothing declarations
+        tags = hsDeclsToGhcTags filterBindings Nothing declarations
         actual =
           [ (BSC.unpack gtTag, kind, signatureType)
           | GhcTag {gtTag, gtKind} <- tags
@@ -50,10 +57,15 @@ patternSignatureProp input =
           _ -> []) declarations
         signatures = [name | (name, "signature", _) <- declarationsModel]
         definitions = [name | (name, "pattern", _) <- declarationsModel]
-        expected = filter
-          (\(name, kind, _) -> kind /= "pattern" || name `notElem` signatures)
+        expected =
+          filter
+            (\(name, kind, _) -> filterBindings == RetainAll
+                              || kind /= "pattern"
+                              || name `notElem` signatures)
           declarationsModel
     in checkCoverage
+       $ cover 25 (filterBindings == RemoveTerms) "filtering enabled"
+       $ cover 25 (filterBindings == RetainAll) "filtering disabled"
        $ cover 30 (not (null signatures) && not (null definitions)) "signatures and definitions"
        $ cover 20 (any (`elem` definitions) signatures) "matching signature and definition names"
        $ cover 20 (any (`notElem` signatures) definitions) "unsigned pattern definitions"
@@ -101,7 +113,7 @@ methodExportsProp (ArbClassModule ast@(L _ HsModule {hsmodDecls, hsmodExports}))
                          GtkModule -> False
                          GtkTypeClass -> False
                          GtkTypeClassInstance {} -> False
-                         _ -> True) (getGhcTags ast)
+                         _ -> True) (getGhcTags RetainAll ast)
         expected = [gtSrcSpan tag `elem` publicLocations | tag <- tags]
         shadowsExport = any (\tag -> BSC.unpack (gtTag tag) `elem` publicNames
                                  && gtSrcSpan tag `notElem` directLocations) tags
@@ -169,7 +181,7 @@ familyExportsProp (ArbFamilyModule ast@(L _ HsModule {hsmodDecls, hsmodExports})
                          GtkModule -> False
                          GtkTypeClass -> False
                          GtkTypeClassInstance {} -> False
-                         _ -> True) (getGhcTags ast)
+                         _ -> True) (getGhcTags RetainAll ast)
         actual = sort [(BSC.unpack gtTag, show gtSrcSpan, gtIsExported) | GhcTag {gtTag, gtSrcSpan, gtIsExported} <- tags]
         hasDefault = or [not (null tcdATDefs) | L _ (TyClD _ ClassDecl {tcdATDefs}) <- hsmodDecls]
         hiddenChildren = or [parent `elem` publicNames && any (`notElem` publicNames) children

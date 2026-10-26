@@ -5,6 +5,7 @@
 module Plugin.GhcTags.Options
   ( Options (..)
   , ParserResult (..)
+  , Filter (..)
   , runOptionParser
   ) where
 
@@ -12,6 +13,8 @@ import           Data.Bool (bool)
 import           Data.Monoid (Last (..))
 import           Data.Functor.Identity (Identity (..))
 import           Options.Applicative
+
+import           GhcTags.Ghc (Filter (..))
 
 
 etagsParser :: Parser Bool
@@ -47,6 +50,15 @@ qualifiedParser = switch $
     <> long "qualified"
     <> help "also generate names qualified by the defining module"
 
+filterParser :: Parser Filter
+filterParser =
+        bool RemoveTerms RetainAll
+    <$> switch (
+             short 'F'
+          <> long "no-filter"
+          <> help "retain both signatures and definitions instead of filtering redundant tags"
+        )
+
 -- | /ghc-tags-plugin/ options
 --
 data Options f = Options
@@ -68,6 +80,9 @@ data Options f = Options
 
   , qualified :: Bool
     -- ^ Also generate module-qualified aliases alongside ordinary names.
+
+  , filterOption :: Filter
+    -- ^ Retain signatures and definitions; filtering is enabled by default.
   }
 
 deriving instance Show (Options Identity)
@@ -81,6 +96,7 @@ parseOtions = Options
          <*> (foldMap (Last . Just) <$> many filePathParser)
          <*> debugParser
          <*> qualifiedParser
+         <*> filterParser
 
 
 parserInfo :: ParserInfo (Options Last)
@@ -94,13 +110,14 @@ runOptionParser :: [String]
 runOptionParser = fmap defaultOptions . execParserPure defaultPrefs parserInfo
   where
     defaultOptions :: Options Last -> Options Identity
-    defaultOptions Options { etags, stream, filePath, debug, qualified } =
+    defaultOptions Options { etags, stream, filePath, debug, qualified, filterOption } =
         Options {
             etags,
             stream,
             filePath = Identity filePath',
             debug,
-            qualified
+            qualified,
+            filterOption
           }
       where
         filePath' =

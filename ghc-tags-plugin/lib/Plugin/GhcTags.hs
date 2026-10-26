@@ -374,12 +374,13 @@ updateTags opts@Options { etags, stream, filePath = Identity tagsFile, debug }
               let tags :: [CTag]
                   tags = map (fixTagFilePath cwd tagsDir)
                                               -- fix file names
-                       . prepareTags CTag.compareTags
+                       . prepareTagsWithOptions opts CTag.compareTags
                                               -- filter and sort
                        . qualifyTags opts ms_mod
                        . mapMaybe (ghcTagToTag SingCTag dynFlags)
                                               -- translate 'GhcTag' to 'Tag'
-                       . getGhcTags           -- generate 'GhcTag's
+                       . getGhcTags (filterOption opts)
+                                              -- generate 'GhcTag's
                        $ lmodule
 
               -- Write header
@@ -480,12 +481,13 @@ updateTags opts@Options { etags, stream, filePath = Identity tagsFile, debug }
                     tags :: [CTag]
                     tags = map (fixTagFilePath cwd tagsDir)
                                                 -- fix file names
-                         . prepareTags CTag.compareTags
+                         . prepareTagsWithOptions opts CTag.compareTags
                                                 -- filter and sort
                          . qualifyTags opts ms_mod
                          . mapMaybe (ghcTagToTag SingCTag dynFlags)
                                                 -- translate 'GhcTag' to 'Tag'
-                         . getGhcTags           -- generate 'GhcTag's
+                         . getGhcTags (filterOption opts)
+                                                -- generate 'GhcTag's
                          $ lmodule
 
                     combined :: [CTag]
@@ -582,11 +584,11 @@ updateTags opts@Options { etags, stream, filePath = Identity tagsFile, debug }
                             sourcePathBS
 
                       tags :: [ETag]
-                      tags = prepareTags ETag.compareTags
+                      tags = prepareTagsWithOptions opts ETag.compareTags
                            . map (fixTagFilePath cwd tagsDir)
                            . qualifyTags opts ms_mod
                            . mapMaybe (ghcTagToTag SingETag dynFlags)
-                           . getGhcTags
+                           . getGhcTags (filterOption opts)
                            $ lmodule
 
                       combined :: [ETag]
@@ -654,7 +656,7 @@ ghcTagsMetaHook options dynFlags request expr =
                 newTags sing = qualifyTags opts mod_
                              $ mapMaybe (fmap (fixTagFilePath cwd tagsDir)
                                          . ghcTagToTag sing dynFlags)
-                             $ hsDeclsToGhcTags Nothing decls
+                             $ hsDeclsToGhcTags (filterOption opts) Nothing decls
             if etags
               then do
                 pr <- ETag.parseTagsFileRecovering tagsContent
@@ -664,11 +666,12 @@ ghcTagsMetaHook options dynFlags request expr =
 
                   Right (warnings, tags) -> do
                     mapM_ (printMessageDoc dynFlags ParseWarning Nothing) warnings
-                    let tags' :: [ETag]
+                    let generated = prepareTagsWithOptions opts ETag.compareTags $ newTags SingETag
+                        tags' :: [ETag]
                         tags' = sortBy ETag.compareTags $
                                   tags
                                   ++
-                                  newTags SingETag
+                                  generated
                     withAtomicFile tagsFile $ \h ->
                       True <$ BSL.hPut h (BB.toLazyByteString $ ETag.formatETagsFile tags')
               else do
@@ -680,16 +683,14 @@ ghcTagsMetaHook options dynFlags request expr =
                   Right (warnings, parsed) -> do
                     mapM_ (printMessageDoc dynFlags ParseWarning Nothing) warnings
                     let tags = rights parsed
+                        generated = prepareTagsWithOptions opts CTag.compareTags $ newTags SingCTag
                         tags' :: [Either CTag.Header CTag]
                         tags' = Left `map` CTag.headers opts
                              ++ Right `map`
-                                -- Signatures were reconciled in AST binding
-                                -- groups. Distinct generated scopes can share
-                                -- a source location, so do not filter here.
                                 (sortBy CTag.compareTags
                                   ( tags
                                     ++
-                                    newTags SingCTag
+                                    generated
                                   ))
                     withAtomicFile tagsFile $ \h ->
                       True <$ BSL.hPut h (BB.toLazyByteString $ CTag.formatTagsFile tags')
@@ -719,6 +720,14 @@ ghcTagsMetaHook options dynFlags request expr =
         res <- metaRequestD h e
         k res <$ f res
       MetaAW k -> k <$> metaRequestAW h e
+
+
+-- Sorting is required for merging even when filtering is disabled.
+prepareTagsWithOptions :: Options Identity -> (Tag tk -> Tag tk -> Ordering) -> [Tag tk] -> [Tag tk]
+prepareTagsWithOptions Options {filterOption} compareFn =
+  case filterOption of
+    RetainAll   -> sortBy compareFn
+    RemoveTerms -> prepareTags compareFn
 
 
 -- | Add aliases only to newly extracted declarations, before sorting and

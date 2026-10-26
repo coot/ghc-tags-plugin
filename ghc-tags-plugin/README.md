@@ -18,7 +18,7 @@ The plugin requires at least: `ghc >= 9.6`.
 ----------------
 
 ```
-Usage: <program> [-e|--etags] [--stream] [--debug] [--qualified] [file_path]
+Usage: <program> [-e|--etags] [--stream] [--debug] [--qualified] [-F|--no-filter] [file_path]
   write tags from ghc abstract syntax tree
 
 Available options:
@@ -28,6 +28,7 @@ Available options:
                            default tags or TAGS (with --etags)
   --debug                  debugging output
   -q,--qualified           also generate names qualified by the defining module
+  -F,--no-filter           retain both signatures and definitions
 ```
 
 The tags path can be absolute or relative to the nearest directory containing
@@ -69,6 +70,21 @@ identify their containing module, rather than a valid qualified import.
 
 Only recompiled modules are updated. Rebuild all modules after enabling or
 disabling this option to update existing tags consistently.
+
+## ● Signature and definition filtering
+
+By default, a type signature replaces the corresponding function or pattern
+synonym definition in the tags file. A data constructor also takes precedence
+over a type constructor with the same name. To retain both tags, use:
+
+```
+-fplugin-opt=Plugin.GhcTags:--no-filter
+```
+
+The short form is `-fplugin-opt=Plugin.GhcTags:-F`. This applies to ctags,
+streaming ctags, etags, and Template Haskell signature/definition pairs. Tags
+remain sorted. Recompile all modules after changing this option to update
+existing tags consistently.
 
 ## ● Emacs support
 
