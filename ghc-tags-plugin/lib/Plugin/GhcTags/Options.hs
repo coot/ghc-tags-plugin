@@ -42,7 +42,7 @@ debugParser :: Parser Bool
 debugParser = switch $
        long "debug"
     <> showDefault
-    <> help "debug"
+    <> help "report tag counts, file sizes, and update timings"
 
 qualifiedParser :: Parser Bool
 qualifiedParser = switch $

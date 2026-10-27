@@ -99,6 +99,7 @@ import qualified GhcTags.ETag as ETag
 import           Plugin.GhcTags.Options
 import           Plugin.GhcTags.AtomicFile
 import           Plugin.GhcTags.FileLock
+import           Plugin.GhcTags.Timing
 import           Plugin.GhcTags.Project (TagsAtRoot (..), resolveTagsFile)
 import qualified Plugin.GhcTags.CTag as CTag
 
@@ -188,7 +189,7 @@ ghcTagsParserPlugin options
                 -- file.  This is needed when `cabal` compiles in parallel.
                 -- We take the lock on the copy, otherwise the lock would be removed when
                 -- we move the file.
-                withFileLock_ (lockFilePath tagsFile) ExclusiveLock $ do
+                withUpdateTimings opts dynFlags ms_mod "parsed" $ \timings -> do
                     mbInSize <-
                       if debug
                         then Just <$> getFileSize
@@ -199,7 +200,7 @@ ghcTagsParserPlugin options
 #endif
                                       `catch` \(_ :: IOException) -> pure 0
                         else pure Nothing
-                    updateTags opts moduleSummary hpm_module
+                    updateTags timings opts moduleSummary hpm_module
                     when debug $ do
                       let Just inSize = mbInSize
                       outSize <- getFileSize
@@ -257,11 +258,12 @@ instance Show MessageType where
 
 -- | Extract tags from a module and update tags file
 --
-updateTags :: Options Identity
+updateTags :: Timings
+           -> Options Identity
            -> ModSummary
            -> Located GhcPsModule
            -> IO ()
-updateTags opts@Options { etags, stream, filePath = Identity tagsFile, debug }
+updateTags timings opts@Options { etags, stream, filePath = Identity tagsFile, debug }
            ModSummary {ms_mod, ms_location, ms_hspp_opts = dynFlags}
            lmodule = do
     case (etags, stream) of
@@ -340,7 +342,7 @@ updateTags opts@Options { etags, stream, filePath = Identity tagsFile, debug }
                         sourcePathBS
                   -- text parser
                   producer :: Pipes.Producer ByteString (SafeT IO) ()
-                  producer = case readHandle of
+                  producer = timedProducer timings ReadTags $ case readHandle of
                     Just inputHandle ->
                         void (Pipes.BS.fromHandle inputHandle)
                         `Pipes.Safe.catchP` \(e :: IOException) ->
@@ -350,7 +352,7 @@ updateTags opts@Options { etags, stream, filePath = Identity tagsFile, debug }
                     Nothing -> pure ()
 
                   parsed :: Pipes.Producer CTag (StateT Int (SafeT IO)) ()
-                  parsed = Pipes.for
+                  parsed = timedProducer timings ParseTags $ Pipes.for
                     (Pipes.hoist Pipes.lift
                       (tagParserWithWarnings
                         (Pipes.liftIO . printMessageDoc dynFlags ParseWarning (Just ms_mod))
@@ -363,9 +365,9 @@ updateTags opts@Options { etags, stream, filePath = Identity tagsFile, debug }
 
                   pipe :: [CTag] -> Pipes.Effect (StateT Int (SafeT IO)) ()
                   pipe newTags = Pipes.for
-                    (combineTagsStream CTag.compareTags modulePath newTags parsed)
+                    (timedProducer timings MergeTags $ combineTagsStream CTag.compareTags modulePath newTags parsed)
                     (\tag ->
-                      Pipes.liftIO (BB.hPutBuilder writeHandle (CTag.formatTag tag))
+                      Pipes.liftIO (timed timings WriteTags $ BB.hPutBuilder writeHandle (CTag.formatTag tag))
                         `Pipes.Safe.catchP` \(e :: IOException) ->
                           Pipes.liftIO $ do
                             putDocLn dynFlags (messageDoc WriteException (Just ms_mod) (displayException e))
@@ -383,12 +385,14 @@ updateTags opts@Options { etags, stream, filePath = Identity tagsFile, debug }
                                               -- generate 'GhcTag's
                        $ lmodule
 
+              void $ timedNF timings GenerateTags (pure tags)
+
               -- Write header
-              BSL.hPut writeHandle (BB.toLazyByteString (foldMap CTag.formatHeader (CTag.headers opts)))
+              timed timings WriteTags $ BSL.hPut writeHandle (BB.toLazyByteString (foldMap CTag.formatHeader (CTag.headers opts)))
               -- update tags file / run 'pipe'
               parsedTags <- Pipes.Safe.runSafeT $ execStateT (Pipes.runEffect (pipe tags)) 0
 
-              hFlush writeHandle
+              timed timings WriteTags (hFlush writeHandle)
 
               when debug $ do
                 outSize <- hFileSize writeHandle
@@ -433,7 +437,7 @@ updateTags opts@Options { etags, stream, filePath = Identity tagsFile, debug }
 #endif
               else pure (Just 0)
           else pure Nothing
-      !tagsContent <- if tagsFileExists
+      !tagsContent <- timed timings ReadTags $ if tagsFileExists
                         then BS.readFile tagsFile
                         else return mempty
       withAtomicFile tagsFile $ \writeHandle -> do
@@ -466,7 +470,7 @@ updateTags opts@Options { etags, stream, filePath = Identity tagsFile, debug }
                     GHC.UnhelpfulSpan {} ->
                       sourcePathBS
 
-            pres <- try @IOException $ CTag.parseTagsFileRecovering tagsContent
+            pres <- try @IOException $ timedNF timings ParseTags $ CTag.parseTagsFileRecovering tagsContent
             case pres of
               Left err   ->
                 putDocLn dynFlags (messageDoc ParserException (Just ms_mod) (displayException err)) >> pure False
@@ -493,13 +497,16 @@ updateTags opts@Options { etags, stream, filePath = Identity tagsFile, debug }
                     combined :: [CTag]
                     combined = combineTags CTag.compareTags modulePath tags parsedTags
 
-                BB.hPutBuilder writeHandle
+                void $ timedNF timings GenerateTags (pure tags)
+                void $ timedNF timings MergeTags (pure combined)
+
+                timed timings WriteTags $ BB.hPutBuilder writeHandle
                           (    foldMap CTag.formatHeader (CTag.headers opts)
                             <> foldMap CTag.formatTag combined
                           ) 
 
                 when debug $ do
-                  hFlush writeHandle
+                  timed timings WriteTags (hFlush writeHandle)
                   outSize <- hFileSize writeHandle
                   let Just inSize = mbInSize
                   printMessageDoc dynFlags DebugMessage (Just ms_mod)
@@ -540,7 +547,7 @@ updateTags opts@Options { etags, stream, filePath = Identity tagsFile, debug }
 #endif
               else pure (Just 0)
           else pure Nothing
-      !tagsContent <- if tagsFileExists
+      !tagsContent <- timed timings ReadTags $ if tagsFileExists
                         then BS.readFile tagsFile
                         else return mempty
       withAtomicFile tagsFile $ \writeHandle -> do
@@ -560,7 +567,7 @@ updateTags opts@Options { etags, stream, filePath = Identity tagsFile, debug }
           case ml_hs_file ms_location of
             Nothing         -> pure False
             Just sourcePath -> do
-              pres <- try @IOException $ ETag.parseTagsFileRecovering tagsContent
+              pres <- try @IOException $ timedNF timings ParseTags $ ETag.parseTagsFileRecovering tagsContent
               case pres of
                 Left err ->
                   False <$ putDocLn dynFlags (messageDoc ParserException (Just ms_mod) (displayException err))
@@ -594,10 +601,13 @@ updateTags opts@Options { etags, stream, filePath = Identity tagsFile, debug }
                       combined :: [ETag]
                       combined = combineTags ETag.compareTags modulePath tags parsedTags
 
-                  BB.hPutBuilder writeHandle (ETag.formatETagsFile combined)
+                  void $ timedNF timings GenerateTags (pure tags)
+                  void $ timedNF timings MergeTags (pure combined)
+
+                  timed timings WriteTags $ BB.hPutBuilder writeHandle (ETag.formatETagsFile combined)
 
                   when debug $ do
-                    hFlush writeHandle
+                    timed timings WriteTags (hFlush writeHandle)
                     outSize <- hFileSize writeHandle
                     let Just inSize = mbInSize
                     printMessageDoc dynFlags DebugMessage (Just ms_mod)
@@ -639,7 +649,7 @@ ghcTagsMetaHook options dynFlags request expr =
                              (messageDoc UnhandledException Nothing
                                (displayException ioerr))
                      throwIO (GhcTagsDynFlagsPluginIOException ioerr)) $
-            withFileLock_ (lockFilePath tagsFile) ExclusiveLock $ do
+            withUpdateTimings opts dynFlags mod_ "template-haskell" $ \timings -> do
 #if MIN_VERSION_filepath(1,4,100)
             cwd <- getCurrentDirectory
 #else
@@ -651,7 +661,7 @@ ghcTagsMetaHook options dynFlags request expr =
 #else
             tagsDir <- rawFilePathFromBS . BSC.pack <$> canonicalizePath (fst $ FilePath.splitFileName tagsFile)
 #endif
-            tagsContent <- BSC.readFile tagsFile
+            tagsContent <- timed timings ReadTags $ BSC.readFile tagsFile
             let newTags :: SingTagKind tk -> [Tag tk]
                 newTags sing = qualifyTags opts mod_
                              $ mapMaybe (fmap (fixTagFilePath cwd tagsDir)
@@ -659,7 +669,7 @@ ghcTagsMetaHook options dynFlags request expr =
                              $ hsDeclsToGhcTags (filterOption opts) Nothing decls
             if etags
               then do
-                pr <- ETag.parseTagsFileRecovering tagsContent
+                pr <- timedNF timings ParseTags $ ETag.parseTagsFileRecovering tagsContent
                 case pr of
                   Left err ->
                     printMessageDoc dynFlags ParserException Nothing err
@@ -672,10 +682,14 @@ ghcTagsMetaHook options dynFlags request expr =
                                   tags
                                   ++
                                   generated
-                    withAtomicFile tagsFile $ \h ->
-                      True <$ BSL.hPut h (BB.toLazyByteString $ ETag.formatETagsFile tags')
+                    void $ timedNF timings GenerateTags (pure generated)
+                    void $ timedNF timings MergeTags (pure tags')
+                    withAtomicFile tagsFile $ \h -> timed timings WriteTags $ do
+                      BSL.hPut h (BB.toLazyByteString $ ETag.formatETagsFile tags')
+                      when (debug opts) (hFlush h)
+                      pure True
               else do
-                pr <- CTag.parseTagsFileRecovering tagsContent
+                pr <- timedNF timings ParseTags $ CTag.parseTagsFileRecovering tagsContent
                 case pr of
                   Left err ->
                     printMessageDoc dynFlags ParserException Nothing err
@@ -692,8 +706,12 @@ ghcTagsMetaHook options dynFlags request expr =
                                     ++
                                     generated
                                   ))
-                    withAtomicFile tagsFile $ \h ->
-                      True <$ BSL.hPut h (BB.toLazyByteString $ CTag.formatTagsFile tags')
+                    void $ timedNF timings GenerateTags (pure generated)
+                    void $ timedNF timings MergeTags (pure tags')
+                    withAtomicFile tagsFile $ \h -> timed timings WriteTags $ do
+                      BSL.hPut h (BB.toLazyByteString $ CTag.formatTagsFile tags')
+                      when (debug opts) (hFlush h)
+                      pure True
 
       Failure (ParserFailure f)  ->
         withMetaD defaultRunMeta request expr $ \_ ->
@@ -720,6 +738,19 @@ ghcTagsMetaHook options dynFlags request expr =
         res <- metaRequestD h e
         k res <$ f res
       MetaAW k -> k <$> metaRequestAW h e
+
+
+-- Report after releasing the lock, including atomic replacement in total time.
+withUpdateTimings :: Options Identity -> DynFlags -> Module -> String -> (Timings -> IO a) -> IO a
+withUpdateTimings Options {debug, etags, stream, filePath = Identity tagsFile} dynFlags mod_ hook action =
+    withTimings debug
+      (\report -> printMessageDoc dynFlags DebugMessage (Just mod_)
+        (formatTimings report ++ " hook=" ++ hook ++ " mode=" ++ mode ++ " tags=" ++ show tagsFile)) $
+      \timings -> timedLock timings (withFileLock_ (lockFilePath tagsFile) ExclusiveLock) (action timings)
+  where
+    mode | etags = "etags"
+         | stream && hook == "parsed" = "stream"
+         | otherwise = "ctags"
 
 
 -- Sorting is required for merging even when filtering is disabled.
