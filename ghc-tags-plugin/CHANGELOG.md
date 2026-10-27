@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Extend `--debug` with wall-clock timings for lock acquisition, reading,
+  parsing, generation, merging, writing, and the complete update. Cover ctags,
+  streaming ctags, etags, and Template Haskell updates without double-counting
+  nested streaming stages.
+
 - Add `--no-filter` / `-F` to retain signature/definition pairs and same-named
   type/data constructors. Filtering remains enabled by default.
 

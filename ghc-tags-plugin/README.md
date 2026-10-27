@@ -26,7 +26,7 @@ Available options:
   --stream                 stream existing tags (ctags only)
   file_path                tags file relative to cabal.project or stack.yaml:
                            default tags or TAGS (with --etags)
-  --debug                  debugging output
+  --debug                  tag counts, file sizes, and update timings
   -q,--qualified           also generate names qualified by the defining module
   -F,--no-filter           retain both signatures and definitions
 ```
@@ -85,6 +85,34 @@ The short form is `-fplugin-opt=Plugin.GhcTags:-F`. This applies to ctags,
 streaming ctags, etags, and Template Haskell signature/definition pairs. Tags
 remain sorted. Recompile all modules after changing this option to update
 existing tags consistently.
+
+## ● Update timings
+
+Enable timing diagnostics with:
+
+```
+-fplugin-opt=Plugin.GhcTags:--debug
+```
+
+Each completed update reports monotonic wall-clock durations in milliseconds:
+
+- `lock-wait`: opening and acquiring the tags-file lock.
+- `read`: reading the existing tags file.
+- `parse`: parsing its records.
+- `generate`: extracting and preparing tags for the current module or splice.
+- `merge`: combining old and new tags, including sorting where required.
+- `write`: formatting, writing, and flushing the replacement's contents.
+- `total`: elapsed time from before lock acquisition until after release,
+  including temporary-file close/rename, bookkeeping, and other debug output.
+
+Reports include the module, tags path, output mode, and whether the update came
+from parsing or a Template Haskell declaration splice. Streaming ctags measures
+each stage as records flow through it, excluding upstream work from downstream
+phase times. It does not load the existing file into memory for timing.
+
+Debug mode forces lazy results within their measured phase and adds measurement
+overhead, especially when streaming. The phase times need not sum to `total`.
+With debug disabled, timing does not read the clock or force additional results.
 
 ## ● Emacs support
 
