@@ -12,3 +12,12 @@ package ghc-tags-core
 
 if impl (ghc >= 9.14)
   allow-newer: *:base, *:template-haskell, *:containers, *:ghc-bignum, *:time
+
+-- GHC 9.12 ships ghc-boot-th-9.12 which exports GHC.Boot.TH.Syntax.
+-- ghc-lib-parser-9.14 also bundles that module, and ghc-lib-9.14.cabal
+-- explicitly adds -package=ghc-boot-th for GHC < 9.14, making both visible
+-- and causing an ambiguity error.  Pin ghc-lib to its 9.12.x series so both
+-- packages agree on who owns the module.
+if impl (ghc >= 9.12 && < 9.14)
+  constraints: ghc-lib         ^>= 9.12,
+               ghc-lib-parser  ^>= 9.12
