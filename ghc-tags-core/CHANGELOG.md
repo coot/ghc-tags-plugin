@@ -1,6 +1,6 @@
 # Revision history for ghc-tags-core
 
-## Unreleased
+## 1.0.0.0 -- 2026-10-28
 
 - **Breaking**: `getGhcTags` and `hsDeclsToGhcTags` now require a leading
   `Filter` argument. Pass `RemoveTerms` for the previous behaviour (suppress

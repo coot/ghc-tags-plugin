@@ -1,6 +1,6 @@
 cabal-version:       3.0
 name:                ghc-tags-plugin
-version:             0.6.2.0
+version:             1.0.0.0
 synopsis:            A compiler plugin which generates tags file from GHC parsed syntax tree.
 description:
   __etags__ format.  For a standalone `ghc-tags` command look for or
@@ -68,8 +68,8 @@ library
                        pipes-safe       ^>=2.3,
                        text              >=1.2 && <2.2,
 
-                       ghc-tags-core   ^>=0.6,
-                       ghc-tags-pipes  ^>=0.1.1
+                       ghc-tags-core   ^>=1.0.0.0,
+                       ghc-tags-pipes  ^>=0.2.0.1
   default-language:    Haskell2010
 
 
