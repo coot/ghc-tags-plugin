@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               ghc-tags-test
-version:            0.1.0.0
+version:            0.2.0.0
 synopsis:           ghc-tags-core test suite
 -- description:
 homepage:           https://github.com/coot/ghc-tags-plugin
@@ -65,8 +65,8 @@ benchmark benchmark
                      , bytestring
                      , criterion
                      , deepseq
-                     , ghc-tags-core
-                     , ghc-tags-pipes
+                     , ghc-tags-core >= 1.0.0.0
+                     , ghc-tags-pipes >= 0.2.0.1
                      , pipes
                      , pipes-attoparsec
                      , pipes-bytestring

@@ -1,6 +1,21 @@
 # Revision history for ghctags
 
-## Unreleased
+## 1.0.0.0 -- 2026-10-28
+
+**Breaking changes** (existing tags files must be regenerated):
+
+- Kind characters for type and data families are swapped to follow the
+  convention that uppercase denotes an instance: `f` = type family,
+  `F` = type family instance, `d` = data family, `D` = data family instance.
+
+- The type-signature kind character changed from `~` to `⊢`.
+
+- Pattern synonym signatures now use the signature kind (`⊢`) instead of
+  the pattern kind (`p`); unsigned pattern synonyms are unaffected.
+
+- Relative tags file paths are now resolved from the nearest
+  `cabal.project`, `cabal.project.local`, or `stack.yaml` rather than
+  from the package's `*.cabal` directory.
 
 - Extend `--debug` with wall-clock timings for lock acquisition, reading,
   parsing, generation, merging, writing, and the complete update. Cover ctags,
@@ -52,6 +67,11 @@
 
 - Recover valid tags before and after malformed records, report skipped input,
   and continue updating damaged tags files, including streaming and TH updates.
+
+- Write tags atomically: output is staged to a private temporary file beside
+  the destination and published with a rename. Concurrent readers always see a
+  complete file; a failed or aborted update never corrupts the existing tags.
+  The temporary file inherits the destination's permissions before publication.
 
 - Remove duplicate tags consistently in streaming and non-streaming updates,
   including when the existing tags file is empty.
