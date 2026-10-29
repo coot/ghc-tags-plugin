@@ -10,7 +10,7 @@ maintainer:          coot@coot.me
 copyright:           (c) 2020-2026, Marcin Szamotulski
 category:            Development
 stability:           experimental
-extra-source-files:  CHANGELOG.md
+extra-doc-files:     CHANGELOG.md
                      README.md
 homepage:            https://github.com/coot/ghc-tags-plugin#readme
 bug-reports:         https://github.com/coot/ghc-tags-plugin/issues
@@ -46,11 +46,11 @@ library
                        GhcTags.ETag.Parser
                        GhcTags.ETag.Formatter
                        GhcTags.Utils
-  build-depends:       attoparsec           >=0.14.4,
-                       base                 >=4.12.0.0 && <4.23,
-                       bytestring           >=0.10,
-                       containers           >=0.6.0.1,
-                       deepseq,
+  build-depends:       attoparsec          ^>=0.14.4,
+                       base                 >=4.12 && <4.23,
+                       bytestring           >=0.10 && <0.13,
+                       containers           >=0.6.0.1 && <0.9,
+                       deepseq              <1.6,
                        text                 >=1.2 && <2.2
 
   if impl(ghc >= 9.6)
@@ -59,9 +59,9 @@ library
     build-depends: filepath-bytestring >= 1.4 && < 1.6
 
   if flag(ghc-lib)
-    build-depends: ghc-lib
+    build-depends: ghc-lib <9.15
   else
-    build-depends: ghc
+    build-depends: ghc <9.15
 
   if flag(ghc-lib)
     cpp-options: -DMIN_VERSION_GHC(x,y)=MIN_VERSION_ghc_lib(x,y,0)
