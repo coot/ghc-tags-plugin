@@ -80,7 +80,7 @@ instance Arbitrary ArbCTag where
 
 
 data CTagOrderingExample = CTagOrderingExample CTag CTag
-  deriving Show
+  deriving (Eq, Show)
 
 instance Arbitrary CTagOrderingExample where
     arbitrary = do
@@ -89,8 +89,8 @@ instance Arbitrary CTagOrderingExample where
       kind <- frequency [(3, pure (tagKind a)), (1, pure (tagKind b))]
       pure $ fixCTagOrderingExample (CTagOrderingExample a b { tagKind = kind })
 
-    shrink (CTagOrderingExample a b) =
-      map fixCTagOrderingExample $
+    shrink ex@(CTagOrderingExample a b) =
+      filter (/= ex) . map fixCTagOrderingExample $
            [ CTagOrderingExample a' b | a' <- shrinkTag a ]
         ++ [ CTagOrderingExample a b' | b' <- shrinkTag b ]
 

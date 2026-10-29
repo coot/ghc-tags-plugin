@@ -489,9 +489,20 @@ combineTags :: (Tag tk -> Tag tk -> Ordering)
             -> RawFilePath
             -> [Tag tk] -> [Tag tk] -> [Tag tk]
 combineTags compareFn modPath new old =
-    concatMap nubOrd . groupBy (\a b -> compareFn a b == EQ) $ go new old
+    concatMap dedup . groupBy (\a b -> compareFn a b == EQ) $ go new old
   where
     modPath' = rawFilePathToBS modPath
+    -- Deduplicate only groups that contain at least one freshly generated tag.
+    -- Old-only groups (tags from other modules passing through) must be kept
+    -- intact: the etags format discards kind information, so two tags that were
+    -- distinct when written (e.g. a type constructor and a data constructor
+    -- from --no-filter) become identical after a round-trip and must not be
+    -- silently collapsed on the next unrelated compilation.
+    dedup group
+      | any (\t -> modPath' == Text.encodeUtf8 (getRawFilePath (tagFilePath t))) group
+      = nubOrd group
+      | otherwise
+      = group
     go as@(a : as') bs@(b : bs')
       | modPath' == Text.encodeUtf8 (getRawFilePath (tagFilePath b))
       = go as bs'

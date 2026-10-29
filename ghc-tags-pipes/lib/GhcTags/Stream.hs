@@ -86,7 +86,7 @@ combineTagsStream
     -> Pipes.Producer (Tag tk) m () -- ^ sorted old tags
     -> Pipes.Producer (Tag tk) m ()
 combineTagsStream compareFn modPath new old =
-    merged >-> deduplicateTags compareFn
+    merged >-> deduplicateTags compareFn modPath
   where
     merged :: Pipes.Producer (Tag tk) m ()
     merged = do
@@ -98,22 +98,29 @@ combineTagsStream compareFn modPath new old =
 
 -- Equal tags have equal sorting keys, so only the current comparison group
 -- needs to be remembered. Keep distinct tags with equal keys: compareTags
--- does not compare fields or definitions.
+-- does not compare fields or definitions.  Only deduplicate groups that
+-- contain at least one new (modPath) tag; old-only groups are preserved as-is
+-- because etags loses tagKind on round-trip, making formerly-distinct tags
+-- look identical after parsing.
 deduplicateTags :: Monad m
                 => (Tag tk -> Tag tk -> Ordering)
+                -> RawFilePath
                 -> Pipes.Pipe (Tag tk) (Tag tk) m r
-deduplicateTags compareFn = go []
+deduplicateTags compareFn modPath = go [] False
   where
-    go seen = do
+    modPath' = rawFilePathToBS modPath
+    isNew t  = modPath' == Text.encodeUtf8 (getRawFilePath (tagFilePath t))
+    go seen hasNew = do
       tag <- Pipes.await
-      let group = case seen of
-            previous : _
-              | compareFn previous tag == EQ
-              -> seen
-            _ -> []
-      if tag `elem` group
-        then go group
-        else Pipes.yield tag >> go (tag : group)
+      let inGroup = case seen of
+            previous : _ | compareFn previous tag == EQ -> True
+            _ -> False
+      if inGroup
+        then let hasNew' = hasNew || isNew tag
+             in if hasNew' && tag `elem` seen
+                then go seen hasNew'
+                else Pipes.yield tag >> go (tag : seen) hasNew'
+        else Pipes.yield tag >> go [tag] (isNew tag)
 
 
 -- | One merge step for an old tag. This does not deduplicate the complete

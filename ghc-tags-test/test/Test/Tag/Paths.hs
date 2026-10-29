@@ -72,11 +72,20 @@ instance Arbitrary TagUpdate where
 
 
 -- An independent specification: remove the old module, add its new tags,
--- sort the result and remove duplicates. It uses neither production merge function.
+-- sort the result, and deduplicate only groups that contain a new tag.
+-- Old-only groups are preserved as-is because etags loses tagKind on
+-- round-trip, so formerly-distinct old tags may look identical after parsing.
+-- It uses neither production merge function.
 modelCombineTags :: TagUpdate -> [CTag]
 modelCombineTags TagUpdate { modulePath, oldTags, newTags } =
-    nub . sortBy CTag.compareTags $
-      newTags ++ filter ((/= modulePath) . tagFilePath) oldTags
+    concatMap dedup
+    . groupBy (\a b -> CTag.compareTags a b == EQ)
+    . sortBy CTag.compareTags
+    $ newTags ++ filter ((/= modulePath) . tagFilePath) oldTags
+  where
+    dedup group
+      | any ((== modulePath) . tagFilePath) group = nub group
+      | otherwise                                 = group
 
 
 propCombineTags :: MergeTags -> TagUpdate -> Property
