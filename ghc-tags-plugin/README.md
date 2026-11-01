@@ -86,6 +86,19 @@ streaming ctags, etags, and Template Haskell signature/definition pairs. Tags
 remain sorted. Recompile all modules after changing this option to update
 existing tags consistently.
 
+## ● Pattern bindings
+
+Bindings such as `(x, y) = pair`, `Just value = result`, and
+`record@Config { port = serverPort } = config` produce term tags for each bound
+variable at its own source location. Explicit record puns are supported too.
+Constructors and field labels used as references do not produce new definition
+tags. Implicit fields introduced by `Record {..}` are not indexed at the parsing
+stage.
+
+Pattern bindings in the `where` groups traversed by the plugin remain file-local.
+A separate type signature replaces only the corresponding variable's definition
+in the same binding group, unless `--no-filter` is enabled.
+
 ## ● Update timings
 
 Enable timing diagnostics with:

@@ -1,5 +1,11 @@
 # Revision history for ghctags
 
+## Unreleased
+
+- Tag variables introduced by pattern bindings, including tuple, constructor,
+  list, as-pattern, and record patterns. Preserve signature filtering and local
+  scope, and include `where` declarations attached to pattern bindings.
+
 ## 1.0.0.0 -- 2026-10-28
 
 **Breaking changes** (existing tags files must be regenerated):

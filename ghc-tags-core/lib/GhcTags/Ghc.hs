@@ -96,6 +96,7 @@ import           GHC.Types.SrcLoc
                                 )
 import           GHC.Types.Name.Reader
                                 ( RdrName (..)
+                                , mkRdrUnqual
                                 , rdrNameOcc
                                 )
 import           GHC.Types.Name ( nameOccName
@@ -120,6 +121,11 @@ import           GHC.Types.ForeignCall (CCallTarget (..))
 import           GHC.Parser.Annotation (SrcSpanAnn' (..))
 #endif
 import           GHC.Hs       ( GRHSs (..)
+                              , Pat (..)
+                              , LPat
+                              , HsRecFields (..)
+                              , HsFieldBind (..)
+                              , hsConPatArgs
                               , HsLocalBinds
                               , HsLocalBindsLR (..)
                               , HsValBindsLR (..)
@@ -667,12 +673,9 @@ hsDeclsToGhcTags filterBindings mies decls =
                  (mkHsLocalBindsTags decLoc)
                  binds
 
-        -- TODO
-        -- This is useful to generating tags for
-        -- ````
-        -- Just x = lhs
-        -- ```
-        PatBind {} -> []
+        PatBind { pat_lhs, pat_rhs } ->
+             concatMap (\name -> bindingTag name GtkTerm) (patternBinders pat_lhs)
+          ++ mkHsLocalBindsTags decLoc (grhssLocalBinds pat_rhs)
 
         VarBind { var_id, var_rhs = L srcSpan _ } ->
           bindingTag (unSpanAnn $ L srcSpan var_id) GtkTerm
@@ -685,6 +688,37 @@ hsDeclsToGhcTags filterBindings mies decls =
           , unLoc name `Set.member` signedNames
           = []
           | otherwise = [fixLoc decLoc $ mkGhcTag name kind (exported name)]
+
+
+    -- Preserve binder locations and ignore expressions, constructors and type
+    -- variables occurring in patterns. Record puns have a placeholder RHS in
+    -- the parsed AST; their variable name and location come from the label.
+    -- Implicit record-wildcard fields are only available after renaming.
+    patternBinders :: LPat GhcPs -> [Located RdrName]
+    patternBinders (L _ pat) = case pat of
+      VarPat _ name -> [unSpanAnn name]
+#if MIN_VERSION_GHC(9,10)
+      AsPat _ name nested -> unSpanAnn name : patternBinders nested
+      ParPat _ nested -> patternBinders nested
+#else
+      AsPat _ name _ nested -> unSpanAnn name : patternBinders nested
+      ParPat _ _ nested _ -> patternBinders nested
+#endif
+      LazyPat _ nested -> patternBinders nested
+      BangPat _ nested -> patternBinders nested
+      ListPat _ pats -> concatMap patternBinders pats
+      TuplePat _ pats _ -> concatMap patternBinders pats
+      SumPat _ nested _ _ -> patternBinders nested
+      ConPat {pat_args = RecCon HsRecFields {rec_flds}} ->
+        concatMap (\(L _ HsFieldBind {hfbLHS, hfbRHS, hfbPun}) ->
+          if hfbPun
+            then [fmap (mkRdrUnqual . rdrNameOcc) (unSpanAnn $ foLabel $ unLoc hfbLHS)]
+            else patternBinders hfbRHS) rec_flds
+      ConPat {pat_args} -> concatMap patternBinders (hsConPatArgs pat_args)
+      ViewPat _ _ nested -> patternBinders nested
+      SigPat _ nested _ -> patternBinders nested
+      NPlusKPat _ name _ _ _ _ -> [unSpanAnn name]
+      _ -> []
 
 
     mkClsMemberTags :: SrcSpan -> Located RdrName -> Sig GhcPs -> GhcTags

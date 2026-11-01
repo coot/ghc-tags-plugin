@@ -1,15 +1,15 @@
 {-# LANGUAGE CPP            #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
-module Test.Ghc.Generators (ArbHsDecl (..), ArbClassModule (..), ArbFamilyModule (..)) where
+module Test.Ghc.Generators (ArbHsDecl (..), ArbClassModule (..), ArbFamilyModule (..), ArbPatternModule (..)) where
 
-import Data.Char (isUpper)
-import Data.List (intercalate)
+import Data.Char (isUpper, isAlphaNum, isSpace)
+import Data.List (intercalate, isPrefixOf, nub)
 import qualified GHC.Data.EnumSet as EnumSet
 import GHC.Data.FastString (mkFastString)
 import GHC.Data.StringBuffer (stringToStringBuffer)
 import GHC.Hs
-import GHC.LanguageExtensions.Type (Extension (TypeFamilies, ExplicitNamespaces))
+import GHC.LanguageExtensions.Type (Extension (TypeFamilies, ExplicitNamespaces, BangPatterns, ViewPatterns, NamedFieldPuns, ScopedTypeVariables, NPlusKPatterns, UnboxedTuples, UnboxedSums))
 import qualified GHC.Parser as Parser
 import GHC.Parser.Lexer (ParseResult (..), initParserState, mkParserOpts, unP)
 import GHC.Types.Name.Occurrence (mkDataOcc, mkOccName, mkTcOcc, occNameSpace, occNameString)
@@ -191,7 +191,7 @@ parseModule source =
       PFailed _ -> error ("Invalid generated module:\n" ++ source)
   where
     location = mkRealSrcLoc (mkFastString "Example.hs") 1 1
-    options = mkParserOpts (EnumSet.fromList [TypeFamilies, ExplicitNamespaces]) emptyDiagOpts
+    options = mkParserOpts (EnumSet.fromList [TypeFamilies, ExplicitNamespaces, BangPatterns, ViewPatterns, NamedFieldPuns, ScopedTypeVariables, NPlusKPatterns, UnboxedTuples, UnboxedSums]) emptyDiagOpts
 #if !MIN_VERSION_GLASGOW_HASKELL(9,14,0,0)
                 []
 #endif
@@ -250,3 +250,74 @@ instance Arbitrary ArbFamilyModule where
           Just exports ->
             [Just (fmap (const entries) exports) | entries <- shrinkList (const []) (unLoc exports)]
       ]
+
+
+-- Keep the source alongside the native AST so the property can model binder
+-- locations independently of the pattern traversal, using identifiable names.
+data ArbPatternModule = ArbPatternModule
+  { patternModuleSource :: String
+  , patternModuleAst :: Located (HsModule GhcPs)
+  }
+
+instance Show ArbPatternModule where
+    show = patternModuleSource
+
+instance Arbitrary ArbPatternModule where
+    arbitrary = do
+      ConstructorName suffix <- arbitrary
+      pat <- sized (patternBindingSource ("bound" ++ suffix) . min 4)
+      let names = nub $ filter ("bound" `isPrefixOf`) $
+            words [if isAlphaNum c || c == '_' then c else ' ' | c <- pat]
+      exports <- sublistOf names
+      exportList <- elements ["", "(" ++ intercalate "," exports ++ ")"]
+      signatures <- frequency [(1, pure names), (3, sublistOf names)]
+      localSignatures <- sublistOf names
+      withLocals <- arbitrary
+      let source = unlines $
+            ["module Example " ++ exportList ++ " where"]
+            ++ [name ++ " :: Int" | name <- signatures]
+            ++ ["(" ++ pat ++ ", _) = undefined"]
+            ++ if withLocals
+                 then ["  where"]
+                   ++ ["    " ++ name ++ " :: Int" | name <- localSignatures]
+                   ++ ["    (" ++ pat ++ ", _) = undefined"]
+                 else []
+      pure $ ArbPatternModule source (parseModule source)
+    shrink (ArbPatternModule source _) =
+      [ ArbPatternModule smaller (parseModule smaller)
+      | let sourceLines = lines source
+      , smaller <-
+          [ unlines (take i sourceLines ++ drop (i + 1) sourceLines)
+          | (i, line) <- zip [0 ..] sourceLines
+          , "bound" `isPrefixOf` dropWhile isSpace line
+          ] ++
+          [ unlines ("module Example () where" : drop 1 sourceLines)
+          | take 1 sourceLines /= ["module Example () where"]
+          ]
+      ]
+
+
+patternBindingSource :: String -> Int -> Gen String
+patternBindingSource name depth
+  | depth <= 0 = elements [name, "_", "0", "Nothing"]
+  | otherwise = oneof
+      [ pure name
+      , pure "_"
+      , pure ("(" ++ name ++ " + 1)")
+      , wrap "~(" ")" <$> child "lazy"
+      , wrap "!(" ")" <$> child "bang"
+      , wrap "(" ")" <$> child "par"
+      , wrap "[" "]" <$> child "list"
+      , wrap (name ++ "@(") ")" <$> child "as"
+      , wrap "(Just (" "))" <$> child "con"
+      , wrap "((\\reference -> reference) -> (" "))" <$> child "view"
+      , wrap "((" ") :: Maybe reference)" <$> child "sig"
+      , wrap "(# " " | #)" <$> child "sum"
+      , (\a b -> "(" ++ a ++ ", " ++ b ++ ")") <$> child "left" <*> child "right"
+      , (\a b -> "(# " ++ a ++ ", " ++ b ++ " #)") <$> child "left" <*> child "right"
+      , (\a b -> "((" ++ a ++ ") : (" ++ b ++ "))") <$> child "head" <*> child "tail"
+      , (\a -> "Record { referenceField = (" ++ a ++ "), " ++ name ++ " }") <$> child "field"
+      ]
+  where
+    child suffix = patternBindingSource (name ++ "_" ++ suffix) (depth - 1)
+    wrap before after inner = before ++ inner ++ after

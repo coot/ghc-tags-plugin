@@ -6,12 +6,13 @@
 module Test.Ghc (tests) where
 
 import qualified Data.ByteString.Char8 as BSC
+import Data.Char (isAlphaNum, isSpace)
 import Data.Foldable (toList)
-import Data.List (sort)
+import Data.List (sort, groupBy, isPrefixOf, isInfixOf)
 import GHC.Hs
 import GHC.Types.Name.Occurrence (occNameString)
 import GHC.Types.Name.Reader (rdrNameOcc)
-import GHC.Types.SrcLoc (GenLocated (..), unLoc)
+import GHC.Types.SrcLoc (GenLocated (..), SrcSpan (..), unLoc, srcSpanStartLine, srcSpanStartCol, srcSpanEndLine, srcSpanEndCol)
 import qualified GHC.Utils.Outputable as Out
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.QuickCheck
@@ -25,6 +26,7 @@ tests = testGroup "Ghc"
     [ testProperty "pattern signature filtering follows the option within each binding group" patternSignatureProp
     , testProperty "method visibility follows class exports and lexical scope" methodExportsProp
     , testProperty "family tags follow declarations and exports" familyExportsProp
+    , testProperty "pattern-bound tags preserve locations, scope and filtering" patternBindingsProp
     ]
 
 instance Arbitrary Filter where
@@ -204,3 +206,57 @@ familyExportsProp (ArbFamilyModule ast@(L _ HsModule {hsmodDecls, hsmodExports})
 #endif
         _ -> []
     constructorNames _ = []
+
+
+patternBindingsProp :: Filter -> ArbPatternModule -> Property
+patternBindingsProp filtering (ArbPatternModule source ast) =
+    let -- Generated binders start with "bound"; constructors, field references,
+        -- view expressions and type variables do not. Build the model from
+        -- source tokens rather than duplicating the AST traversal under test.
+        tokens :: String -> [(String, Int)]
+        tokens line =
+          [ (map snd token, column)
+          | token@((column, _) : _) <- groupBy (\(_, a) (_, b) -> identifierChar a == identifierChar b) (zip [1 ..] line)
+          , "bound" `isPrefixOf` map snd token
+          ]
+        identifierChar c = isAlphaNum c || c == '_'
+        declarations =
+          [ (name, kind, (lineNumber, column, lineNumber, column + length name), topLevel)
+          | (lineNumber, line@(first : _)) <- zip [1 ..] (lines source)
+          , lineNumber > 1
+          , let topLevel = not (isSpace first)
+                kind = if "bound" `isPrefixOf` dropWhile isSpace line then "signature" else "term"
+          , (name, column) <- tokens line
+          ]
+        signedNames = [(name, topLevel) | (name, "signature", _, topLevel) <- declarations]
+        exportNames = [name | header <- take 1 (lines source), (name, _) <- tokens header]
+        exportsAll = case unLoc ast of
+          HsModule {hsmodExports = Nothing} -> True
+          _ -> False
+        expected = sort
+          [ (name, kind, location, topLevel && (exportsAll || name `elem` exportNames))
+          | (name, kind, location, topLevel) <- declarations
+          , filtering == RetainAll || kind == "signature" || (name, topLevel) `notElem` signedNames
+          ]
+        actual = sort
+          [ (BSC.unpack gtTag, kind, location, gtIsExported)
+          | GhcTag {gtTag, gtKind, gtSrcSpan, gtIsExported} <- getGhcTags filtering ast
+          , let kind = case gtKind of
+                  GtkTerm -> "term"
+                  GtkTypeSignature {} -> "signature"
+                  _ -> "unexpected"
+          , case gtKind of GtkModule -> False; _ -> True
+          , let location = case gtSrcSpan of
+                  RealSrcSpan span_ _ -> (srcSpanStartLine span_, srcSpanStartCol span_, srcSpanEndLine span_, srcSpanEndCol span_)
+                  UnhelpfulSpan {} -> (-1, -1, -1, -1)
+          ]
+        signedTerms = any (\(name, kind, _, topLevel) -> kind == "term" && (name, topLevel) `elem` signedNames) declarations
+        localTerms = any (\(_, kind, _, topLevel) -> kind == "term" && not topLevel) declarations
+    in checkCoverage
+       $ cover 25 (filtering == RetainAll) "retain definitions"
+       $ cover 25 (filtering == RemoveTerms) "filter signed definitions"
+       $ cover 10 signedTerms "signed pattern bindings"
+       $ cover 10 localTerms "local pattern bindings"
+       $ cover 3 ("referenceField" `isInfixOf` source) "record patterns with puns"
+       $ cover 3 ("reference -> reference" `isInfixOf` source) "view patterns"
+       $ actual === expected

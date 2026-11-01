@@ -1,5 +1,11 @@
 # Revision history for ghc-tags-core
 
+## Unreleased
+
+- Extract term tags from pattern bindings, preserving each variable's location,
+  export status, and signature filtering. Handle record puns and traverse the
+  pattern binding's `where` declarations.
+
 ## 1.0.0.0 -- 2026-10-28
 
 - **Breaking**: `getGhcTags` and `hsDeclsToGhcTags` now require a leading
