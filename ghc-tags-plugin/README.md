@@ -325,9 +325,12 @@ Replace `TARGET` with the component you want ghcid to load.
 ## ● Makefile
 
 The [Makefile](https://github.com/coot/ghc-tags-plugin/blob/master/Makefile)
-contains some useful commands, e.g. `install`,  `uninstall` or `reinstall` the
-package in a `package.db` (by default into `cabal` store).  This is mostly for
-development, but it could be useful in other scenarios as well.
+contains some useful commands, e.g. `install` to install `ghc-tags-plugin` for
+all installed `ghc` versions, and various commands for managing installation
+for particular `ghc` version: `install-for-ghc`,  `uninstall-for-ghc` or
+`reinstall-for-ghc` the package in a `package.db` (by default into `cabal`
+store).  This is mostly for development, but it could be useful in other
+scenarios as well.
 
 ## ● Checking and comparing tags files
 

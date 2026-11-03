@@ -24,7 +24,7 @@ endif
 # THIS FILE WILL BE REMOVED!
 ENV=.ghc-tags-plugin.env
 
-install:
+install-for-ghc:
 	# avoid changing the default environment
 	cabal install --package-db=${PACKAGE_DB} \
 	  	      --package-env=${ENV} \
@@ -37,7 +37,7 @@ install:
 	${GHC_PKG} describe --package-db=${PACKAGE_DB} ghc-tags-plugin | grep -A1 ^id
 
 # Install for every native GHC version installed with GHCup.
-install-all:
+install:
 	@set -eu; \
 	installed=$$(ghcup --offline list --tool ghc --show-criteria installed --raw-format); \
 	versions=$$(printf '%s\n' "$$installed" | awk '$$1 == "ghc" && $$2 !~ /javascript|wasm32/ { print $$2 }'); \
@@ -47,10 +47,10 @@ install-all:
 	fi; \
 	for version in $$versions; do \
 	    printf 'Installing ghc-tags-plugin for GHC %s\n' "$$version"; \
-	    $(MAKE) install GHC_VERSION="$$version"; \
+	    $(MAKE) install-for-ghc GHC_VERSION="$$version"; \
 	done
 
-prof-install:
+prof-install-for-ghc:
 	# avoid changing the default environment
 	cabal install --package-db=${PACKAGE_DB} \
 	  	      --package-env=${ENV} \
@@ -62,44 +62,44 @@ prof-install:
 	rm ${ENV}
 	${GHC_PKG} describe --package-db=${PACKAGE_DB} ghc-tags-plugin | grep -A1 ^id
 
-uninstall:
+uninstall-for-ghc:
 	${GHC_PKG} unregister \
 	  --package-db=${PACKAGE_DB} \
 	  --force \
 	  ghc-tags-plugin
 
-uninstall-core:
+uninstall-core-for-ghc:
 	${GHC_PKG} unregister \
 	  --package-db=${PACKAGE_DB} \
 	  --force \
 	  ghc-tags-core
 
 # reinstall ghc-tags-core and ghc-tags-plugin
-reinstall-core: uninstall uninstall-core install
+reinstall-core-for-ghc: uninstall uninstall-core install
 
 # reinstall only ghc-tags-plugin
-reinstall: uninstall install
+reinstall-for-ghc: uninstall-for-ghc install-for-ghc
 
-gtp-check:
+gtp-check-for-ghc:
 	cabal install -f+gtp-check -w ${GHC} ghc-tags-plugin:gtp-check
 
-list:
+list-for-ghc:
 	${GHC_PKG} list --package-db=${PACKAGE_DB} | grep ghc-tags
 
-latest:
+latest-for-ghc:
 	${GHC_PKG} latest --package-db=${PACKAGE_DB} ghc-tags-plugin
 
-recache:
+recache-for-ghc:
 	${GHC_PKG} recache --package-db=${PACKAGE_DB}
 
-check:
+check-for-ghc:
 	${GHC_PKG} check --package-db=${PACKAGE_DB} 2>&1 | grep ghc-tags
 
-describe:
+describe-for-ghc:
 	${GHC_PKG} describe --package-db=${PACKAGE_DB} ghc-tags-plugin
 
-describe-core:
+describe-core-for-ghc:
 	${GHC_PKG} describe --package-db=${PACKAGE_DB} ghc-tags-core
 
-.PHONY: install install-all prof-install uninstall uninstall-core reinstall reinstall-core \
+.PHONY: install install-for-ghc prof-install-for-ghc uninstall-for-ghc uninstall-core-for-ghc reinstall-for-ghc reinstall-core-for-ghc \
         list latest recache check describe describe-core
