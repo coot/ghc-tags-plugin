@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add `-x` or `--exported-only` to keep tags for exported declarations and `-L`
+  or `--no-locals` to omit nested bindings while retaining top-level private
+  declarations.
 - Tag variables introduced by pattern bindings, including tuple, constructor,
   list, as-pattern, and record patterns. Preserve signature filtering and local
   scope, and include `where` declarations attached to pattern bindings.

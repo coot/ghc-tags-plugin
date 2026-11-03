@@ -50,6 +50,18 @@ qualifiedParser = switch $
     <> long "qualified"
     <> help "also generate names qualified by the defining module"
 
+exportedOnlyParser :: Parser Bool
+exportedOnlyParser = switch $
+       short 'x'
+    <> long "exported-only"
+    <> help "only generate tags for exported declarations"
+
+noLocalsParser :: Parser Bool
+noLocalsParser = switch $
+       short 'L'
+    <> long "no-locals"
+    <> help "exclude bindings nested inside declarations"
+
 filterParser :: Parser Filter
 filterParser =
         bool RemoveTerms RetainAll
@@ -81,6 +93,12 @@ data Options f = Options
   , qualified :: Bool
     -- ^ Also generate module-qualified aliases alongside ordinary names.
 
+  , exportedOnly :: Bool
+    -- ^ Only generate tags for exported declarations.
+
+  , noLocals :: Bool
+    -- ^ Exclude bindings nested inside declarations.
+
   , filterOption :: Filter
     -- ^ Retain signatures and definitions; filtering is enabled by default.
   }
@@ -96,6 +114,8 @@ parseOtions = Options
          <*> (foldMap (Last . Just) <$> many filePathParser)
          <*> debugParser
          <*> qualifiedParser
+         <*> exportedOnlyParser
+         <*> noLocalsParser
          <*> filterParser
 
 
@@ -110,13 +130,15 @@ runOptionParser :: [String]
 runOptionParser = fmap defaultOptions . execParserPure defaultPrefs parserInfo
   where
     defaultOptions :: Options Last -> Options Identity
-    defaultOptions Options { etags, stream, filePath, debug, qualified, filterOption } =
+    defaultOptions Options { etags, stream, filePath, debug, qualified, exportedOnly, noLocals, filterOption } =
         Options {
             etags,
             stream,
             filePath = Identity filePath',
             debug,
             qualified,
+            exportedOnly,
+            noLocals,
             filterOption
           }
       where

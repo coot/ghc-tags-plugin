@@ -61,6 +61,8 @@ displayOptions Options { etags,
                          filePath = Identity filePath,
                          debug,
                          qualified,
+                         exportedOnly,
+                         noLocals,
                          filterOption } =
     Text.intercalate " " $
       [ "--etags"  | etags ]
@@ -70,6 +72,10 @@ displayOptions Options { etags,
       [ "--debug"  | debug ]
       ++
       [ "--qualified" | qualified ]
+      ++
+      [ "--exported-only" | exportedOnly ]
+      ++
+      [ "--no-locals" | noLocals ]
       ++
       [ "--no-filter" | RetainAll <- pure filterOption ]
       ++

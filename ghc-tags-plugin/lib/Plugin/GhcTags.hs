@@ -381,6 +381,7 @@ updateTags timings opts@Options { etags, stream, filePath = Identity tagsFile, d
                        . qualifyTags opts ms_mod
                        . mapMaybe (ghcTagToTag SingCTag dynFlags)
                                               -- translate 'GhcTag' to 'Tag'
+                       . selectGhcTags opts
                        . getGhcTags (filterOption opts)
                                               -- generate 'GhcTag's
                        $ lmodule
@@ -490,6 +491,7 @@ updateTags timings opts@Options { etags, stream, filePath = Identity tagsFile, d
                          . qualifyTags opts ms_mod
                          . mapMaybe (ghcTagToTag SingCTag dynFlags)
                                                 -- translate 'GhcTag' to 'Tag'
+                         . selectGhcTags opts
                          . getGhcTags (filterOption opts)
                                                 -- generate 'GhcTag's
                          $ lmodule
@@ -595,6 +597,7 @@ updateTags timings opts@Options { etags, stream, filePath = Identity tagsFile, d
                            . map (fixTagFilePath cwd tagsDir)
                            . qualifyTags opts ms_mod
                            . mapMaybe (ghcTagToTag SingETag dynFlags)
+                           . selectGhcTags opts
                            . getGhcTags (filterOption opts)
                            $ lmodule
 
@@ -666,6 +669,7 @@ ghcTagsMetaHook options dynFlags request expr =
                 newTags sing = qualifyTags opts mod_
                              $ mapMaybe (fmap (fixTagFilePath cwd tagsDir)
                                          . ghcTagToTag sing dynFlags)
+                             $ selectGhcTags opts
                              $ hsDeclsToGhcTags (filterOption opts) Nothing decls
             if etags
               then do
@@ -759,6 +763,16 @@ prepareTagsWithOptions Options {filterOption} compareFn =
   case filterOption of
     RetainAll   -> sortBy compareFn
     RemoveTerms -> prepareTags compareFn
+
+selectGhcTags :: Options f -> [GhcTag] -> [GhcTag]
+selectGhcTags Options {exportedOnly, noLocals} =
+  filter keep
+  where
+    keep GhcTag {gtIsExported, gtIsLocal} =
+         (exportedOnly `implies` gtIsExported)
+      && (noLocals     `implies` not gtIsLocal)
+
+    a `implies` b = not a || b
 
 
 -- | Add aliases only to newly extracted declarations, before sorting and

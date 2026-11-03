@@ -190,6 +190,8 @@ data GhcTag = GhcTag {
     -- ^ tag's kind
   , gtIsExported :: !Bool
     -- ^ 'True' iff the term is exported
+  , gtIsLocal    :: !Bool
+    -- ^ 'True' iff the binding is nested inside another declaration
   , gtFFI        :: !(Maybe String)
     -- ^ @ffi@ import
   }
@@ -285,6 +287,7 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
                , gtSrcSpan
                , gtKind
                , gtIsExported
+               , gtIsLocal = False
                , gtFFI = Nothing
                }
 
@@ -293,6 +296,7 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
                , gtSrcSpan
                , gtKind
                , gtIsExported
+               , gtIsLocal = False
                , gtFFI = Nothing
                }
 
@@ -302,6 +306,7 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
                , gtSrcSpan
                , gtKind
                , gtIsExported
+               , gtIsLocal = False
                , gtFFI = Nothing
                }
 
@@ -310,6 +315,7 @@ mkGhcTag (L gtSrcSpan rdrName) gtKind gtIsExported =
                , gtSrcSpan
                , gtKind
                , gtIsExported
+               , gtIsLocal = False
                , gtFFI = Nothing
                }
 
@@ -361,6 +367,7 @@ getGhcTags filterBindings (L _ HsModule { hsmodName, hsmodDecls, hsmodExports })
              , gtTag        = bytesFS $ moduleNameFS modName
              , gtKind       = GtkModule
              , gtIsExported = True
+             , gtIsLocal    = False
              , gtFFI        = Nothing
              }
 
@@ -597,9 +604,12 @@ hsDeclsToGhcTags filterBindings mies decls =
     mkHsLocalBindsTags :: SrcSpan -> HsLocalBinds GhcPs -> [GhcTag]
     mkHsLocalBindsTags decLoc (HsValBinds _ (ValBinds _ hsBindsLR sigs)) =
          -- where clause bindings
-         concatMap (mkHsBindLRTags (const False) (signatureNames (map unLoc sigs)) decLoc . unLoc)
-                   (Foldable.toList hsBindsLR)
-      ++ map (\tag -> tag {gtIsExported = False}) (concatMap (mkSigTags decLoc . unLoc) sigs)
+         map markLocal
+           (concatMap (mkHsBindLRTags (const False) (signatureNames (map unLoc sigs)) decLoc . unLoc)
+                      (Foldable.toList hsBindsLR)
+         ++ map (\tag -> tag {gtIsExported = False}) (concatMap (mkSigTags decLoc . unLoc) sigs))
+      where
+        markLocal tag = tag {gtIsLocal = True}
 
     mkHsLocalBindsTags _ _ = []
 

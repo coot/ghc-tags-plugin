@@ -18,7 +18,7 @@ The plugin requires at least: `ghc >= 9.6`.
 ----------------
 
 ```
-Usage: <program> [-e|--etags] [--stream] [--debug] [--qualified] [-F|--no-filter] [file_path]
+Usage: <program> [-e|--etags] [--stream] [--debug] [--qualified] [--exported-only] [--no-locals] [-F|--no-filter] [file_path]
   write tags from ghc abstract syntax tree
 
 Available options:
@@ -28,6 +28,8 @@ Available options:
                            default tags or TAGS (with --etags)
   --debug                  tag counts, file sizes, and update timings
   -q,--qualified           also generate names qualified by the defining module
+  -x,--exported-only       only generate tags for exported declarations
+  -L,--no-locals           exclude bindings nested inside declarations
   -F,--no-filter           retain both signatures and definitions
 ```
 
@@ -70,6 +72,18 @@ identify their containing module, rather than a valid qualified import.
 
 Only recompiled modules are updated. Rebuild all modules after enabling or
 disabling this option to update existing tags consistently.
+
+## ● Declaration selection
+
+By default, tags include exported and unexported declarations, including
+bindings nested inside functions and other declarations. Use
+`-fplugin-opt=Plugin.GhcTags:--exported-only` to keep only declarations marked
+as exported by the module's export list. Use
+`-fplugin-opt=Plugin.GhcTags:--no-locals` to omit nested bindings while keeping
+top-level declarations, including top-level declarations that are not
+exported. The options can be combined. They apply to ctags, streaming ctags,
+etags, and Template Haskell declarations. Recompile affected modules after
+changing either option to update their tags.
 
 ## ● Signature and definition filtering
 
