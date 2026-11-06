@@ -8,7 +8,7 @@ module Test.Ghc (tests) where
 import qualified Data.ByteString.Char8 as BSC
 import Data.Char (isAlphaNum, isSpace)
 import Data.Foldable (toList)
-import Data.List (sort, groupBy, isPrefixOf, isInfixOf)
+import Data.List (sort, groupBy, isPrefixOf, isInfixOf, nub)
 import GHC.Hs
 import GHC.Types.Name.Occurrence (occNameString)
 import GHC.Types.Name.Reader (rdrNameOcc)
@@ -27,6 +27,8 @@ tests = testGroup "Ghc"
     , testProperty "method visibility follows class exports and lexical scope" methodExportsProp
     , testProperty "family tags follow declarations and exports" familyExportsProp
     , testProperty "pattern-bound tags preserve locations, scope and filtering" patternBindingsProp
+    , testProperty "pattern-match tags name matched constructors once per line" patternMatchesProp
+    , testProperty "pattern-match tags leave declaration tags unchanged" patternMatchDeclarationsProp
     ]
 
 instance Arbitrary Filter where
@@ -38,7 +40,7 @@ instance Arbitrary Filter where
 patternSignatureProp :: Filter -> [ArbHsDecl] -> Property
 patternSignatureProp filterBindings input =
     let declarations = map getArbHsDecl input
-        tags = hsDeclsToGhcTags filterBindings Nothing declarations
+        tags = hsDeclsToGhcTags filterBindings ExcludePatternMatches Nothing declarations
         actual =
           [ (BSC.unpack gtTag, kind, signatureType)
           | GhcTag {gtTag, gtKind} <- tags
@@ -115,7 +117,7 @@ methodExportsProp (ArbClassModule ast@(L _ HsModule {hsmodDecls, hsmodExports}))
                          GtkModule -> False
                          GtkTypeClass -> False
                          GtkTypeClassInstance {} -> False
-                         _ -> True) (getGhcTags RetainAll ast)
+                         _ -> True) (getGhcTags RetainAll ExcludePatternMatches ast)
         expected = [gtSrcSpan tag `elem` publicLocations | tag <- tags]
         shadowsExport = any (\tag -> BSC.unpack (gtTag tag) `elem` publicNames
                                  && gtSrcSpan tag `notElem` directLocations) tags
@@ -183,7 +185,7 @@ familyExportsProp (ArbFamilyModule ast@(L _ HsModule {hsmodDecls, hsmodExports})
                          GtkModule -> False
                          GtkTypeClass -> False
                          GtkTypeClassInstance {} -> False
-                         _ -> True) (getGhcTags RetainAll ast)
+                         _ -> True) (getGhcTags RetainAll ExcludePatternMatches ast)
         actual = sort [(BSC.unpack gtTag, show gtSrcSpan, gtIsExported) | GhcTag {gtTag, gtSrcSpan, gtIsExported} <- tags]
         hasDefault = or [not (null tcdATDefs) | L _ (TyClD _ ClassDecl {tcdATDefs}) <- hsmodDecls]
         hiddenChildren = or [parent `elem` publicNames && any (`notElem` publicNames) children
@@ -240,7 +242,7 @@ patternBindingsProp filtering (ArbPatternModule source ast) =
           ]
         actual = sort
           [ (BSC.unpack gtTag, kind, location, gtIsExported)
-          | GhcTag {gtTag, gtKind, gtSrcSpan, gtIsExported} <- getGhcTags filtering ast
+          | GhcTag {gtTag, gtKind, gtSrcSpan, gtIsExported} <- getGhcTags filtering ExcludePatternMatches ast
           , let kind = case gtKind of
                   GtkTerm -> "term"
                   GtkTypeSignature {} -> "signature"
@@ -260,3 +262,84 @@ patternBindingsProp filtering (ArbPatternModule source ast) =
        $ cover 3 ("referenceField" `isInfixOf` source) "record patterns with puns"
        $ cover 3 ("reference -> reference" `isInfixOf` source) "view patterns"
        $ actual === expected
+
+
+patternMatchesProp :: ArbMatchModule -> Property
+patternMatchesProp ArbMatchModule {matchModuleSource, matchModuleAst} =
+    let -- Generated constructors matched by patterns are the only tokens
+        -- starting with "Matched". Build the model from source tokens rather
+        -- than duplicating the AST traversal under test.
+        matched :: String -> [String]
+        matched line =
+          [ token
+          | token <- words [if isAlphaNum c || c == '_' then c else ' ' | c <- line]
+          , "Matched" `isPrefixOf` token
+          ]
+        sourceLines = lines matchModuleSource
+        expected = sort $ nub
+          [ (name, lineNumber, "match")
+          | (lineNumber, line) <- zip [1 ..] sourceLines
+          , name <- matched line
+          ]
+        -- Pattern matches are neither local nor file-local, even in local
+        -- bindings or instance methods.
+        actual = sort
+          [ (BSC.unpack gtTag, lineNumber, kind)
+          | GhcTag {gtTag, gtKind = GtkPatternMatch, gtSrcSpan, gtIsExported, gtIsLocal}
+              <- getGhcTags RetainAll IncludePatternMatches matchModuleAst
+          , let kind = if gtIsExported && not gtIsLocal then "match" else "local match"
+                lineNumber = case gtSrcSpan of
+                  RealSrcSpan span_ _ -> srcSpanStartLine span_
+                  UnhelpfulSpan {} -> -1
+          ]
+        repeated = any (\line -> let names = matched line in names /= nub names) sourceLines
+        continued = any (\line -> take 1 line == " " && not (null (matched line))) sourceLines
+    in -- Each syntactic context is rare, so run more tests.
+       withMaxSuccess 2000
+       $ checkCoverage
+       $ cover 20 repeated "repeated matches on a line"
+       $ cover 20 continued "patterns spanning lines"
+       $ cover 20 (any (`isInfixOf` matchModuleSource) ["[]", "()", " : "]) "built-in syntax"
+       $ actual === expected
+
+
+patternMatchDeclarationsProp :: Filter -> ArbMatchModule -> Property
+patternMatchDeclarationsProp filtering ArbMatchModule {matchModuleAst} =
+    let declarations patternMatches =
+          [ (BSC.unpack gtTag, gtSrcSpan, kindName gtKind, gtIsExported, gtIsLocal, gtFFI)
+          | GhcTag {gtTag, gtSrcSpan, gtKind, gtIsExported, gtIsLocal, gtFFI}
+              <- getGhcTags filtering patternMatches matchModuleAst
+          , case gtKind of GtkPatternMatch -> False; _ -> True
+          ]
+        excluded = declarations ExcludePatternMatches
+    in checkCoverage
+       $ cover 20 (any (\(_, _, _, _, local, _) -> local) excluded) "local bindings"
+       $ cover 10 (any (\(_, _, kind, _, _, _) -> kind == "instance member") excluded) "instance methods"
+       $ declarations IncludePatternMatches === excluded
+
+
+-- | The constructor of a tag kind, without the syntax it carries.
+kindName :: GhcTagKind -> String
+kindName kind = case kind of
+    GtkModule                     -> "module"
+    GtkTerm                       -> "term"
+    GtkFunction                   -> "function"
+    GtkTypeConstructor {}         -> "type constructor"
+    GtkDataConstructor {}         -> "data constructor"
+    GtkGADTConstructor {}         -> "GADT constructor"
+    GtkRecordField                -> "record field"
+    GtkTypeSynonym {}             -> "type synonym"
+    GtkTypeSignature {}           -> "type signature"
+    GtkTypeKindSignature {}       -> "kind signature"
+    GtkPatternSynonym             -> "pattern synonym"
+    GtkTypeClass                  -> "class"
+    GtkTypeClassMember {}         -> "class member"
+    GtkTypeClassInstance {}       -> "instance"
+    GtkTypeClassInstanceMember {} -> "instance member"
+    GtkTypeFamily {}              -> "type family"
+    GtkTypeFamilyInstance {}      -> "type family instance"
+    GtkDataTypeFamily {}          -> "data family"
+    GtkDataTypeFamilyInstance {}  -> "data family instance"
+    GtkForeignImport              -> "foreign import"
+    GtkForeignExport              -> "foreign export"
+    GtkPatternMatch               -> "pattern match"

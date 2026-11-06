@@ -205,6 +205,7 @@ instance NFData TagName where
 -- * 'TkDataTypeFamilyInstance' - @D@
 -- * 'TkForeignImport' - @I@
 -- * 'TkForeignExport' - @E@
+-- * 'TkPatternMatch' - @P@
 --
 data TagKind where
     TkModule                  :: TagKind
@@ -227,6 +228,7 @@ data TagKind where
     TkDataTypeFamilyInstance  :: TagKind
     TkForeignImport           :: TagKind
     TkForeignExport           :: TagKind
+    TkPatternMatch            :: TagKind
     CharKind                  :: !Char -> TagKind
     NoKind                    :: TagKind
 
@@ -436,6 +438,10 @@ type ETagMap = TagMap ETAG
 -- effect of keeping transitivity property) it will put type classes and their
 -- instances before other kinds.
 --
+-- Pattern matches ('TkPatternMatch') are sorted after all other tags with the
+-- same name.  Editors which keep the tags file order for matches of equal
+-- priority, e.g. vim, will then list declarations before pattern matches.
+--
 -- It satisfies the following properties:
 --
 -- * anti-symmetry
@@ -449,6 +455,8 @@ compareTags :: forall (tk :: TAG_KIND).
                Ord (TagAddress tk)
             => Tag tk -> Tag tk -> Ordering
 compareTags t0 t1 = on compare tagName t0 t1
+                    -- sort pattern matches after declarations
+                 <> on compare isPatternMatch t0 t1
                     -- sort type classes / type families before their instances,
                     -- and take precedence over a file where they are defined.
                     --
@@ -460,6 +468,9 @@ compareTags t0 t1 = on compare tagName t0 t1
                  <> on compare tagKind     t0 t1
 
     where
+      isPatternMatch :: Tag tk -> Bool
+      isPatternMatch t = tagKind t == TkPatternMatch
+
       getTkClass :: Tag tk -> Maybe TagKind
       getTkClass t = case tagKind t of
         TkTypeClass              -> Just TkTypeClass
@@ -556,13 +567,15 @@ prepareTags compareFn tags = sortBy compareFn (filter (not . redundant) tags)
 
 -- | Append aliases prefixed by the defining module's name. Keep the original
 -- tags and all declaration metadata. Module tags already name the module and
--- are not qualified again. Call this on freshly generated tags, before sorting;
+-- are not qualified again. Pattern matches do not declare names, so they are
+-- not qualified either. Call this on freshly generated tags, before sorting;
 -- import aliases and re-exports require information from the importing module.
 addQualifiedTags :: Text -> [Tag tk] -> [Tag tk]
 addQualifiedTags moduleName tags = tags ++
     [ tag {tagName = TagName (moduleName <> "." <> getTagName (tagName tag))}
     | tag <- tags
     , tagKind tag /= TkModule
+    , tagKind tag /= TkPatternMatch
     ]
 
 
@@ -638,6 +651,7 @@ ghcTagToTag sing  dynFlags GhcTag { gtSrcSpan, gtTag, gtKind, gtIsExported, gtFF
       GtkDataTypeFamilyInstance {}  -> TkDataTypeFamilyInstance
       GtkForeignImport              -> TkForeignImport
       GtkForeignExport              -> TkForeignExport
+      GtkPatternMatch               -> TkPatternMatch
 
     -- static field (whether term is exported or not)
     staticField :: SingTagKind tk -> TagFields tk

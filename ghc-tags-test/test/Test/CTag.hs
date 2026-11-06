@@ -43,12 +43,13 @@ qualifiedCTagsProp :: ArbModuleName -> [ArbCTag] -> Property
 qualifiedCTagsProp (ArbModuleName moduleName) input =
     let tags = map getArbCTag input
         expected = concat
-          [ if tagKind tag == TkModule then [tag]
+          [ if tagKind tag `elem` [TkModule, TkPatternMatch] then [tag]
             else [tag, tag {tagName = TagName (Text.intercalate "." [moduleName, getTagName $ tagName tag])}]
           | tag <- tags
           ]
     in checkCoverage
        $ cover 10 (any ((== TkModule) . tagKind) tags) "module tags"
+       $ cover 10 (any ((== TkPatternMatch) . tagKind) tags) "pattern-match tags"
        $ sort (addQualifiedTags moduleName tags) === sort expected
 
 --

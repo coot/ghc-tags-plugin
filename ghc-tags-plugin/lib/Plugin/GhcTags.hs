@@ -382,7 +382,7 @@ updateTags timings opts@Options { etags, stream, filePath = Identity tagsFile, d
                        . mapMaybe (ghcTagToTag SingCTag dynFlags)
                                               -- translate 'GhcTag' to 'Tag'
                        . selectGhcTags opts
-                       . getGhcTags (filterOption opts)
+                       . getGhcTags (filterOption opts) (patternMatches opts)
                                               -- generate 'GhcTag's
                        $ lmodule
 
@@ -492,7 +492,7 @@ updateTags timings opts@Options { etags, stream, filePath = Identity tagsFile, d
                          . mapMaybe (ghcTagToTag SingCTag dynFlags)
                                                 -- translate 'GhcTag' to 'Tag'
                          . selectGhcTags opts
-                         . getGhcTags (filterOption opts)
+                         . getGhcTags (filterOption opts) (patternMatches opts)
                                                 -- generate 'GhcTag's
                          $ lmodule
 
@@ -598,7 +598,7 @@ updateTags timings opts@Options { etags, stream, filePath = Identity tagsFile, d
                            . qualifyTags opts ms_mod
                            . mapMaybe (ghcTagToTag SingETag dynFlags)
                            . selectGhcTags opts
-                           . getGhcTags (filterOption opts)
+                           . getGhcTags (filterOption opts) (patternMatches opts)
                            $ lmodule
 
                       combined :: [ETag]
@@ -670,7 +670,7 @@ ghcTagsMetaHook options dynFlags request expr =
                              $ mapMaybe (fmap (fixTagFilePath cwd tagsDir)
                                          . ghcTagToTag sing dynFlags)
                              $ selectGhcTags opts
-                             $ hsDeclsToGhcTags (filterOption opts) Nothing decls
+                             $ hsDeclsToGhcTags (filterOption opts) (patternMatches opts) Nothing decls
             if etags
               then do
                 pr <- timedNF timings ParseTags $ ETag.parseTagsFileRecovering tagsContent
@@ -764,6 +764,8 @@ prepareTagsWithOptions Options {filterOption} compareFn =
     RetainAll   -> sortBy compareFn
     RemoveTerms -> prepareTags compareFn
 
+-- | Select tags by @--exported-only@ and @--no-locals@.  Pattern-match tags
+-- are exported and not local, so both options keep them.
 selectGhcTags :: Options f -> [GhcTag] -> [GhcTag]
 selectGhcTags Options {exportedOnly, noLocals} =
   filter keep

@@ -45,6 +45,7 @@ tests = testGroup "Tag"
                                             (getArbOrdTag c))
     , testProperty "Eq:consistency"  (weakConsistency . getArbOrdTag)
     , testProperty "sort:idempotent" sortIdempotentProp
+    , testProperty "pattern matches follow declarations" patternMatchesFollowDeclarationsProp
     ]
   , testGroup "combineTags"
     [ testProperty "subset"       combineTags_subset
@@ -187,6 +188,43 @@ sortIdempotentProp ts =
 -- But since 'Tag' is using derived 'Eq' instance, it is equivalent to
 weakConsistency :: Tag tk -> Bool
 weakConsistency a = a `compareTags` a == EQ
+
+
+-- | A pattern match and another tag with the same name.
+--
+data PatternMatchExample = PatternMatchExample CTag CTag
+  deriving (Eq, Show)
+
+instance Arbitrary PatternMatchExample where
+    arbitrary = do
+      ArbTag patternMatch <- arbitrary
+      ArbTag other <- arbitrary
+      pure $ fixPatternMatchExample (PatternMatchExample patternMatch other)
+
+    shrink ex@(PatternMatchExample patternMatch other) =
+      filter (/= ex) . map fixPatternMatchExample $
+           [ PatternMatchExample patternMatch' other | patternMatch' <- shrinkTag patternMatch ]
+        ++ [ PatternMatchExample patternMatch other' | other' <- shrinkTag other ]
+
+
+fixPatternMatchExample :: PatternMatchExample -> PatternMatchExample
+fixPatternMatchExample (PatternMatchExample patternMatch other) =
+    PatternMatchExample
+      patternMatch { tagKind = TkPatternMatch }
+      other { tagName = tagName patternMatch
+            , tagKind = case tagKind other of
+                TkPatternMatch -> TkTerm
+                kind           -> kind
+            }
+
+
+patternMatchesFollowDeclarationsProp :: PatternMatchExample -> Property
+patternMatchesFollowDeclarationsProp (PatternMatchExample patternMatch other) =
+    let earlier = (on compare tagFilePath patternMatch other
+                   <> on compare tagAddr patternMatch other) == LT
+    in checkCoverage
+       $ cover 25 earlier "pattern match at an earlier location"
+       $ compareTags patternMatch other === GT
 
 
 --

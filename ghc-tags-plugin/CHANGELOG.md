@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add `-p` or `--pattern-matches` to tag constructors and pattern synonyms
+  matched by patterns, using the new kind `P`. Pattern-match tags are sorted
+  after declarations with the same name, are kept by `--exported-only` and
+  `--no-locals`, and are not qualified by `--qualified`.
 - Add `-x` or `--exported-only` to keep tags for exported declarations and `-L`
   or `--no-locals` to omit nested bindings while retaining top-level private
   declarations.

@@ -6,6 +6,7 @@ module Plugin.GhcTags.Options
   ( Options (..)
   , ParserResult (..)
   , Filter (..)
+  , PatternMatches (..)
   , runOptionParser
   ) where
 
@@ -14,7 +15,7 @@ import           Data.Monoid (Last (..))
 import           Data.Functor.Identity (Identity (..))
 import           Options.Applicative
 
-import           GhcTags.Ghc (Filter (..))
+import           GhcTags.Ghc (Filter (..), PatternMatches (..))
 
 
 etagsParser :: Parser Bool
@@ -62,6 +63,15 @@ noLocalsParser = switch $
     <> long "no-locals"
     <> help "exclude bindings nested inside declarations"
 
+patternMatchesParser :: Parser PatternMatches
+patternMatchesParser =
+        bool ExcludePatternMatches IncludePatternMatches
+    <$> switch (
+             short 'p'
+          <> long "pattern-matches"
+          <> help "also generate tags for constructors and pattern synonyms matched by patterns"
+        )
+
 filterParser :: Parser Filter
 filterParser =
         bool RemoveTerms RetainAll
@@ -99,6 +109,10 @@ data Options f = Options
   , noLocals :: Bool
     -- ^ Exclude bindings nested inside declarations.
 
+  , patternMatches :: PatternMatches
+    -- ^ Also generate tags for constructors and pattern synonyms matched by
+    -- patterns; disabled by default.
+
   , filterOption :: Filter
     -- ^ Retain signatures and definitions; filtering is enabled by default.
   }
@@ -116,6 +130,7 @@ parseOtions = Options
          <*> qualifiedParser
          <*> exportedOnlyParser
          <*> noLocalsParser
+         <*> patternMatchesParser
          <*> filterParser
 
 
@@ -130,7 +145,7 @@ runOptionParser :: [String]
 runOptionParser = fmap defaultOptions . execParserPure defaultPrefs parserInfo
   where
     defaultOptions :: Options Last -> Options Identity
-    defaultOptions Options { etags, stream, filePath, debug, qualified, exportedOnly, noLocals, filterOption } =
+    defaultOptions Options { etags, stream, filePath, debug, qualified, exportedOnly, noLocals, patternMatches, filterOption } =
         Options {
             etags,
             stream,
@@ -139,6 +154,7 @@ runOptionParser = fmap defaultOptions . execParserPure defaultPrefs parserInfo
             qualified,
             exportedOnly,
             noLocals,
+            patternMatches,
             filterOption
           }
       where

@@ -126,6 +126,7 @@ genTagKind SingCTag =
             , pure TkDataTypeFamilyInstance
             , pure TkForeignImport
             , pure TkForeignExport
+            , pure TkPatternMatch
             , CharKind <$> genChar
             , pure NoKind
             ])
@@ -134,7 +135,7 @@ genTagKind SingCTag =
     genChar = suchThat arbitrary
                        ( ((/= Char.Control) . Char.generalCategory)
                          /\ (/= ':')
-                         /\ (not . flip elem ("`λΛcgr≡⊢pCmifFdDIExM" :: String))
+                         /\ (not . flip elem ("`λΛcgr≡⊢pCmifFdDIExMP" :: String))
                        )
 
 shrinkTag' :: Tag tk -> [Tag tk]

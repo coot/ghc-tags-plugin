@@ -10,7 +10,7 @@ import           Data.Version
 
 import           Paths_ghc_tags_plugin
 
-import           Plugin.GhcTags.Options (Options (..), Filter (..))
+import           Plugin.GhcTags.Options (Options (..), Filter (..), PatternMatches (..))
 import           GhcTags.CTag.Header
 
 
@@ -50,6 +50,7 @@ headers options =
     , Header KindDescription haskellLang "D" "data type family instance"
     , Header KindDescription haskellLang "I" "foreign import"
     , Header KindDescription haskellLang "E" "foreign export"
+    , Header KindDescription haskellLang "P" "constructor or pattern synonym matched by a pattern"
     ]
   where
     haskellLang = Just "Haskell"
@@ -63,6 +64,7 @@ displayOptions Options { etags,
                          qualified,
                          exportedOnly,
                          noLocals,
+                         patternMatches,
                          filterOption } =
     Text.intercalate " " $
       [ "--etags"  | etags ]
@@ -76,6 +78,8 @@ displayOptions Options { etags,
       [ "--exported-only" | exportedOnly ]
       ++
       [ "--no-locals" | noLocals ]
+      ++
+      [ "--pattern-matches" | IncludePatternMatches <- pure patternMatches ]
       ++
       [ "--no-filter" | RetainAll <- pure filterOption ]
       ++

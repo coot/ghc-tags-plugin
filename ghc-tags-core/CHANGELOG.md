@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **Breaking**: add the `GtkPatternMatch` and `TkPatternMatch` kinds. The ctags
+  kind `P` is parsed as `TkPatternMatch` rather than `CharKind 'P'`.
+- **Breaking**: `getGhcTags` and `hsDeclsToGhcTags` require a `PatternMatches`
+  argument after the `Filter`. Pass `ExcludePatternMatches` for the previous
+  behaviour, or `IncludePatternMatches` to also tag constructors and pattern
+  synonyms matched by patterns, in the same pass over the syntax tree.
+  Generate at most one tag per name and line, and skip built-in syntax and
+  types.
+- `compareTags` sorts pattern matches after other tags with the same name;
+  `addQualifiedTags` does not qualify them.
 - Extract term tags from pattern bindings, preserving each variable's location,
   export status, and signature filtering. Handle record puns and traverse the
   pattern binding's `where` declarations.

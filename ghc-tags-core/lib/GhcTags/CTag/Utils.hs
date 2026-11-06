@@ -38,6 +38,7 @@ tagKindToChar tk = case tk of
     TkDataTypeFamilyInstance  -> Just 'D'
     TkForeignImport           -> Just 'I'
     TkForeignExport           -> Just 'E'
+    TkPatternMatch            -> Just 'P'
 
     CharKind c                -> Just c
     NoKind                    -> Nothing
@@ -65,5 +66,6 @@ charToTagKind c = case c of
      'D' -> TkDataTypeFamilyInstance
      'I' -> TkForeignImport
      'E' -> TkForeignExport
+     'P' -> TkPatternMatch
 
      _   -> CharKind c
