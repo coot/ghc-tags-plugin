@@ -24,8 +24,8 @@ import Test.Ghc.Generators
 tests :: TestTree
 tests = testGroup "Ghc"
     [ testProperty "pattern signature filtering follows the option within each binding group" patternSignatureProp
-    , testProperty "method visibility follows class exports and lexical scope" methodExportsProp
-    , testProperty "family tags follow declarations and exports" familyExportsProp
+    , testProperty "method visibility follows class exports, instances and lexical scope" methodExportsProp
+    , testProperty "family tags follow declarations and exports; instances are exported" familyExportsProp
     , testProperty "pattern-bound tags preserve locations, scope and filtering" patternBindingsProp
     , testProperty "pattern-match tags name matched constructors once per line" patternMatchesProp
     , testProperty "pattern-match tags leave declaration tags unchanged" patternMatchDeclarationsProp
@@ -103,15 +103,20 @@ methodExportsProp (ArbClassModule ast@(L _ HsModule {hsmodDecls, hsmodExports}))
         publicNames = case hsmodExports of
           Nothing -> concatMap snd classes
           Just exports -> concatMap (exportedMembers . unLoc) (unLoc exports)
-        directNames = concatMap (\decl -> case unLoc decl of
+        classNames = concatMap (\decl -> case unLoc decl of
           TyClD _ ClassDecl {tcdSigs, tcdMeths} ->
                concatMap (signatureNames . unLoc) tcdSigs
             ++ [fun_id | L _ FunBind {fun_id} <- toList tcdMeths]
+          _ -> []) hsmodDecls
+        -- instances are exported whatever the export list says
+        instanceNames = concatMap (\decl -> case unLoc decl of
           InstD _ (ClsInstD _ ClsInstDecl {cid_sigs, cid_binds}) ->
                concatMap (signatureNames . unLoc) cid_sigs
             ++ [fun_id | L _ FunBind {fun_id} <- toList cid_binds]
           _ -> []) hsmodDecls
-        publicLocations = [getLocA name | name <- directNames, nameOf name `elem` publicNames]
+        directNames = classNames ++ instanceNames
+        publicLocations =  [getLocA name | name <- classNames, nameOf name `elem` publicNames]
+                        ++ map getLocA instanceNames
         directLocations = map getLocA directNames
         tags = filter (\tag -> case gtKind tag of
                          GtkModule -> False
@@ -123,7 +128,8 @@ methodExportsProp (ArbClassModule ast@(L _ HsModule {hsmodDecls, hsmodExports}))
                                  && gtSrcSpan tag `notElem` directLocations) tags
     in checkCoverage
        $ cover 20 (not $ null publicLocations) "exported methods"
-       $ cover 20 (any ((`notElem` publicNames) . nameOf) directNames) "hidden methods"
+       $ cover 20 (any ((`notElem` publicNames) . nameOf) classNames) "hidden methods"
+       $ cover 20 (any ((`notElem` publicNames) . nameOf) instanceNames) "instances of hidden methods"
        $ cover 10 shadowsExport "local bindings shadow exported methods"
        $ counterexample (show [(BSC.unpack $ gtTag tag, gtSrcSpan tag) | tag <- tags])
        $ map gtIsExported tags === expected
@@ -140,25 +146,30 @@ familyExportsProp (ArbFamilyModule ast@(L _ HsModule {hsmodDecls, hsmodExports})
         wrappedName = occNameString . rdrNameOcc . ieWrappedName . unLoc
         typeInstanceName :: TyFamInstDecl GhcPs -> LIdP GhcPs
         typeInstanceName TyFamInstDecl {tfid_eqn = FamEqn {feqn_tycon}} = feqn_tycon
-        dataInstanceNames :: DataFamInstDecl GhcPs -> ([LIdP GhcPs], [(String, [String])])
+        dataInstanceNames :: DataFamInstDecl GhcPs -> ([LIdP GhcPs], [LIdP GhcPs], [(String, [String])])
         dataInstanceNames DataFamInstDecl {dfid_eqn = FamEqn {feqn_tycon, feqn_rhs = HsDataDefn {dd_cons}}} =
           let children = concatMap (constructorNames . unLoc) dd_cons
-          in (feqn_tycon : children, [(nameOf feqn_tycon, map nameOf children)])
+          in (children, [feqn_tycon], [(nameOf feqn_tycon, map nameOf children)])
+        -- names, instance names (exported whatever the export list says)
+        -- and parent-children edges
         declarations = map (\decl -> case unLoc decl of
-          TyClD _ (FamDecl _ FamilyDecl {fdLName}) -> ([fdLName], [])
+          TyClD _ (FamDecl _ FamilyDecl {fdLName}) -> ([fdLName], [], [])
           TyClD _ ClassDecl {tcdLName, tcdATs, tcdATDefs} ->
             let members = [fdLName | L _ FamilyDecl {fdLName} <- tcdATs]
-            in (members ++ map (typeInstanceName . unLoc) tcdATDefs,
+            in (members ++ map (typeInstanceName . unLoc) tcdATDefs, [],
                 [(nameOf tcdLName, map nameOf members)])
-          InstD _ (TyFamInstD _ decl') -> ([typeInstanceName decl'], [])
+          InstD _ (TyFamInstD _ decl') -> ([], [typeInstanceName decl'], [])
           InstD _ (DataFamInstD _ decl') -> dataInstanceNames decl'
           InstD _ (ClsInstD _ ClsInstDecl {cid_tyfam_insts, cid_datafam_insts}) ->
             let dataInstances = map (dataInstanceNames . unLoc) cid_datafam_insts
-            in (map (typeInstanceName . unLoc) cid_tyfam_insts ++ concatMap fst dataInstances,
-                concatMap snd dataInstances)
-          _ -> ([], [])) hsmodDecls
-        names = concatMap fst declarations
-        childrenOf parent = concat [children | (_, edges) <- declarations,
+            in ( concat [children | (children, _, _) <- dataInstances]
+               , map (typeInstanceName . unLoc) cid_tyfam_insts
+                 ++ concat [heads | (_, heads, _) <- dataInstances]
+               , concat [edges | (_, _, edges) <- dataInstances])
+          _ -> ([], [], [])) hsmodDecls
+        names = concat [names' | (names', _, _) <- declarations]
+        instanceNames = concat [heads | (_, heads, _) <- declarations]
+        childrenOf parent = concat [children | (_, _, edges) <- declarations,
                                                (name, children) <- edges, name == parent]
         expandExport :: IE GhcPs -> [String]
         expandExport ie = case ie of
@@ -180,7 +191,8 @@ familyExportsProp (ArbFamilyModule ast@(L _ HsModule {hsmodDecls, hsmodExports})
         publicNames = case hsmodExports of
           Nothing -> map nameOf names
           Just exports -> concatMap (expandExport . unLoc) (unLoc exports)
-        expected = sort [(nameOf name, show $ getLocA name, nameOf name `elem` publicNames) | name <- names]
+        expected = sort $  [(nameOf name, show $ getLocA name, nameOf name `elem` publicNames) | name <- names]
+                        ++ [(nameOf name, show $ getLocA name, True) | name <- instanceNames]
         tags = filter (\tag -> case gtKind tag of
                          GtkModule -> False
                          GtkTypeClass -> False
@@ -189,12 +201,13 @@ familyExportsProp (ArbFamilyModule ast@(L _ HsModule {hsmodDecls, hsmodExports})
         actual = sort [(BSC.unpack gtTag, show gtSrcSpan, gtIsExported) | GhcTag {gtTag, gtSrcSpan, gtIsExported} <- tags]
         hasDefault = or [not (null tcdATDefs) | L _ (TyClD _ ClassDecl {tcdATDefs}) <- hsmodDecls]
         hiddenChildren = or [parent `elem` publicNames && any (`notElem` publicNames) children
-                            | (_, edges) <- declarations, (parent, children) <- edges]
+                            | (_, _, edges) <- declarations, (parent, children) <- edges]
     in checkCoverage
        $ cover 20 (any ((`elem` publicNames) . nameOf) names) "exported families or members"
        $ cover 10 (any ((`notElem` publicNames) . nameOf) names) "hidden families or members"
        $ cover 10 hasDefault "associated type defaults"
        $ cover 10 hiddenChildren "exported parents with hidden members"
+       $ cover 10 (any ((`notElem` publicNames) . nameOf) instanceNames) "instances of hidden families"
        $ actual === expected
   where
     constructorNames :: ConDecl GhcPs -> [LIdP GhcPs]

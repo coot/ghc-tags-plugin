@@ -10,6 +10,10 @@
   synonyms matched by patterns, in the same pass over the syntax tree.
   Generate at most one tag per name and line, and skip built-in syntax and
   types.
+- Mark instance members (methods, instance signatures, and associated type and
+  data instances) and top-level type and data family instances as exported,
+  whatever the export list says: instances are always exported. Constructors
+  and record fields of data instances still follow the export list.
 - `compareTags` sorts pattern matches after other tags with the same name;
   `addQualifiedTags` does not qualify them.
 - Extract term tags from pattern bindings, preserving each variable's location,

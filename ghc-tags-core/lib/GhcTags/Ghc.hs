@@ -578,28 +578,31 @@ hsDeclsToGhcTags filterBindings patternMatches mies decls =
                         Nothing  ->       map (fixTagKind (unLoc body)) (tyFamTags ++ dataFamTags ++ bindsTags ++ sigsTags) ++ bindsPatternMatchTags ++ tags
                         Just tag -> tag : map (fixTagKind (unLoc body)) (tyFamTags ++ dataFamTags ++ bindsTags ++ sigsTags) ++ bindsPatternMatchTags ++ tags
                 where
+                  -- Instances are exported regardless of an export list, and
+                  -- so are their members; constructors and record fields of
+                  -- data instances follow the export list.
+                  --
                   -- associated type and data type family instances
-                  dataFamTags = (mkDataFamInstDeclTag memberExported decLoc . unLoc) `concatMap` cid_datafam_insts
-                  tyFamTags   = (mkTyFamInstDeclTag memberExported decLoc . unLoc) `mapMaybe`  cid_tyfam_insts
+                  dataFamTags = (mkDataFamInstDeclTag decLoc . unLoc) `concatMap` cid_datafam_insts
+                  tyFamTags   = (mkTyFamInstDeclTag (const True) decLoc . unLoc) `mapMaybe`  cid_tyfam_insts
                   className = hsTypeTagName (hsSigTypeToHsType $ unLoc cid_poly_ty)
-                  memberExported name =
-                    maybe (isExported mies name) (isMemberExported mies name) className
                   -- pattern matches in methods are not instance members
                   (bindsTags, bindsPatternMatchTags) =
-                                (mkHsBindLRTags memberExported (signatureNames (map unLoc cid_sigs)) decLoc . unLoc)
+                                (mkHsBindLRTags (const True) (signatureNames (map unLoc cid_sigs)) decLoc . unLoc)
                                 `foldMap` cid_binds
-                  sigsTags    = (maybe (mkSigTags decLoc) (mkClsMemberTags decLoc) className . unLoc)
+                  sigsTags    = (map (\tag -> tag { gtIsExported = True })
+                                . maybe (mkSigTags decLoc) (mkClsMemberTags decLoc) className . unLoc)
                                 `concatMap` cid_sigs
 
                   fixTagKind body a = a { gtKind = GtkTypeClassInstanceMember body }
 
-          -- data family instance
+          -- data family instance; exported like class instances
           DataFamInstD { dfid_inst } ->
-            mkDataFamInstDeclTag (isExported mies) decLoc dfid_inst ++ tags
+            mkDataFamInstDeclTag decLoc dfid_inst ++ tags
 
-          -- type family instance
+          -- type family instance; exported like class instances
           TyFamInstD { tfid_inst } ->
-            case mkTyFamInstDeclTag (isExported mies) decLoc tfid_inst of
+            case mkTyFamInstDeclTag (const True) decLoc tfid_inst of
               Nothing  ->       tags
               Just tag -> tag : tags
 
@@ -944,10 +947,11 @@ hsDeclsToGhcTags filterBindings patternMatches mies decls =
         _                     -> Nothing
 
 
-    -- data family instance declaration
+    -- data family instance declaration; the instance is exported, its
+    -- constructors and record fields follow the export list
     --
-    mkDataFamInstDeclTag :: (Located RdrName -> Bool) -> SrcSpan -> DataFamInstDecl GhcPs -> GhcTags
-    mkDataFamInstDeclTag exported decLoc DataFamInstDecl { dfid_eqn } =
+    mkDataFamInstDeclTag :: SrcSpan -> DataFamInstDecl GhcPs -> GhcTags
+    mkDataFamInstDeclTag decLoc DataFamInstDecl { dfid_eqn } =
       case dfid_eqn of
 
         FamEqn { feqn_tycon, feqn_rhs } ->
@@ -956,7 +960,7 @@ hsDeclsToGhcTags filterBindings patternMatches mies decls =
                 (fixLoc decLoc $
                   mkGhcTag (unSpanAnn feqn_tycon)
                            (GtkDataTypeFamilyInstance (unLoc <$> dd_kindSig))
-                           (exported $ unSpanAnn feqn_tycon))
+                           True)
               : (mkConsTags decLoc (unSpanAnn feqn_tycon) . unLoc)
                 `concatMap` dd_cons
 
